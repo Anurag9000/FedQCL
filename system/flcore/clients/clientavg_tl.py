@@ -124,7 +124,9 @@ class clientAVG(Client):
         # ----------------------------------------------------------
         # 🔥 Load ALL task dataloaders ONCE at initialization
         # ----------------------------------------------------------
-        self.task_memory = {t: [] for t in range(self.num_tasks)}
+        # Keep only memories that have actually been populated. A client hidden
+        # at a task boundary can join later without earlier-task entries.
+        self.task_memories = {}
         self.task_memoryloaders = {t: None for t in range(self.num_tasks)}
 
         print(f"Loading data from client base for client{self.id}")
@@ -222,9 +224,15 @@ class clientAVG(Client):
         # --------------------------
         # Create DataLoader for memory
         # --------------------------
-        for t in range (task_id+1):
+        for t in range(task_id + 1):
+            memory = self.task_memories.get(t, [])
+            if not memory:
+                # The client may have missed this task's boundary while hidden.
+                # Leave the loader absent; replay code already skips None loaders.
+                self.task_memoryloaders[t] = None
+                continue
             self.task_memoryloaders[t] = DataLoader(
-                self.task_memories[t],
+                memory,
                 batch_size=self.memory_batch_size,
                 shuffle=True,
                 num_workers=0

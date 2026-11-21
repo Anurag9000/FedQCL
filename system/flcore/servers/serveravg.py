@@ -49,6 +49,17 @@ class FedAvg(Server):
 
 
     def select_clients(self):
+        self.hidden_client_id = None
+        if getattr(self.args, "hide_one_client", False):
+            # Choose independently per round, while keeping runs reproducible.
+            rng = random.Random(42 + self.current_round)
+            hidden_client = rng.choice(self.clients)
+            self.hidden_client_id = hidden_client.id
+            selected_clients = [c for c in self.clients if c.id != self.hidden_client_id]
+            self.round_dropout_clients[self.current_round] = [self.hidden_client_id]
+            print(f"Hidden client for round {self.current_round}: {self.hidden_client_id}")
+            return selected_clients, [hidden_client], list(self.clients)
+
         """Select a fraction of clients based on join_ratio and dropout_rate (deterministic)."""
         # Ensure randomness for this round is seeded BEFORE any random ops.
         # This makes selection deterministic for a given round.
@@ -90,6 +101,17 @@ class FedAvg(Server):
 
         print("Dropped clients for round", self.current_round, ":", self.round_dropout_clients[self.current_round])
         return selected_clients, dropped_clients, available_clients
+
+    def send_models(self):
+        """Broadcast the aggregate to all clients except this round's hidden client."""
+        hidden_id = getattr(self, "hidden_client_id", None) if getattr(self.args, "hide_one_client", False) else None
+        for client in self.clients:
+            if client.id == hidden_id:
+                continue
+            start_time = time.time()
+            client.set_parameters(self.global_model)
+            client.send_time_cost['num_rounds'] += 1
+            client.send_time_cost['total_cost'] += 2 * (time.time() - start_time)
 
 
     def ordered_dict_to_array(self, ordered_dict):

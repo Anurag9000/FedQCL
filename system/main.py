@@ -167,6 +167,8 @@ if __name__ == "__main__":
     parser.add_argument('-algo', "--algorithm", type=str, default="FedAvg")
     parser.add_argument('-jr', "--join_ratio", type=float, default=1.0,
                         help="Ratio of clients per round")
+    parser.add_argument('--hide_one_client', action='store_true',
+                        help="Exclude one randomly chosen client from training, upload, and broadcast each round")
     parser.add_argument('-rjr', "--random_join_ratio", type=bool, default=False,
                         help="Random ratio of clients per round")
     parser.add_argument('-nc', "--num_clients", type=int, default=20,

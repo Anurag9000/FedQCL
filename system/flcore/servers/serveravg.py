@@ -1,4 +1,6 @@
+import os
 import time
+import torch
 from threading import Thread, Lock
 import random
 import numpy as np
@@ -112,6 +114,14 @@ class FedAvg(Server):
             client.set_parameters(self.global_model)
             client.send_time_cost['num_rounds'] += 1
             client.send_time_cost['total_cost'] += 2 * (time.time() - start_time)
+
+    def save_global_model(self):
+        if not getattr(self.args, "hide_one_client", False):
+            return super().save_global_model()
+
+        model_path = os.path.join("Global_models", self.dataset, "one_client_hidden")
+        os.makedirs(model_path, exist_ok=True)
+        torch.save(self.global_model.state_dict(), os.path.join(model_path, self.algorithm + "_server.pt"))
 
 
     def ordered_dict_to_array(self, ordered_dict):

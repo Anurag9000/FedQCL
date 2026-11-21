@@ -52,15 +52,24 @@ class FedAvg(Server):
 
     def select_clients(self):
         self.hidden_client_id = None
-        if getattr(self.args, "hide_one_client", False):
-            # Choose independently per round, while keeping runs reproducible.
-            rng = random.Random(42 + self.current_round)
-            hidden_client = rng.choice(self.clients)
-            self.hidden_client_id = hidden_client.id
-            selected_clients = [c for c in self.clients if c.id != self.hidden_client_id]
-            self.round_dropout_clients[self.current_round] = [self.hidden_client_id]
-            print(f"Hidden client for round {self.current_round}: {self.hidden_client_id}")
-            return selected_clients, [hidden_client], list(self.clients)
+        requested_hidden = getattr(self.args, "hidden_clients_per_round", 0)
+        hidden_count = requested_hidden or (1 if getattr(self.args, "hide_one_client", False) else 0)
+        if hidden_count:
+            if hidden_count < 0 or hidden_count >= self.num_clients:
+                raise ValueError(
+                    f"hidden_clients_per_round must be between 1 and {self.num_clients - 1}; got {hidden_count}"
+                )
+            # Reproducible random client set, independently sampled each round.
+            rng = random.Random(42 + self.current_round + hidden_count * 1000003)
+            hidden_clients = rng.sample(self.clients, hidden_count)
+            self.hidden_client_ids = {client.id for client in hidden_clients}
+            self.hidden_client_id = next(iter(self.hidden_client_ids)) if hidden_count == 1 else None
+            selected_clients = [c for c in self.clients if c.id not in self.hidden_client_ids]
+            hidden_ids = sorted(self.hidden_client_ids)
+            self.round_dropout_clients[self.current_round] = hidden_ids
+            print(f"Hidden clients for round {self.current_round}: {hidden_ids}")
+            return selected_clients, hidden_clients, list(self.clients)
+        self.hidden_client_ids = set()
 
         """Select a fraction of clients based on join_ratio and dropout_rate (deterministic)."""
         # Ensure randomness for this round is seeded BEFORE any random ops.
@@ -105,10 +114,10 @@ class FedAvg(Server):
         return selected_clients, dropped_clients, available_clients
 
     def send_models(self):
-        """Broadcast the aggregate to all clients except this round's hidden client."""
-        hidden_id = getattr(self, "hidden_client_id", None) if getattr(self.args, "hide_one_client", False) else None
+        """Broadcast to every client except those hidden this round."""
+        hidden_ids = getattr(self, "hidden_client_ids", set())
         for client in self.clients:
-            if client.id == hidden_id:
+            if client.id in hidden_ids:
                 continue
             start_time = time.time()
             client.set_parameters(self.global_model)
@@ -116,10 +125,13 @@ class FedAvg(Server):
             client.send_time_cost['total_cost'] += 2 * (time.time() - start_time)
 
     def save_global_model(self):
-        if not getattr(self.args, "hide_one_client", False):
+        hidden_count = getattr(self.args, "hidden_clients_per_round", 0)
+        if hidden_count == 0 and getattr(self.args, "hide_one_client", False):
+            hidden_count = 1
+        if hidden_count == 0:
             return super().save_global_model()
 
-        model_path = os.path.join("Global_models", self.dataset, "one_client_hidden")
+        model_path = os.path.join("Global_models", self.dataset, f"{hidden_count}_clients_hidden")
         os.makedirs(model_path, exist_ok=True)
         torch.save(self.global_model.state_dict(), os.path.join(model_path, self.algorithm + "_server.pt"))
 

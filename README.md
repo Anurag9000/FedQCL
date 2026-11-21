@@ -84,6 +84,8 @@ The easiest way to run the method is via [run.sh](run.sh):
 ./run.sh cifar10          # Split-CIFAR-10:  5 tasks, V=20
 ./run.sh cifar100         # Split-CIFAR-100: 5 tasks, V=200
 ./run_cifar100_one_hidden.sh  # Same setup, one random client hidden each round
+./run_cifar100_two_hidden.sh  # Same setup, two random clients hidden each round
+./run_cifar100_three_hidden.sh # Same setup, three random clients hidden each round
 ./run.sh tinyimagenet     # Split-TinyImageNet: 10 tasks, V=220
 
 # override any hyperparameter via env vars or extra args, e.g.:

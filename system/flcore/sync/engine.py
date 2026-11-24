@@ -371,7 +371,8 @@ def run_research(args):
                     importance=(len(datasets[c.id]) if mode=="samples" else
                         1+sum(len(v) for v in c.task_memories.values()) if mode=="replay" else
                         aggregation_weights(a,clients,datasets,[c.id],complete_state)[0] if mode=="aggregation" and a.sync_weighting!="processed" else 1.)
-                    reports[c.id]=replace(reports[c.id],importance=max(1.,float(importance)))
+                    reports[c.id]=replace(reports[c.id],importance=max(1.,float(importance)),
+                        aggregation_weight=float(len(datasets[c.id])) if a.sync_policy=="mass_stratified" else reports[c.id].aggregation_weight)
                 from .wire import quantize_report
                 reports[c.id],probe_cost[c.id]["quantization_l2"]=quantize_report(reports[c.id],a.sync_wire_format)
                 if reports[c.id] is not None and a.sync_windowed:
@@ -470,6 +471,7 @@ def run_research(args):
                 raise RuntimeError("bootstrap incomplete")
             ctl.ingest_uploads(r,reports,accepted,uploaded)
             weights=aggregation_weights(a,clients,datasets,accepted,complete_state)
+            if a.sync_policy=="mass_stratified":weights=[ctl.decisions[-1]["multiplicity"][i] for i in accepted]
             if accepted:
                 model=aggregate(model,[clients[i] for i in accepted],weights,complete_state)
                 ctl.model_version+=1

@@ -59,6 +59,8 @@ class Controller:
         self.model_version = 0
         self.arrivals = []
         self.decisions = []
+        self.score_history=[]
+        self.delivered_history=[]
         self.impact_model=None
         if getattr(args,"sync_policy",None)=="adaptive":
             from pathlib import Path
@@ -100,7 +102,9 @@ class Controller:
             if observed or i in accepted:
                 key = (i,report.task,report.round if self.args.sync_bank_reference in ("history","prior") else -1)
                 self.bank[key] = report
+                if not any(x.id==report.id for x in self.delivered_history):self.delivered_history.append(report)
                 changed = True
+        self.delivered_history=[x for x in self.delivered_history if 0<=r-x.round<=max(2,self.args.sync_bank_age)]
         previous_size=len(self.bank)
         self.bank = {k:v for k,v in self.bank.items() if r-v.round<=self.args.sync_bank_age}
         if changed or len(self.bank)!=previous_size:
@@ -153,11 +157,16 @@ class Controller:
         last = {i:self.local[i].last_sync for i in ids}
         due = due_clients(ids,last,r,a.sync_max_skip)
         threshold = threshold_value(a.sync_threshold)
+        if getattr(a,"sync_dynamic_threshold",False) and self.score_history:
+            from statistics import median
+            threshold=threshold_value(max(.01,min(.99,median(self.score_history))))
+            for i in ids:self.transport.send(r,"observe","server",i,"DYNAMIC_THRESHOLD",{"threshold":float(threshold)})
         k = None if a.sync_mode=="threshold" else min(a.sync_k,len(ids))
         if hasattr(self,"count_schedule"):
             k=min(self.count_schedule[r],len(ids))
         scores, refs, assignments = {},{},{}
         impact=None
+        multiplicity=None
         versions = {i:self.local[i].bank_version for i in ids}
         # Every available client sees the common clock and roster under a declared
         # free common-control convention; all additional messages below are charged.
@@ -248,7 +257,11 @@ class Controller:
                 for i in ids:
                     self.transport.send(r,"observe","server",i,"HYBRID_SCORE_ROSTER",
                         {j:None if scores[j] is None else float(scores[j]) for j in ids})
-                elections=[tuple(ids) if r==0 else peer_filter(ids,last,due,views[i],scores,threshold,k,
+                from .advanced import joint_peer_select
+                if getattr(a,"sync_joint_hybrid",False):
+                    elections=[tuple(ids) if r==0 else joint_peer_select(ids,last,due,views[i],scores,threshold,k,a.sync_peer_solver,a.sync_novelty_weight) for i in ids]
+                else:
+                    elections=[tuple(ids) if r==0 else peer_filter(ids,last,due,views[i],scores,threshold,k,
                             a.sync_peer_solver,a.sync_peer_objective) for i in ids]
             for i,election in zip(ids,elections):
                 self.transport.send(r,'admission',i,'server','ELECTION_RESULT',{'selected':election})
@@ -256,8 +269,26 @@ class Controller:
                 raise RuntimeError("peer election disagreement")
             selected = elections[0] if elections else ()
             assignments = coverage(ids,selected,reports,threshold)
-        if r==0:
+        if policy=="mass_stratified":
+            from .baselines import mass_stratified
+            weights={}
+            for i in ids:
+                payload=self.transport.send(r,"observe",i,"server","CLIENT_MASS",{"mass":reports[i].aggregation_weight if reports[i] else 1.})
+                weights[i]=payload["mass"]
+            if r==0:selected=ids;multiplicity={i:1 for i in ids}
+            else:selected,multiplicity=mass_stratified(ids,weights,k,a.seed,r)
+        elif policy=="divfl_sketch":
+            from .baselines import gradient_facility
+            delivered={}
+            for i in ids:
+                msg=self.transport.send(r,"observe",i,"server","GRADIENT_PROBE",asdict(reports[i]) if reports[i] else None)
+                delivered[i]=Report(**{**msg,"labels":tuple(msg["labels"]),"counts":tuple(msg["counts"])}) if msg else None
+            selected=ids if r==0 else gradient_facility(ids,last,due,delivered,k)
+            for i in selected:self.transport.send(r,"admission","server",i,"ADMISSION_RESPONSE",{"admitted":True})
+        elif r==0:
             selected = ids
+        elif a.sync_policy=="block_random":
+            selected=baseline_select("random",ids,due,last,k,a.seed,(r-1)//a.sync_block_length)
         elif a.sync_policy in ("full","random","oldest"):
             selected = baseline_select(a.sync_policy,ids,due,last,len(ids) if k is None else k,a.seed,r)
         elif policy in ("cached","update_match","adaptive"):
@@ -265,7 +296,9 @@ class Controller:
             cached=cached_views(self.bank.values(),ids,task,r,a.sync_bank_age)
             if policy=="cached":
                 weights={i:x.importance if x is not None else 1. for i,x in cached.items()} if getattr(a,"sync_coverage_weight","equal")!="equal" else None
-                selected=select_cached(ids,last,due,cached,k,r,a.sync_bank_age,a.sync_peer_solver,weights)
+                from .advanced import observed_trends
+                trends=observed_trends(self.delivered_history,ids,task,r) if getattr(a,"sync_staleness_predict",False) else None
+                selected=select_cached(ids,last,due,cached,k,r,a.sync_bank_age,a.sync_peer_solver,weights,trends)
             elif policy=="update_match":
                 selected=update_match(ids,last,due,cached,k,r,a.sync_bank_age,a.sync_peer_solver,getattr(a,"sync_update_weighted",False))
             else:
@@ -288,11 +321,16 @@ class Controller:
                           "mandatory":i in due,"unknown":score is None})
                 if i in selected:
                     self.transport.send(r,"admission","server",i,"ADMISSION_RESPONSE",{"admitted":True})
+        if getattr(a,"sync_dynamic_threshold",False):
+            for i in ids:
+                msg=self.transport.send(r,"admission",i,"server","THRESHOLD_CALIBRATION_SCORE",{"score":None if scores.get(i) is None else float(scores[i])})
+                if msg["score"] is not None:self.score_history.append(msg["score"])
+            self.score_history=self.score_history[-max(1,a.sync_history*len(ids)):]
         for i in ids:
             if reports.get(i) is not None:
                 self.local[i].history.append(reports[i])
                 self.local[i].history = self.local[i].history[-a.sync_history:]
-        d = {"round":r,"available":ids,"due":due,"selected":selected,
+        d = {"round":r,"available":ids,"due":due,"selected":selected,"multiplicity":multiplicity,"threshold":float(threshold),
              "deadline_cap_violations":[i for i in due if i not in selected],
              "scores":{i:None if x is None else float(x) for i,x in scores.items()},
              "references":refs,"bank_versions":versions,"coverage":assignments,"impact":impact,

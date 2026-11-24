@@ -12,13 +12,14 @@ def cached_views(records, ids, task, round_id, max_age):
             out[x.client]=x
     return out
 
-def select_cached(ids,last,due,reports,k,round_id,max_age,solver="exact",weights=None):
+def select_cached(ids,last,due,reports,k,round_id,max_age,solver="exact",weights=None,trends=None):
     """Age-aware facility location. Stale evidence discounts similarity.
     Unknown omitted clients have priority over total distance.
     """
     ids=tuple(sorted(ids)); k=min(k,len(ids)); mandatory=tuple(due[:k])
     others=tuple(i for i in ids if i not in mandatory)
     weights=weights or dict.fromkeys(ids,1.)
+    trends=trends or {}
     def objective(s):
         missing=0; loss=0.
         for i in ids:
@@ -31,7 +32,7 @@ def select_cached(ids,last,due,reports,k,round_id,max_age,solver="exact",weights
                 y=reports.get(j); d=distance(x,y)
                 if d is not None:
                     age=max(round_id-x.round,round_id-y.round)
-                    uncertainty=min(1.,age/max(1,max_age+1))
+                    uncertainty=min(1.,age/max(1,max_age+1)+age*(trends.get(i,0.)+trends.get(j,0.)))
                     costs.append(float(d)+(1-float(d))*uncertainty)
             loss+=weights[i]*min(costs,default=1.)
         return (missing,loss,tuple(sorted(priority(i,last) for i in s)))
@@ -91,3 +92,29 @@ def peer_filter(ids,last,due,reports,scores,threshold,k,solver,objective):
     selected=peer_select(requests,last,mandatory,reports,threshold,min(k,len(requests)),solver,objective) if requests else ()
     remaining=sorted((i for i in ids if i not in selected),key=lambda i:(scores.get(i) is not None,-(scores.get(i) or 0),priority(i,last)))
     return tuple(sorted(tuple(selected)+tuple(remaining[:max(0,k-len(selected))])))
+
+def observed_trends(history,ids,task,r):
+    out={}
+    for i in ids:
+        rr=sorted((x for x in history if x.client==i and x.task==task and x.round<r),key=lambda x:x.round)
+        if len(rr)>=2:
+            a,b=rr[-2:];d=distance(a,b)
+            if d is not None and b.round>a.round:out[i]=float(d)/(b.round-a.round)
+    return out
+
+def joint_peer_select(ids,last,due,reports,scores,threshold,k,solver="exact",novelty_weight=1.):
+    ids=tuple(sorted(ids));k=min(k,len(ids));mandatory=tuple(due[:k])
+    candidates=[i for i in ids if i not in mandatory]
+    def cost(selected):
+        unknown=0;value=0.
+        for i in ids:
+            if i in selected:continue
+            d,_=nearest(i,selected,reports);score=scores.get(i)
+            unknown+=score is None or d is None
+            value+=(1. if d is None else float(d))+novelty_weight*(1. if score is None else float(score))
+        return unknown,value,tuple(sorted(priority(i,last) for i in selected))
+    if solver=="greedy":
+        selected=list(mandatory)
+        while len(selected)<k:selected.append(min((i for i in candidates if i not in selected),key=lambda i:cost(selected+[i])))
+        return tuple(sorted(selected))
+    return tuple(sorted(min((mandatory+x for x in combinations(candidates,k-len(mandatory))),key=cost)))

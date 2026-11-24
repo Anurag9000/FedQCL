@@ -1,7 +1,7 @@
 """Research flags; no effect on legacy execution."""
 def add_arguments(parser):
     p=parser
-    p.add_argument("--sync-policy", choices=["legacy","full","random","oldest","own","server","peer","cached","update_match","combined12","combined13","combined23","combined123","adaptive"], default="legacy")
+    p.add_argument("--sync-policy", choices=["legacy","full","random","oldest","own","server","peer","cached","update_match","combined12","combined13","combined23","combined123","adaptive","mass_stratified","divfl_sketch","block_random"], default="legacy")
     p.add_argument("--sync-mode",choices=["threshold","fixed"],default="fixed")
     p.add_argument("--sync-k",type=int,default=3)
     p.add_argument("--sync-threshold",type=float,default=.1)
@@ -64,6 +64,11 @@ def add_arguments(parser):
     p.add_argument("--sync-current-tolerance",type=float,default=.02)
     p.add_argument("--sync-past-tolerance",type=float,default=.02)
     p.add_argument("--sync-soft-budget",action="store_true")
+    p.add_argument("--sync-staleness-predict",action="store_true")
+    p.add_argument("--sync-dynamic-threshold",action="store_true")
+    p.add_argument("--sync-joint-hybrid",action="store_true")
+    p.add_argument("--sync-novelty-weight",type=float,default=1.)
+    p.add_argument("--sync-block-length",type=int,default=3)
     p.add_argument("--sync-combine-rule",choices=["union","intersection"],default="union")
     p.add_argument("--sync-native-space",action="store_true",help="Allow comparison across model versions for native gradient/update sketches; explicit ablation")
 
@@ -82,7 +87,17 @@ def validate(a):
         raise ValueError("invalid report window")
     if min(a.sync_max_skip,a.sync_bank_age)<0:
         raise ValueError("invalid age")
-    if a.sync_policy in ("random","oldest") and a.sync_mode!="fixed":
+    if a.sync_block_length<1 or a.sync_novelty_weight<0:raise ValueError("invalid scheduling setting")
+    if a.sync_dynamic_threshold and (a.sync_policy not in ("own","server","combined12") or a.sync_mode!="threshold"):
+        raise ValueError("dynamic threshold requires threshold novelty policy")
+    if a.sync_joint_hybrid and (a.sync_policy not in ("combined13","combined23","combined123") or a.sync_mode!="fixed"):
+        raise ValueError("joint hybrid requires fixed count peer hybrid")
+    if a.sync_staleness_predict and a.sync_policy!="cached":raise ValueError("trend prediction requires cached coverage")
+    if a.sync_policy=="divfl_sketch" and (a.sync_signal!="gradient" or not a.sync_native_space or a.sync_mode!="fixed"):
+        raise ValueError("gradient sketch comparator requires native gradient coordinates and fixed count")
+    if a.sync_policy=="mass_stratified" and (a.sync_mode!="fixed" or a.sync_posttrain or a.sync_failures or a.sync_counterfactual or a.sync_byte_cap or a.sync_campaign_byte_cap):
+        raise ValueError("stratified draws use multiplicity weights and require reliable pretraining")
+    if a.sync_policy in ("random","oldest","block_random") and a.sync_mode!="fixed":
         raise ValueError("random and oldest require fixed count")
     if a.auto_break or a.client_drop_rate or a.train_slow_rate or a.send_slow_rate or a.time_select or a.num_new_clients or a.privacy:
         raise ValueError("legacy dropout, early stopping, DP and new-client options not supported by research engine")

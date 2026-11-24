@@ -10,4 +10,4 @@ class Impact(unittest.TestCase):
         s,record=adaptive_select(ids,{},(),reports,1,0,10,5,model,1,.1,.1)
         self.assertFalse(record["tolerance_met"])
         s,record=adaptive_select(ids,{},(),reports,1,0,10,5,model,1,.1,.1,True)
-        self.assertEqual(s,(1,2));self.assertTrue(record["tolerance_met"])
+        self.assertEqual(s,(0,1,2));self.assertTrue(record["tolerance_met"])

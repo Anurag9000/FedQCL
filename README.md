@@ -172,3 +172,10 @@ python scripts/match_budgets.py
 
 The campaign is not empirically validated yet. Run a small end-to-end smoke
 test on the target environment before launching all training jobs.
+
+The expanded campaign includes cached/combined/adaptive selectors, binary reports,
+rich statistics, sparse and lossy peer variants, counterfactual continuations,
+rate matching and scaling to 10/20/50 clients. The exact matrix and remaining
+limitations are documented in the runbook above. Development uses validation;
+held-out adaptive jobs use separate partition seeds. Do not use --all before
+validating the full-data pilot.

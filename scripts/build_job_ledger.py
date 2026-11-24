@@ -130,6 +130,12 @@ def build(output):
         run("robustness",policy,regime,seed,flags=flags)
         if policy=="peer":
             run("robustness",policy,regime,seed,flags=flags+("--sync-fallback",))
+    # Verify unique IDs and topological dependency order before writing.
+    ordered=set()
+    for job in jobs:
+        if job["id"] in ordered or not set(job["dependencies"])<=ordered:
+            raise RuntimeError("invalid campaign dependency graph")
+        ordered.add(job["id"])
     output.parent.mkdir(parents=True,exist_ok=True)
     output.write_text("".join(json.dumps(job,sort_keys=True)+"\n" for job in jobs))
     counts={}

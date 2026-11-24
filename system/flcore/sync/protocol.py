@@ -300,7 +300,7 @@ class Controller:
                     arrived[i] = Report(**{**msg,"labels":tuple(msg["labels"]),"counts":tuple(msg["counts"])})
             self.ingest(arrived,r,accepted)
             if uses_bank:
-                recipients = self.ids if self.args.sync_delivery=="broadcast" else downloaded
+                recipients = self.decisions[-1]["available"] if self.args.sync_delivery=="broadcast" else downloaded
                 self.deliver_bank(r,recipients,"download")
         for i in downloaded:
             self.local[i].model_version = self.model_version

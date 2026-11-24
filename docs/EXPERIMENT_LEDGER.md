@@ -70,6 +70,16 @@ retries failed jobs without overwriting failed output. --device cpu is available
 diagnostics, not recommended for a complete campaign. The current runner is serial;
 run multiple independent ledgers only with separate result roots to avoid collisions.
 
+## Hard byte caps and development matching
+
+Pass --sync-byte-cap or --sync-campaign-byte-cap to main.py to enforce exact logical byte
+limits under reliable pre-training delivery. Round 0 must fit full participation. If even
+telemetry cannot fit, the run fails explicitly. The current campaign-cap policy spends up
+to the remaining budget and does not reserve future deadline capacity. Run
+python scripts/match_budgets.py after pilot and threshold sweeps to identify development
+threshold runs within a predeclared relative byte tolerance of random k=3. Unmatched
+runs are marked, not presented as equal-budget comparisons.
+
 ## Accounting and output
 
 Research outputs include configuration, provenance, round/decision records, logical
@@ -83,7 +93,7 @@ network bytes and the current histogram encoding is JSON rather than the propose
 
 The following are not executable jobs yet and must not be counted as completed:
 additional feature/prototype/gradient variants and Jacobian/Bayesian/spectral signals, centralized cached coverage,
-update-matching and impact prediction, adaptive hard byte caps, matched-byte threshold
+update-matching and impact prediction, learned adaptive budgets, confirmatory matched-byte threshold
 calibration, combined methods, sparse peer networks and imperfect peer reconciliation,
 multi-round counterfactual continuation, external baseline reproductions, held-out
 confirmatory seeds and larger cohorts. The current ledger is a concrete histogram campaign with initial richer-signal ablations, not proof that the conditional research extensions work.

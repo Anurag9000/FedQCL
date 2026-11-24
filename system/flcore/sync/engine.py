@@ -309,7 +309,18 @@ def run_research(args):
             for c in clients:
                 histogram,population[c.id]=ctl.observe(c.id,t,r,datasets[c.id])
                 reports[c.id],probe_cost[c.id]=extractor.before(c,datasets[c.id],histogram,t,r,ctl.local[c.id].model_version)
-            selected=ctl.decide(r,reports) if not a.sync_posttrain else ()
+            budget_record=None
+            if a.sync_byte_cap or a.sync_campaign_byte_cap:
+                from .budgets import choose_budgeted
+                spent=sum(x["serialized_bytes"] for x in ctl.transport.events)
+                remaining=a.sync_campaign_byte_cap-spent if a.sync_campaign_byte_cap else None
+                limit=a.sync_byte_cap or remaining
+                if remaining is not None:
+                    limit=min(limit,remaining)
+                before_bytes=spent
+                selected,budget_record=choose_budgeted(ctl,r,reports,payload,limit)
+            else:
+                selected=ctl.decide(r,reports) if not a.sync_posttrain else ()
             if a.sync_counterfactual and r in {0, rpt//2, rpt-1, rpt, 2*rpt-1, a.global_rounds}:
                 for u in range(t+1):
                     if u not in validation_loaders:
@@ -374,6 +385,11 @@ def run_research(args):
                     download(clients[i],model,complete_state)
                     downloaded.append(i)
             ctl.complete(r,reports,accepted,downloaded,uploaded)
+            if budget_record is not None:
+                actual_bytes=sum(x["serialized_bytes"] for x in ctl.transport.events)-before_bytes
+                budget_record["actual_bytes"]=actual_bytes
+                if actual_bytes>budget_record["limit"]:
+                    raise RuntimeError("byte-cap invariant violated")
             if r==0 and len(downloaded)!=a.num_clients:
                 raise RuntimeError("bootstrap download incomplete")
             boundary=(r+1)%rpt==0
@@ -389,7 +405,7 @@ def run_research(args):
             rounds.append({"round":r,"task":t,"selected":list(selected),"trained":trained,
                            "uploaded":uploaded,"accepted":list(accepted),"downloaded":downloaded,
                            "start_versions":starts,"version":ctl.model_version,"outcomes":outcomes,
-                           "no_aggregation":not accepted,"population_histograms":population,"probe_cost":probe_cost,
+                           "no_aggregation":not accepted,"population_histograms":population,"probe_cost":probe_cost,"budget":budget_record,
                            "memory_missed":[i for i in range(a.num_clients) if boundary and t not in clients[i].task_memories],
                            "reference_missed":[i for i in range(a.num_clients) if r>0 and r%rpt==0 and i not in trained],
                            "queues":{c.id:c.Q.copy() for c in clients},

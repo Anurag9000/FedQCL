@@ -32,6 +32,8 @@ def add_arguments(parser):
     p.add_argument("--sync-failures",help="JSON mapping round to upload/reject/download client IDs")
     p.add_argument("--sync-signal",choices=["histogram","replay","feature","gradient","update"],default="histogram")
     p.add_argument("--sync-sketch-dim",type=int,default=128)
+    p.add_argument("--sync-byte-cap",type=int,default=0,help="Hard logical bytes per round including bootstrap")
+    p.add_argument("--sync-campaign-byte-cap",type=int,default=0,help="Hard total logical bytes; exhausted budget is reported infeasible")
     p.add_argument("--sync-native-space",action="store_true",help="Allow comparison across model versions for native gradient/update sketches; explicit ablation")
 
 def validate(a):
@@ -53,6 +55,10 @@ def validate(a):
         raise ValueError("random and oldest require fixed count")
     if a.auto_break or a.client_drop_rate or a.train_slow_rate or a.send_slow_rate or a.time_select or a.num_new_clients or a.privacy:
         raise ValueError("legacy dropout, early stopping, DP and new-client options not supported by research engine")
+    if min(a.sync_byte_cap,a.sync_campaign_byte_cap)<0:
+        raise ValueError("invalid byte cap")
+    if (a.sync_byte_cap or a.sync_campaign_byte_cap) and (a.sync_posttrain or a.sync_failures):
+        raise ValueError("hard caps currently require reliable pre-training delivery")
     if a.sync_sketch_dim<1:
         raise ValueError("invalid sketch dimension")
     if a.sync_signal=="update" and not a.sync_posttrain:

@@ -177,7 +177,7 @@ class Controller:
         if r==0:
             selected = ids
         elif a.sync_policy in ("full","random","oldest"):
-            selected = baseline_select(a.sync_policy,ids,due,last,k or len(ids),a.seed,r)
+            selected = baseline_select(a.sync_policy,ids,due,last,len(ids) if k is None else k,a.seed,r)
         elif a.sync_policy in ("own","server"):
             selected = novelty_admit(ids,last,due,scores,threshold,k)
         if a.sync_policy in ("own","server") and r!=0:

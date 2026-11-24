@@ -97,42 +97,119 @@ def desired_profiles(matrix,rows,cols,seed,floor=0):
         raise RuntimeError("solver did not find feasible profiles; not proof of infeasibility")
     return best.x.reshape(n,c)
 
+def sha_file(path):
+    digest=hashlib.sha256()
+    with path.open("rb") as file:
+        for block in iter(lambda:file.read(1048576),b""):digest.update(block)
+    return digest.hexdigest()
+
+def load_sources(args):
+    from types import SimpleNamespace
+    if args.dataset in ("cifar10","cifar100"):
+        from torchvision.datasets import CIFAR10,CIFAR100
+        cls=CIFAR10 if args.dataset=="cifar10" else CIFAR100
+        normalization=([.4914,.4822,.4465],[.2470,.2435,.2616]) if args.dataset=="cifar10" else ([.5071,.4867,.4408],[.2675,.2565,.2761])
+        return cls(args.raw_root,train=True,download=args.download),cls(args.raw_root,train=False,download=args.download),5,2 if args.dataset=="cifar10" else 20,normalization
+    root=Path(args.tiny_root or args.raw_root)
+    train=root/"train";val=root/"val"
+    if not train.is_dir() or not (val/"val_annotations.txt").is_file():
+        raise FileNotFoundError("TinyImageNet requires an extracted official tiny-imagenet-200 directory")
+    classes=sorted(p.name for p in train.iterdir() if p.is_dir())
+    if len(classes)!=200:raise ValueError("expected 200 TinyImageNet classes")
+    index={name:i for i,name in enumerate(classes)}
+    tx=[];ty=[]
+    for name in classes:
+        for image in sorted((train/name/"images").glob("*.JPEG")):
+            tx.append(image);ty.append(index[name])
+    vx=[];vy=[]
+    for line in sorted((val/"val_annotations.txt").read_text().splitlines()):
+        file,label,*_=line.split()
+        vx.append(val/"images"/file);vy.append(index[label])
+    if len(tx)!=100000 or len(vx)!=10000:raise ValueError("TinyImageNet inventory mismatch")
+    return SimpleNamespace(data=tx,targets=ty),SimpleNamespace(data=vx,targets=vy),10,20,([.4802,.4481,.3975],[.2770,.2691,.2821])
+
+def read_pixels(source,ids):
+    if isinstance(source,np.ndarray):return source[ids]
+    from PIL import Image
+    out=[]
+    for i in ids:
+        with Image.open(source[int(i)]) as image:
+            out.append(np.asarray(image.convert("RGB").resize((64,64)),dtype=np.uint8))
+    return np.stack(out) if out else np.empty((0,64,64,3),np.uint8)
+
+def client_rows(total,n,skew):
+    if skew<0 or not np.isfinite(skew):raise ValueError("invalid workload skew")
+    p=np.exp(np.linspace(-skew,0,n));p/=p.sum()
+    ideal=total*p;rows=np.floor(ideal).astype(int)
+    for i in np.argsort(-(ideal-rows),kind="stable")[:total-rows.sum()]:rows[i]+=1
+    return rows
+
+def window_assignment(labels,classes,windows,pattern,i,rng,custom=None):
+    labels=np.asarray(labels,dtype=int)
+    cols=np.bincount(labels,minlength=classes)
+    rows=client_rows(len(labels),windows,0)
+    if not len(labels):return np.zeros(0,dtype=int),np.zeros((windows,classes),dtype=int)
+    if custom is not None:target=np.asarray(custom,dtype=float)
+    elif pattern=="static":
+        target=np.repeat((cols/cols.sum())[None,:],windows,axis=0)
+    else:
+        base=np.linspace(-1,1,classes);target=[]
+        for w in range(windows):
+            x=w/max(1,windows-1)
+            phase=(1 if x>=.5 else -1) if pattern=="abrupt" else (2*x-1) if pattern=="gradual" else np.cos(2*np.pi*x) if pattern=="recurring" else (1 if x>=(i%5+1)/6 else -1)
+            p=np.exp(3*phase*base)*(cols>0);target.append(p/p.sum())
+        target=np.asarray(target)
+    counts=allocate(rows,cols,target,0)
+    out=np.empty(len(labels),dtype=int)
+    for j in range(classes):
+        indices=rng.permutation(np.flatnonzero(labels==j));offset=0
+        for w in range(windows):
+            out[indices[offset:offset+counts[w,j]]]=w;offset+=counts[w,j]
+    return out,counts
+
 def write_shard(root,task,split,i,x,y,ids,windows):
     path=root/f"task_{task}"/split
     path.mkdir(parents=True,exist_ok=True)
-    np.savez_compressed(path/f"{i}.npz",data={"x":x,"y":y,"ids":ids,"window":windows})
+    file=path/f"{i}.npz"
+    np.savez_compressed(file,data={"x":x,"y":y,"ids":ids,"window":windows})
+    return str(file.relative_to(root)),sha_file(file)
 
 def generate(args):
-    from torchvision.datasets import CIFAR100
-    raw=CIFAR100(args.raw_root,train=True,download=args.download)
-    test=CIFAR100(args.raw_root,train=False,download=args.download)
+    raw,test,tasks,c,normalization=load_sources(args)
+    mean,std=normalization
     root=Path(args.output).resolve()
     if (root/"manifest.json").exists():
         raise FileExistsError("dataset already generated")
     root.mkdir(parents=True,exist_ok=True)
     rng=np.random.default_rng(args.seed)
-    n=args.clients; c=20
-    if n<1 or args.windows<1 or args.validation_per_class<1 or args.validation_per_class>=500:
+    n=args.clients
+    if n<1 or args.windows<1 or args.validation_per_class<1 or args.validation_per_class>=min(np.bincount(raw.targets)):
         raise ValueError("invalid dimensions")
     train_y=np.asarray(raw.targets); test_y=np.asarray(test.targets)
     # Match CIFAR-100 normalization used in standard preprocessing; stored float32 CHW.
     def images(data,ids):
-        x=data[ids].astype(np.float32).transpose(0,3,1,2)/255
-        return (x-np.array([.5071,.4867,.4408],np.float32)[None,:,None,None])/np.array([.2675,.2565,.2761],np.float32)[None,:,None,None]
-    manifest={"seed":args.seed,"regime":args.regime,"clients":n,"tasks":5,
-              "windows":args.windows,"validation_per_class":args.validation_per_class,
-              "normalization":{"mean":[.5071,.4867,.4408],"std":[.2675,.2565,.2761]},
-              "tasks_data":[]}
+        x=read_pixels(data,ids).astype(np.float32).transpose(0,3,1,2)/255
+        return (x-np.array(mean,np.float32)[None,:,None,None])/np.array(std,np.float32)[None,:,None,None]
+    manifest={"schema":2,"dataset":args.dataset,"seed":args.seed,"regime":args.regime,"clients":n,"tasks":tasks,"classes_per_task":c,
+              "train_inventory":len(raw.targets),"test_inventory":len(test.targets),
+              "windows":args.windows,"validation_per_class":args.validation_per_class,"workload_skew":args.workload_skew,
+              "drift_pattern":args.drift_pattern,"conditional_domain":args.conditional_domain,
+              "normalization":{"mean":mean,"std":std},"shards":{}, "tasks_data":[]}
     seen=set()
-    for t in range(5):
+    for t in range(tasks):
         labels=range(t*c,(t+1)*c)
         train_ids=[]; dev_ids=[]
         for y in labels:
-            perm=rng.permutation(np.flatnonzero(train_y==y))
+            perm=np.random.default_rng(np.random.SeedSequence([args.seed,y,1])).permutation(np.flatnonzero(train_y==y))
             dev_ids.append(perm[:args.validation_per_class])
             train_ids.append(perm[args.validation_per_class:])
         cols=np.array([len(x) for x in train_ids])
-        rows=np.full(n,cols.sum()//n); rows[:cols.sum()%n]+=1
+        rows=client_rows(int(cols.sum()),n,args.workload_skew)
+        if args.client_counts:
+            custom=np.asarray(json.loads(Path(args.client_counts).read_text()))
+            rows=custom[t] if custom.ndim==2 else custom
+            if rows.shape!=(n,) or not np.issubdtype(rows.dtype,np.integer) or rows.sum()!=cols.sum() or np.any(rows<c*args.floor):
+                raise ValueError("invalid client workload totals")
         target=profiles(args.regime,n,c,t,rng)
         if args.profiles:
             requested=np.asarray(json.loads(Path(args.profiles).read_text()),dtype=float)
@@ -140,9 +217,12 @@ def generate(args):
         requested_similarity=similarity(target)
         if args.similarity:
             requested_similarity=np.asarray(json.loads(Path(args.similarity).read_text()))
+            if requested_similarity.ndim==3:requested_similarity=requested_similarity[t]
             target=desired_profiles(requested_similarity,rows,cols,args.seed+t,args.floor)
         if args.counts:
-            counts=np.asarray(json.loads(Path(args.counts).read_text()),dtype=int)
+            counts=np.asarray(json.loads(Path(args.counts).read_text()))
+            if counts.ndim==3:counts=counts[t]
+            if not np.issubdtype(counts.dtype,np.integer):raise ValueError("class counts must be integer")
             if counts.shape!=(n,c) or np.any(counts<args.floor) or not np.array_equal(counts.sum(0),cols) or not np.array_equal(counts.sum(1),rows):
                 raise ValueError("invalid exact counts")
         else:
@@ -151,28 +231,32 @@ def generate(args):
         for j,ids in enumerate(train_ids):
             if args.regime=="conditional":
                 # Rank within-class samples by brightness before assigning disjoint domains.
-                ids=ids[np.argsort(raw.data[ids].mean((1,2,3)),kind="stable")]
+                pixels=read_pixels(raw.data,ids).astype(np.float32)
+                score=pixels.mean((1,2,3)) if args.conditional_domain=="brightness" else (pixels[:,:,:,0]-pixels[:,:,:,2]).mean((1,2)) if args.conditional_domain=="color" else pixels.std((1,2,3))
+                ids=ids[np.argsort(score,kind="stable")]
             cursor=0
             for i in range(n):
                 assigned[i].extend(ids[cursor:cursor+counts[i,j]].tolist())
                 cursor+=counts[i,j]
+        window_counts=[]
         for i,items in enumerate(assigned):
             ids=np.array(items,dtype=int)
             if seen.intersection(ids.tolist()) or len(set(ids.tolist()))!=len(ids):
                 raise AssertionError("duplicate train allocation")
             seen.update(ids.tolist())
-            if args.regime=="drift":
-                # Deterministic gradual class-order change across disjoint windows.
-                ids=ids[np.argsort((train_y[ids]-t*c)+rng.uniform(0,4,len(ids)),kind="stable")]
-            else:
-                ids=rng.permutation(ids)
-            windows=np.empty(len(ids),dtype=int)
-            for w,index in enumerate(np.array_split(np.arange(len(ids)),args.windows)):
-                windows[index]=w
-            write_shard(root,t,"train",i,images(raw.data,ids),train_y[ids],ids,windows)
+            ids=rng.permutation(ids)
+            pattern=args.drift_pattern or ("gradual" if args.regime=="drift" else "static")
+            custom=None
+            if args.window_profiles:
+                requested=np.asarray(json.loads(Path(args.window_profiles).read_text()))
+                custom=requested[t,i] if requested.ndim==4 else requested[i] if requested.ndim==3 else requested
+            windows,wcounts=window_assignment(train_y[ids]-t*c,c,args.windows,pattern,i,rng,custom)
+            window_counts.append(wcounts.tolist())
+            file,digest=write_shard(root,t,"train",i,images(raw.data,ids),train_y[ids],ids,windows)
+            manifest["shards"][file]=digest
         for split,source,yarray,groups in [
             ("validation",raw.data,train_y,dev_ids),
-            ("test",test.data,test_y,[rng.permutation(np.flatnonzero(test_y==y)) for y in labels])]:
+            ("test",test.data,test_y,[np.random.default_rng(np.random.SeedSequence([args.seed,y,2])).permutation(np.flatnonzero(test_y==y)) for y in labels])]:
             buckets=[[] for _ in range(n)]
             for ids in groups:
                 for i,piece in enumerate(np.array_split(ids,n)):
@@ -183,24 +267,32 @@ def generate(args):
                     if seen.intersection(items):
                         raise AssertionError("train/validation overlap")
                     seen.update(items)
-                write_shard(root,t,split,i,images(source,ids),yarray[ids],ids,np.zeros(len(ids),dtype=int))
+                file,digest=write_shard(root,t,split,i,images(source,ids),yarray[ids],ids,np.zeros(len(ids),dtype=int))
+                manifest["shards"][file]=digest
         realized=counts/rows[:,None]
         residual=float(np.max(np.abs(similarity(realized)-requested_similarity)))
         if args.similarity_tolerance is not None and residual>args.similarity_tolerance:
             raise RuntimeError(f"task {t}: realized similarity residual {residual} exceeds tolerance; infeasibility not established")
-        manifest["tasks_data"].append({"task":t,"counts":counts.tolist(),"requested_profiles":target.tolist(),
+        manifest["tasks_data"].append({"task":t,"counts":counts.tolist(),"window_counts":window_counts,"requested_profiles":target.tolist(),
             "realized_profiles":realized.tolist(),"requested_similarity":requested_similarity.tolist(),
             "realized_similarity":similarity(realized).tolist(),
             "similarity_max_abs_error":float(np.max(np.abs(similarity(realized)-requested_similarity)))})
     if len(seen)!=len(raw.targets):
         raise AssertionError("incomplete train inventory")
     manifest["manifest_id"]=hashlib.sha256(json.dumps(manifest,sort_keys=True).encode()).hexdigest()
-    (root/"manifest.json").write_text(json.dumps(manifest,indent=2))
+    temporary=root/"manifest.json.tmp";temporary.write_text(json.dumps(manifest,indent=2));temporary.replace(root/"manifest.json")
     print(manifest["manifest_id"])
 
 if __name__=="__main__":
     p=argparse.ArgumentParser()
     p.add_argument("--output",required=True)
+    p.add_argument("--dataset",choices=["cifar10","cifar100","tinyimagenet"],default="cifar100")
+    p.add_argument("--tiny-root")
+    p.add_argument("--workload-skew",type=float,default=0.)
+    p.add_argument("--client-counts",help="Exact client row totals or per-task row totals")
+    p.add_argument("--drift-pattern",choices=["static","abrupt","gradual","recurring","asynchronous"])
+    p.add_argument("--window-profiles",help="Window class profiles [task,client,window,class] or broadcast variant")
+    p.add_argument("--conditional-domain",choices=["brightness","color","contrast"],default="brightness")
     p.add_argument("--raw-root",default="data/raw")
     p.add_argument("--download",action="store_true")
     p.add_argument("--seed",type=int,default=42)

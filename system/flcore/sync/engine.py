@@ -274,7 +274,7 @@ def run_research(args):
     dataset_root=Path(a.dataset).resolve() if Path(a.dataset).is_absolute() else (Path('../dataset')/a.dataset).resolve()
     manifest_path=dataset_root/'manifest.json'
     manifest=json.loads(manifest_path.read_text()) if manifest_path.exists() else None
-    if manifest and (manifest['clients']!=a.num_clients or manifest['tasks']!=a.tasks or (a.sync_windowed and manifest['windows']!=(a.global_rounds+1)//a.tasks)):
+    if manifest and (manifest['clients']!=a.num_clients or manifest['tasks']!=a.tasks or manifest.get('classes_per_task',a.num_classes)!=a.num_classes or (a.sync_windowed and manifest['windows']!=(a.global_rounds+1)//a.tasks)):
         raise ValueError('dataset manifest does not match workload')
     if a.sync_windowed and not manifest:
         raise ValueError('windowed runs require dataset manifest')

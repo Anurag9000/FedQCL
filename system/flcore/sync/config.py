@@ -1,0 +1,51 @@
+"""Research flags; no effect on legacy execution."""
+def add_arguments(parser):
+    p=parser
+    p.add_argument("--sync-policy", choices=["legacy","full","random","oldest","own","server","peer"], default="legacy")
+    p.add_argument("--sync-mode",choices=["threshold","fixed"],default="fixed")
+    p.add_argument("--sync-k",type=int,default=3)
+    p.add_argument("--sync-threshold",type=float,default=.1)
+    p.add_argument("--sync-max-skip",type=int,default=4)
+    p.add_argument("--sync-observation-size",type=int,default=128)
+    p.add_argument("--sync-min-observation",type=int,default=32)
+    p.add_argument("--sync-history",type=int,default=5)
+    p.add_argument("--sync-local-reference",choices=["last_sync","previous","window"],default="last_sync")
+    p.add_argument("--sync-bank-reference",choices=["latest","prior","mean","weighted_mean","envelope","history"],default="latest")
+    p.add_argument("--sync-bank-age",type=int,default=5)
+    p.add_argument("--sync-include-self",action="store_true")
+    p.add_argument("--sync-delivery",choices=["piggyback","broadcast","telemetry"],default="piggyback")
+    p.add_argument("--sync-peer-transport",choices=["direct","relay"],default="direct")
+    p.add_argument("--sync-peer-solver",choices=["exact","greedy"],default="exact")
+    p.add_argument("--sync-peer-objective",choices=["distance","coverage"],default="distance")
+    p.add_argument("--sync-output",default="research_results")
+    p.add_argument("--sync-refresh",action="store_true")
+    p.add_argument("--sync-local-capture",action="store_true")
+    p.add_argument("--sync-balanced-sampler",action="store_true")
+    p.add_argument("--sync-aggregation",choices=["legacy","complete"],default="legacy")
+    p.add_argument("--sync-resume",action="store_true")
+    p.add_argument("--sync-checkpoint",action="store_true")
+    p.add_argument("--sync-counterfactual",action="store_true")
+    p.add_argument("--sync-er",action="store_true")
+    p.add_argument("--sync-windowed",action="store_true")
+
+def validate(a):
+    if a.sync_policy=="legacy":
+        return
+    if a.hide_one_client or a.hidden_clients_per_round:
+        raise ValueError("research policies and legacy hiding are mutually exclusive")
+    if a.model!="resnet18" or a.algorithm!="FedAvg" or a.times!=1 or a.prev!=0:
+        raise ValueError("research requires one ResNet18 FedAvg run")
+    if a.tasks<1 or a.global_rounds<0 or (a.global_rounds+1)%a.tasks or a.global_rounds+1<a.tasks:
+        raise ValueError("invalid round schedule")
+    if not 1<=a.sync_k<=a.num_clients or not 0<=a.sync_threshold<=1:
+        raise ValueError("invalid synchronization budget or threshold")
+    if not 1<=a.sync_min_observation<=a.sync_observation_size or a.sync_history<1:
+        raise ValueError("invalid report window")
+    if min(a.sync_max_skip,a.sync_bank_age)<0:
+        raise ValueError("invalid age")
+    if a.sync_policy in ("random","oldest") and a.sync_mode!="fixed":
+        raise ValueError("random and oldest require fixed count")
+    if a.auto_break or a.client_drop_rate or a.train_slow_rate or a.send_slow_rate or a.time_select or a.num_new_clients or a.privacy:
+        raise ValueError("legacy dropout, early stopping, DP and new-client options not supported by research engine")
+    if a.sync_resume and not a.sync_checkpoint:
+        raise ValueError("resume requires checkpoints")

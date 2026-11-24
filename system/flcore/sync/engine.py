@@ -273,7 +273,7 @@ def run_research(args):
     if a.sync_counterfactual and not manifest:
         raise ValueError('counterfactual validation requires controlled dataset manifest')
     config['dataset_manifest_id']=manifest['manifest_id'] if manifest else None
-    for field in ('sync_impact_model','sync_count_schedule','sync_failures'):
+    for field in ('sync_impact_model','sync_count_schedule','sync_failures','sync_byte_schedule'):
         path=getattr(a,field,None)
         if path:config[field+'_sha256']=hashlib.sha256(Path(path).read_bytes()).hexdigest()
     try:
@@ -305,6 +305,11 @@ def run_research(args):
         n=len(read_client_data(task0,i,True))
         clients.append(ResearchClient(a,id=i,train_samples=n,test_samples=0,train_slow=False,send_slow=False))
     ctl=Controller(a,range(a.num_clients))
+    byte_schedule=None
+    if a.sync_byte_schedule:
+        byte_schedule=json.loads(Path(a.sync_byte_schedule).read_text())
+        if len(byte_schedule)!=a.global_rounds+1 or any(type(v) is not int or v<0 for v in byte_schedule):
+            raise ValueError("invalid byte schedule")
     if a.sync_count_schedule:
         counts=json.loads(Path(a.sync_count_schedule).read_text())
         if len(counts)!=a.global_rounds+1 or counts[0]!=a.num_clients or any(type(k) is not int or not 0<=k<=a.num_clients for k in counts):
@@ -359,18 +364,21 @@ def run_research(args):
                         1+sum(len(v) for v in c.task_memories.values()) if mode=="replay" else
                         aggregation_weights(a,clients,datasets,[c.id],complete_state)[0] if mode=="aggregation" and a.sync_weighting!="processed" else 1.)
                     reports[c.id]=replace(reports[c.id],importance=max(1.,float(importance)))
+                from .wire import quantize_report
+                reports[c.id],probe_cost[c.id]["quantization_l2"]=quantize_report(reports[c.id],a.sync_wire_format)
                 if reports[c.id] is not None and a.sync_windowed:
                     reports[c.id]=replace(reports[c.id],window=f"task{t}:window{r%rpt}")
             budget_record=None
-            if a.sync_byte_cap or a.sync_campaign_byte_cap:
+            if a.sync_byte_cap or a.sync_campaign_byte_cap or byte_schedule is not None:
                 from .budgets import choose_budgeted
                 spent=sum(x["serialized_bytes"] for x in ctl.transport.events)
                 remaining=a.sync_campaign_byte_cap-spent if a.sync_campaign_byte_cap else None
-                limit=a.sync_byte_cap or remaining
+                cap=(a.sync_bootstrap_byte_cap or a.sync_byte_cap) if r==0 else a.sync_byte_cap
+                limit=byte_schedule[r] if byte_schedule is not None else cap or remaining
                 if remaining is not None:
                     limit=min(limit,remaining)
                 before_bytes=spent
-                selected,budget_record=choose_budgeted(ctl,r,reports,payload,limit)
+                selected,budget_record=choose_budgeted(ctl,r,reports,payload,limit,remaining if a.sync_budget_reserve else None)
             else:
                 selected=ctl.decide(r,reports,available) if not a.sync_posttrain else ()
             if a.sync_counterfactual and r in {0, rpt//2, rpt-1, rpt, 2*rpt-1, a.global_rounds}:
@@ -405,6 +413,7 @@ def run_research(args):
                 trained.append(i)
                 if a.sync_signal=="update":
                     reports[i],probe_cost[i]=extractor.after(c,update_starts.pop(i),t,r,starts[i])
+                    reports[i],probe_cost[i]["quantization_l2"]=quantize_report(reports[i],a.sync_wire_format)
                     if a.sync_update_weighted:
                         reports[i]=replace(reports[i],aggregation_weight=float(aggregation_weights(a,clients,datasets,[i],complete_state)[0]))
                     if a.sync_windowed:

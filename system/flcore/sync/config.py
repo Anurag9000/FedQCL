@@ -45,8 +45,11 @@ def add_arguments(parser):
     p.add_argument("--sync-histogram-distance",choices=["tv","js","hellinger"],default="tv")
     p.add_argument("--sync-sketch-dim",type=int,default=128)
     p.add_argument("--sync-byte-cap",type=int,default=0,help="Hard logical bytes per round including bootstrap")
+    p.add_argument("--sync-bootstrap-byte-cap",type=int,default=0)
+    p.add_argument("--sync-budget-reserve",action="store_true",help="Reserve a lower bound on future deadline-required model transfers")
+    p.add_argument("--sync-byte-schedule",help="Offline per-round source byte caps for matched-budget random baseline")
     p.add_argument("--sync-campaign-byte-cap",type=int,default=0,help="Hard total logical bytes; exhausted budget is reported infeasible")
-    p.add_argument("--sync-wire-format",choices=["binary","json"],default="binary")
+    p.add_argument("--sync-wire-format",choices=["binary","json","fp16","int8"],default="binary")
     p.add_argument("--sync-count-schedule",help="JSON list of predeclared participant counts for random baseline")
     p.add_argument("--sync-counterfactual-horizon",type=int,default=1)
     p.add_argument("--sync-verify-branches",action="store_true")
@@ -77,9 +80,15 @@ def validate(a):
         raise ValueError("random and oldest require fixed count")
     if a.auto_break or a.client_drop_rate or a.train_slow_rate or a.send_slow_rate or a.time_select or a.num_new_clients or a.privacy:
         raise ValueError("legacy dropout, early stopping, DP and new-client options not supported by research engine")
-    if min(a.sync_byte_cap,a.sync_campaign_byte_cap)<0:
+    if min(a.sync_byte_cap,a.sync_campaign_byte_cap,a.sync_bootstrap_byte_cap)<0:
         raise ValueError("invalid byte cap")
-    if (a.sync_byte_cap or a.sync_campaign_byte_cap) and (a.sync_posttrain or a.sync_failures or a.sync_policy=="adaptive"):
+    if a.sync_budget_reserve and not a.sync_campaign_byte_cap:
+        raise ValueError("future reserve requires campaign byte cap")
+    if a.sync_bootstrap_byte_cap and not (a.sync_byte_cap or a.sync_campaign_byte_cap):
+        raise ValueError("bootstrap override requires a byte cap")
+    if a.sync_byte_schedule and (a.sync_policy!="random" or a.sync_count_schedule or a.sync_byte_cap or a.sync_campaign_byte_cap):
+        raise ValueError("byte schedule requires standalone random baseline")
+    if (a.sync_byte_cap or a.sync_campaign_byte_cap or a.sync_byte_schedule) and (a.sync_posttrain or a.sync_failures or a.sync_policy=="update_match" or a.sync_mode!="fixed"):
         raise ValueError("hard caps currently require reliable pre-training delivery")
     if a.memory_size<0 or a.batch_size<1 or a.memory_batch_size<1 or a.local_epochs<1:
         raise ValueError("invalid local workload")
@@ -109,6 +118,10 @@ def validate(a):
         raise ValueError("cached update matching requires update signal, native coordinates, and pre-training selection")
     if a.sync_signal=="update" and not a.sync_posttrain and a.sync_policy!="update_match":
         raise ValueError("update statistic requires post-training selection")
+    if a.sync_wire_format in ("fp16","int8") and a.sync_signal=="multichannel":
+        raise ValueError("multichannel quantization requires block-specific scales")
+    if a.sync_coverage_weight=="aggregation" and a.sync_weighting=="processed":
+        raise ValueError("processed aggregation weight is not available at pre-training admission")
     if a.sync_signal=="multichannel" and (a.sync_local_reference=="window" or a.sync_bank_reference in ("mean","weighted_mean","envelope")):
         raise ValueError("multichannel reports require non-pooled references")
     if a.sync_update_weighted and a.sync_policy!="update_match":

@@ -22,6 +22,7 @@ class Report:
     histogram_distance: str = "tv"
     importance: float = 1.0
     aggregation_weight: float = 1.0
+    quant_scale: float = 0.0
 
     @property
     def id(self):

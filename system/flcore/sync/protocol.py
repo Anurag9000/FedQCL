@@ -30,11 +30,11 @@ class Transport:
     def send(self, r, phase, sender, receiver, kind, payload, tensor_bytes=0, delivered=True):
         envelope = {"round":r,"phase":phase,"sender":sender,"receiver":receiver,
                     "kind":kind,"payload":payload}
-        if self.wire_format=="binary":
+        if self.wire_format in ("binary","fp16","int8"):
             from .wire import pack,unpack
-            wire=pack(envelope)
+            wire=pack(envelope,self.wire_format)
             decoded=unpack(wire)
-            payload_size=len(pack(payload))
+            payload_size=len(pack(payload,self.wire_format))
         else:
             wire=encoded(envelope)
             decoded=json.loads(wire)

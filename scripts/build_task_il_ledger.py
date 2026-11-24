@@ -25,8 +25,9 @@ def build(output,seeds=(42,),split="test"):
     output.parent.mkdir(parents=True,exist_ok=True)
     commit=subprocess.check_output(["git","rev-parse","HEAD"],cwd=ROOT,text=True).strip()
     # Refuse tracked uncommitted code: runtime hashes bind actual source.
-    if subprocess.check_output(["git","status","--porcelain","--untracked-files=no"],cwd=ROOT,text=True).strip():
-        raise ValueError("commit tracked changes before generating the source-bound ledger")
+    changed=subprocess.check_output(["git","diff","--name-only","-z","HEAD"],cwd=ROOT,text=True).split("\0")
+    if any(path and not path.endswith(".pyc") for path in changed):
+        raise ValueError("commit tracked source changes before generating the source-bound ledger")
     entries=read_entries();jobs=[];registered={}
     metadata=output.parent/"manifests"/commit[:12]
     results=ROOT/"research_results/task_il_48"
@@ -56,7 +57,8 @@ def build(output,seeds=(42,),split="test"):
                  "baseline":row["baseline"],"partition_seed":seed,"training_seed":seed,
                  "evaluation_split":split,"rounds":s["rounds"],"tasks":len(s["tasks"]),
                  "k":c["clients"]-c["offline"],"schedule":str(spath),"schedule_sha256":digest(s),
-                 "manifest_plan_id":digest(plan),"selected_draws":sum(map(len,s["selected"])),
+                 "manifest_plan_id":digest(plan),"resolved_config_sha256":digest(c),"data_root":str(root),
+                 "selected_draws":sum(map(len,s["selected"])),
                  "local_training_rounds":sum(map(len,s["active"]))}
             command=[sys.executable,"task_il_main.py","--config",str(cfgpath),"--schedule",str(spath),"--data",str(root),"--output",str(out)]
             names=("final_summary.json","status.json","communication_events.jsonl","server_metrics.jsonl","server.pt",

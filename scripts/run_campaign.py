@@ -35,6 +35,12 @@ def valid(job):
             fingerprint=sha256(json.dumps(schedule,sort_keys=True,separators=(",",":")).encode()).hexdigest()
             if fingerprint!=job["config"]["schedule_sha256"] or json.loads((out/"schedule.json").read_text())!=schedule:
                 return False
+            resolved=json.loads((out/"config.json").read_text())
+            if sha256(json.dumps(resolved,sort_keys=True,separators=(",",":")).encode()).hexdigest()!=job["config"]["resolved_config_sha256"]:
+                return False
+            manifest=json.loads((Path(job["config"]["data_root"])/"manifest.json").read_text())
+            if manifest["manifest_id"]!=provenance["manifest_id"] or manifest["plan_id"]!=job["config"]["manifest_plan_id"]:
+                return False
             expected={tuple(x) for x in schedule["expected"]}
             if summary["evaluation_split"]!=job["config"]["evaluation_split"] or summary["terminal_flush"]:
                 return False
@@ -50,6 +56,17 @@ def valid(job):
             if any(e["kind"] not in ("MODEL_UPLOAD","MODEL_DOWNLOAD","MODEL_INITIAL","SYNC_REQUEST") for e in events):
                 return False
             if any(x.get("evaluation_split")!=summary["evaluation_split"] for x in metrics):
+                return False
+            if summary["uploads"]!=len(uploads) or summary["downloads"]!=len(downloads) or summary["initial_downloads"]!=len(initial):
+                return False
+            for r,x in enumerate(rounds):
+                if len(x["outcomes"])!=len(x["trained"]) or sorted(o["client"] for o in x["outcomes"])!=x["trained"]:
+                    return False
+                if any(o["samples"]!=o["shard_size"]*resolved["epochs"] or o["private_memory_count"]>resolved["memory"] for o in x["outcomes"]):
+                    return False
+                if x["uploads"]!=len(schedule["selected"][r]) or x["downloads"]!=x["uploads"]:
+                    return False
+            if summary["processed_samples"]!=rounds[-1]["cumulative_samples"] or summary["optimizer_steps"]!=rounds[-1]["cumulative_optimizer_steps"] or summary["replay_samples"]!=rounds[-1]["cumulative_replay_samples"] or summary["total_bytes"]!=rounds[-1]["cumulative_bytes"]:
                 return False
         else:
             expected={(r,t) for r in range(n) for t in range(r//(n//tasks)+1)}

@@ -59,6 +59,23 @@ def run(ledger,output):
             study_rows.extend(dict(x,study_family=f,reused=True) for f in (2,3))
         elif x["experiment_id"]=="E02-01":
             study_rows.append(dict(x,study_family=3,reused=True))
+    diagnostic_classes=[];recurrence_gains=[]
+    grouped=defaultdict(dict)
+    for r in diagnostics:
+        for label,n,correct in zip(r["class_ids"],r["class_counts"],r["class_correct"]):
+            diagnostic_classes.append({k:r[k] for k in ("job_id","experiment_id","family","seed","evaluation_split","client","episode","round","phase","task")}
+                                      |dict(class_id=label,count=n,correct=correct,accuracy=correct/n if n else None))
+        if r["episode"] is not None:
+            grouped[(r["job_id"],r["client"],r["episode"],r["task"])][r["phase"]]=r
+    for (jid,client,episode,task),phases in grouped.items():
+        for before,after,kind in (("before_exposure_server","after_exposure_server","server"),
+                                  ("before_exposure_client","after_exposure_before_sync","local_pre_download")):
+            if before not in phases or after not in phases:continue
+            a,b=phases[before],phases[after]
+            for label,n,c0,c1 in zip(a["class_ids"],a["class_counts"],a["class_correct"],b["class_correct"]):
+                recurrence_gains.append(dict(job_id=jid,experiment_id=a["experiment_id"],seed=a["seed"],client=client,
+                    episode=episode,task=task,kind=kind,class_id=label,round_before=a["round"],round_after=b["round"],
+                    accuracy_before=c0/n,accuracy_after=c1/n,accuracy_gain=(c1-c0)/n))
     overlap_rows=[]
     for x in summaries:
         if x["family"]!=8:continue
@@ -75,6 +92,7 @@ def run(ledger,output):
                         old_task=a["task"],next_task=b["task"],class_id=label,shared=label in shared,accuracy_before=c0/n,accuracy_after=c1/n,change=(c1-c0)/n))
     for name,rows in (("experiment_results",summaries),("study_results",study_rows),("round_metrics",round_rows),
         ("task_metrics",task_rows),("class_metrics",class_rows),("client_diagnostics",diagnostics),
+        ("diagnostic_class_metrics",diagnostic_classes),("recurrence_gains",recurrence_gains),
         ("baseline_contrasts",contrasts),("overlap_retention",overlap_rows),("incomplete_jobs",missing)):
         write_csv(output/(name+".csv"),rows)
     # Every seed stays separately visible; figures use mean over available seeds,
@@ -106,7 +124,7 @@ def run(ledger,output):
         for family in range(1,11):
             data=[r for r in round_rows if r["family"]==family]
             if not data:continue
-            for xkey in ("round","cumulative_bytes"):
+            for xkey in ("round","cumulative_bytes","cumulative_samples","cumulative_optimizer_steps"):
                 for metric in ("global_accuracy","current_task_accuracy","previous_task_accuracy","forgetting","current_task_loss"):
                     fig,ax=plt.subplots()
                     groups=defaultdict(list)

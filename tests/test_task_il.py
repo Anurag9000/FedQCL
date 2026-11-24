@@ -153,6 +153,9 @@ class Neural(unittest.TestCase):
             result=a.train(es[0],0,torch.device("cpu"))
             self.assertEqual(result["samples"],4)
             self.assertEqual(result["private_memory_count"],3)
+            self.assertEqual(a.cache,{})
+            self.assertTrue(all(image.untyped_storage().nbytes()==image.numel()*image.element_size()
+                                for items in a.memory.values() for (_,_,image),_ in items))
             with self.assertRaises(ValueError):a.shard(1)
             # A client can train on a later episode without any synchronization.
             result=a.train(es[2],2,torch.device("cpu"))
@@ -204,3 +207,14 @@ class Neural(unittest.TestCase):
             self.assertEqual(result["processed_samples"],2000)
             self.assertGreater(result["replay_samples"],0)
             self.assertFalse(result["terminal_flush"])
+            from run_campaign import valid
+            from flcore.sync.task_il_schedule import digest
+            provenance=json.loads((full/"provenance.json").read_text())
+            job=dict(kind="train",source_commit=provenance["commit"],
+                     config=dict(campaign="task_il_48",schedule=str(full/"schedule.json"),schedule_sha256=digest(s),
+                         resolved_config_sha256=digest(c),manifest_plan_id=digest(plan),data_root=str(root),
+                         rounds=s["rounds"],tasks=len(s["tasks"]),clients=2,evaluation_split=c["split"]),
+                     artifacts=[str(full/"final_summary.json")])
+            self.assertTrue(valid(job))
+            job["config"]["resolved_config_sha256"]="wrong"
+            self.assertFalse(valid(job))

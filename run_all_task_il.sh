@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # Task-IL only. Original sync research campaign is never invoked.
 set -euo pipefail
+export PYTHONDONTWRITEBYTECODE=1
 cd "$(dirname "$0")"
 ledger=experiments/task_il_48/job_ledger.jsonl
 seed_args=()

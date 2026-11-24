@@ -127,9 +127,12 @@ primary result, with no unrequested extra synchronization.
 
 Data validation requires unique source IDs across all private episode shards,
 disjoint train/validation ownership, exact complete source inventories, label
-membership and per-shard hashes. Private replay stores only client-owned episode
-references; each read checks provenance. A source-bound runner checks expected
-schedule rows, participation and byte totals before accepting completion.
+membership and per-shard hashes. Private replay stores only bounded cloned
+exemplars with their source IDs, client-local episode identity and labels.
+Completed raw shards are evicted from the in-memory cache; replay never reopens
+an old raw shard. The server receives sample counts, not private data. A
+source-bound runner checks resolved config and dataset fingerprints, expected
+schedule rows, participation, exposure and byte totals before accepting completion.
 
     python -m unittest discover -s tests -p test_task_il.py -v
     TASK_IL_TRAINING_TEST=1 python -m unittest discover -s tests -p test_task_il.py -v

@@ -43,7 +43,7 @@ class PrivateClient:
         self.id=i;self.model=copy.deepcopy(model);self.base=clone_state(model)
         self.version=0;self.revision=0;self.pending_steps=0
         self.c=c;self.s=s;self.root=root;self.manifest=manifest
-        self.memory={};self.cache={};self.seen=set()
+        self.memory={};self.cache={};self.seen=set();self.revealed=set()
 
     def shard(self,eid):
         e=self.s["episodes"][eid]
@@ -59,11 +59,11 @@ class PrivateClient:
         rng=random.Random(seed_for(self.c["seed"],"replay",self.id,eid,local_epoch,step,task))
         chosen=rng.sample(pool,min(len(pool),self.c["replay_batch"]))
         xs=[];ys=[]
-        for (eid,idx,sid),label in chosen:
-            x,y,ids=self.shard(eid)
-            if self.s["episodes"][eid]["task"]!=task or int(ids[idx])!=sid or int(y[idx])!=label:
+        for (eid,sid,image),label in chosen:
+            e=self.s["episodes"][eid]
+            if e["client"]!=self.id or eid not in self.revealed or e["task"]!=task or label not in self.s["tasks"][task]:
                 raise ValueError("replay provenance violation")
-            xs.append(x[idx]);ys.append(label)
+            xs.append(image);ys.append(label)
         return torch.stack(xs).to(device),torch.tensor(ys,device=device)
 
     def train(self,e,r,device):
@@ -71,7 +71,7 @@ class PrivateClient:
             raise ValueError("invalid episode reveal")
         c=self.c;task=e["task"];classes=self.s["tasks"]
         x,y,ids=self.shard(e["id"])
-        self.seen.add(task)
+        self.seen.add(task);self.revealed.add(e["id"])
         self.model.to(device).train()
         optimizer=torch.optim.SGD(self.model.parameters(),lr=c["lr"])
         steps=0;samples=0;replay=0;loss_sum=0.;class_counts={}
@@ -104,16 +104,21 @@ class PrivateClient:
             # Existing bounded task-balanced uniform selector, retaining earlier
             # samples of recurring tasks rather than overwriting their pool.
             pool={k:list(v) for k,v in self.memory.items()}
-            pool.setdefault(task,[]).extend(((e["id"],j,int(sid)),int(y[j])) for j,sid in enumerate(ids))
+            pool.setdefault(task,[]).extend(((e["id"],int(sid),x[j]),int(y[j])) for j,sid in enumerate(ids))
             rng=random.Random(seed_for(c["seed"],"admission",self.id,e["id"]))
-            self.memory=select_memory(pool,c["memory"],"uniform",rng)
-            retained=[key[2] for items in self.memory.values() for key,_ in items]
+            selected=select_memory(pool,c["memory"],"uniform",rng)
+            # Clone admitted tensors, not views of the entire source storage.
+            self.memory={k:[((eid,sid,image.clone()),label) for (eid,sid,image),label in items]
+                         for k,items in selected.items()}
+            retained=[key[1] for items in self.memory.values() for key,_ in items]
             if len(retained)!=len(set(retained)) or len(retained)>c["memory"]:
                 raise ValueError("invalid replay inventory")
+            self.cache.pop(e["id"],None)
         return dict(client=self.id,episode=e["id"],task=task,epochs=c["epochs"],optimizer_steps=steps,
                     samples=samples,replay_samples=replay,training_class_counts=class_counts,
                     current_train_loss=loss_sum/samples,pending_steps=self.pending_steps,
-                    private_memory_count=sum(map(len,self.memory.values())))
+                    shard_size=len(ids),private_memory_count=sum(map(len,self.memory.values())),
+                    memory_source_ids=sorted(key[1] for items in self.memory.values() for key,_ in items) if r==e["end"] else None)
 
     def download(self,model,version):
         self.model.load_state_dict(model.state_dict())
@@ -123,13 +128,13 @@ class PrivateClient:
     def state(self):
         return dict(model=clone_state(self.model),base=self.base,version=self.version,
                     revision=self.revision,pending_steps=self.pending_steps,
-                    memory=self.memory,seen=sorted(self.seen))
+                    memory=self.memory,seen=sorted(self.seen),revealed=sorted(self.revealed))
 
     def restore(self,state):
         self.model.load_state_dict(state["model"]);self.base=state["base"]
         self.version=state["version"];self.revision=state["revision"]
         self.pending_steps=state["pending_steps"];self.memory=state["memory"]
-        self.seen=set(state["seen"])
+        self.seen=set(state["seen"]);self.revealed=set(state["revealed"]);self.cache.clear()
 
 def aggregate_buffered(server,clients,weights,version):
     """FedBuff-inspired round-buffered update; not vanilla FedAvg.
@@ -249,9 +254,9 @@ def run(c,s,root,out,device,resume=False,stop=None):
         for i in range(c["clients"]):
             transport.send(-1,"initialization","server",i,"MODEL_INITIAL",{"version":0},payload)
     evaluator=Evaluator(root,manifest,s,c,device)
-    def record(model,tasks,r,ver,phase,client=None):
+    def record(model,tasks,r,ver,phase,client=None,episode=None):
         for row in evaluator.evaluate(model,tasks,r,ver):
-            diagnostics.append({**row,"phase":phase,"client":client})
+            diagnostics.append({**row,"phase":phase,"client":client,"episode":episode})
     try:
         for r in range(start,s["rounds"]):
             active={int(i):s["episodes"][eid] for i,eid in s["active"][r].items()}
@@ -262,8 +267,8 @@ def run(c,s,root,out,device,resume=False,stop=None):
                     # Before first or repeated local exposure; server and recipient
                     # use the same held-out task. No training examples are evaluated.
                     if sum(q["task"]==e["task"] for q in s["episodes"])>1:
-                        record(server,[e["task"]],r,version,"before_exposure_server",e["client"])
-                        record(clients[e["client"]].model,[e["task"]],r,clients[e["client"]].version,"before_exposure_client",e["client"])
+                        record(server,[e["task"]],r,version,"before_exposure_server",e["client"],e["id"])
+                        record(clients[e["client"]].model,[e["task"]],r,clients[e["client"]].version,"before_exposure_client",e["client"],e["id"])
             if c["outage"] and clients[0].seen:
                 record(clients[0].model,clients[0].seen,r,clients[0].version,"before_local",0)
             seen.update(current);outcomes=[]
@@ -274,17 +279,18 @@ def run(c,s,root,out,device,resume=False,stop=None):
                 record(clients[0].model,clients[0].seen,r,clients[0].version,"after_local_before_sync",0)
             for e in active.values():
                 if (c["recurrence"] or c["delay"] is not None) and e["end"]==r and sum(q["task"]==e["task"] for q in s["episodes"])>1:
-                    record(clients[e["client"]].model,[e["task"]],r,clients[e["client"]].version,"after_exposure_before_sync",e["client"])
+                    record(clients[e["client"]].model,[e["task"]],r,clients[e["client"]].version,"after_exposure_before_sync",e["client"],e["id"])
             # Predeclared public schedule: charge directed selection commands and
             # full model messages only to connected participants. Offline clients
             # receive no server traffic. No telemetry or raw sample payloads.
             weights=[]
+            outcome_by_client={o["client"]:o for o in outcomes}
             for i in selected:
                 e=active[i]
                 transport.send(r,"admission","server",i,"SYNC_REQUEST",{"round":r,"version":version})
                 transport.send(r,"upload",i,"server","MODEL_UPLOAD",
                     {"base_version":clients[i].version,"pending_steps":clients[i].pending_steps,"episode":e["id"]},payload)
-                weights.append(len(clients[i].shard(e["id"])[1]))
+                weights.append(outcome_by_client[i]["shard_size"])
             if selected:
                 aggregate_buffered(server,[clients[i] for i in selected],weights,version)
                 version+=1
@@ -295,19 +301,26 @@ def run(c,s,root,out,device,resume=False,stop=None):
                 record(clients[0].model,clients[0].seen,r,clients[0].version,"after_sync",0)
             for e in active.values():
                 if (c["recurrence"] or c["delay"] is not None) and e["end"]==r and sum(q["task"]==e["task"] for q in s["episodes"])>1:
-                    record(server,[e["task"]],r,version,"after_exposure_server",e["client"])
-                    record(clients[e["client"]].model,[e["task"]],r,clients[e["client"]].version,"after_exposure_client",e["client"])
+                    record(server,[e["task"]],r,version,"after_exposure_server",e["client"],e["id"])
+                    record(clients[e["client"]].model,[e["task"]],r,clients[e["client"]].version,"after_exposure_client",e["client"],e["id"])
             rows=evaluator.evaluate(server,seen,r,version)
             summary=round_summary(rows,current,peaks);metrics.extend(rows)
             events=[event for event in transport.events if event["round"]==r]
             by_kind={k:sum(e["serialized_bytes"] for e in events if e["kind"]==k) for k in ("MODEL_UPLOAD","MODEL_DOWNLOAD","SYNC_REQUEST")}
+            cumulative=lambda key: (rounds[-1].get("cumulative_"+key,0) if rounds else 0)+sum(o[key] for o in outcomes)
             rounds.append(dict(round=r,version=version,active=active,trained=sorted(active),selected=selected,
+                cumulative_samples=cumulative("samples"),cumulative_replay_samples=cumulative("replay_samples"),
+                cumulative_optimizer_steps=cumulative("optimizer_steps"),cumulative_epochs=cumulative("epochs"),
+                unique_seen_classes=len({label for t in seen for label in s["tasks"][t]}),
                 uploaded=selected,accepted=selected,downloaded=selected,outcomes=outcomes,
                 start_versions=before_versions,upload_lag={i:version-int(bool(selected))-before_versions[i] for i in selected},
                 model_ages={i:version-client.version for i,client in enumerate(clients)},
                 aggregation_weights=dict(zip(selected,weights)),uploads=len(selected),downloads=len(selected),
                 upload_bytes=by_kind["MODEL_UPLOAD"],download_bytes=by_kind["MODEL_DOWNLOAD"],
-                metadata_bytes=by_kind["SYNC_REQUEST"],round_bytes=sum(by_kind.values()),
+                metadata_bytes=by_kind["SYNC_REQUEST"],upload_tensor_bytes=payload*len(selected),
+                download_tensor_bytes=payload*len(selected),
+                model_envelope_bytes=by_kind["MODEL_UPLOAD"]+by_kind["MODEL_DOWNLOAD"]-2*payload*len(selected),
+                round_bytes=sum(by_kind.values()),
                 cumulative_bytes=sum(e["serialized_bytes"] for e in transport.events),**summary))
             for name,values in (("rounds",rounds),("server_metrics",metrics),("communication_events",transport.events),("client_metrics",diagnostics)):
                 write_jsonl(out/(name+".jsonl"),values)

@@ -116,6 +116,9 @@ def build(output):
     for regime,seed in itertools.product(regimes,(42,43,44)):
         for flags in (("--sync-peer-transport","sparse"),("--sync-peer-loss",".1"),("--sync-peer-loss",".3")):
             run("network","peer",regime,seed,flags=flags)
+    for regime,seed in itertools.product(regimes,(42,43,44)):
+        for horizon in (3,12):
+            run("continuation","cached",regime,seed,flags=("--sync-counterfactual","--sync-counterfactual-horizon",str(horizon),"--sync-verify-branches"))
     output.parent.mkdir(parents=True,exist_ok=True)
     output.write_text("".join(json.dumps(job,sort_keys=True)+"\n" for job in jobs))
     counts={}

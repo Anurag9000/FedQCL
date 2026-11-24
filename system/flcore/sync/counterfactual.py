@@ -44,6 +44,16 @@ def analyze(server,clients,datasets,task,r,ctl,actual,loaders,complete,device,cl
         for s in sorted(subsets,key=lambda x:(len(x),x)):
             weights=[len(datasets[i]) if complete else candidates[i].train_samples for i in s]
             m=aggregate(server,[candidates[i] for i in s],weights,complete) if s else copy.deepcopy(server)
+            if getattr(ctl.args,"sync_verify_branches",False) and s in (ids,tuple(sorted(actual))):
+                explicit=[]
+                for i in s:
+                    c=copy.deepcopy(clients[i])
+                    if ctl.args.sync_refresh and ctl.local[i].model_version!=ctl.model_version:download(c,server,complete)
+                    c.train_round(r,task,datasets[i]);explicit.append(c)
+                alternative=aggregate(server,explicit,weights,complete) if s else copy.deepcopy(server)
+                if not all(torch.equal(v,alternative.state_dict()[k]) for k,v in m.state_dict().items()):
+                    raise RuntimeError("candidate reuse differs from explicit independent branch")
+                del alternative,explicit
             rows=evaluate(m,loaders,task,r,ctl.model_version+bool(s),device,classes)
             cur=rows[-1]["loss"]
             past=sum(x["loss"] for x in rows[:-1])/task if task else None
@@ -56,6 +66,23 @@ def analyze(server,clients,datasets,task,r,ctl,actual,loaders,complete,device,cl
         for row in outcomes:
             row["current_harm"]=row["current_loss"]-full["current_loss"]
             row["past_harm"]=None if task==0 else row["past_loss"]-full["past_loss"]
+        horizon=getattr(ctl.args,"sync_counterfactual_horizon",1)
+        if horizon>1 and r<ctl.args.global_rounds:
+            from .continuation import continue_branch
+            # Prespecified actual/full and validation-oracle best/worst matched subsets.
+            matched=[x for x in outcomes if x["size"]==len(actual)]
+            choices={ids,tuple(sorted(actual))}
+            if matched:
+                choices.add(tuple(min(matched,key=lambda x:x["current_loss"])["subset"]))
+                choices.add(tuple(max(matched,key=lambda x:x["current_loss"])["subset"]))
+            for row in outcomes:
+                if tuple(row["subset"]) in choices:
+                    row["continuation"]=continue_branch(server,clients,candidates,datasets,ctl,tuple(row["subset"]),r,task,horizon,complete,device,classes)
+            baseline=next(x["continuation"] for x in outcomes if tuple(x["subset"])==ids)
+            for row in outcomes:
+                if "continuation" in row:
+                    row["continuation"]["accuracy_delta_vs_full"]=row["continuation"]["final_accuracy"]-baseline["final_accuracy"]
+                    row["continuation"]["forgetting_delta_vs_full"]=row["continuation"]["within_horizon_forgetting"]-baseline["within_horizon_forgetting"]
         return outcomes
     finally:
         random.setstate(rng[0]);np.random.set_state(rng[1]);torch.set_rng_state(rng[2])

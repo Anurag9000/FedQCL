@@ -40,6 +40,8 @@ def add_arguments(parser):
     p.add_argument("--sync-campaign-byte-cap",type=int,default=0,help="Hard total logical bytes; exhausted budget is reported infeasible")
     p.add_argument("--sync-wire-format",choices=["binary","json"],default="binary")
     p.add_argument("--sync-count-schedule",help="JSON list of predeclared participant counts for random baseline")
+    p.add_argument("--sync-counterfactual-horizon",type=int,default=1)
+    p.add_argument("--sync-verify-branches",action="store_true")
     p.add_argument("--sync-all-subsets",action="store_true")
     p.add_argument("--sync-impact-model")
     p.add_argument("--sync-current-tolerance",type=float,default=.02)
@@ -95,6 +97,10 @@ def validate(a):
         raise ValueError("update statistic requires post-training selection")
     if a.sync_signal not in ("histogram","replay") and a.sync_bank_reference=="envelope":
         raise ValueError("coordinate envelope only supported for histogram/replay")
+    if a.sync_counterfactual_horizon<1 or ((a.sync_counterfactual_horizon>1 or a.sync_verify_branches or a.sync_all_subsets) and not a.sync_counterfactual):
+        raise ValueError("invalid counterfactual settings")
+    if a.sync_counterfactual and a.sync_failures:
+        raise ValueError("counterfactual reuse assumes reliable model delivery")
     if a.sync_posttrain and (a.sync_refresh or a.sync_counterfactual):
         raise ValueError("post-training admission cannot be combined with refresh or pre-training counterfactual")
     if a.sync_windowed and a.few_shot:

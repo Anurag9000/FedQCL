@@ -73,8 +73,9 @@ def analyze(server,clients,datasets,task,r,ctl,actual,loaders,complete,device,cl
             matched=[x for x in outcomes if x["size"]==len(actual)]
             choices={ids,tuple(sorted(actual))}
             if matched:
-                choices.add(tuple(min(matched,key=lambda x:x["current_loss"])["subset"]))
-                choices.add(tuple(max(matched,key=lambda x:x["current_loss"])["subset"]))
+                objective=lambda x:x["current_loss"]+getattr(ctl.args,"sync_oracle_past_weight",0.)*(x["past_loss"] or 0.)
+                choices.add(tuple(min(matched,key=objective)["subset"]))
+                choices.add(tuple(max(matched,key=objective)["subset"]))
             for row in outcomes:
                 if tuple(row["subset"]) in choices:
                     row["continuation"]=continue_branch(server,clients,candidates,datasets,ctl,tuple(row["subset"]),r,task,horizon,complete,device,classes)

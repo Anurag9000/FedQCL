@@ -17,7 +17,8 @@ def continue_branch(server,originals,candidates,datasets,controller,subset,r,tas
     model=aggregate(server,[clients[i] for i in subset],weights,complete) if subset else copy.deepcopy(server)
     version=controller.model_version+bool(subset)
     held={i:controller.local[i].model_version for i in range(len(clients))}
-    for i in subset:download(clients[i],model,complete);held[i]=version
+    last={i:controller.local[i].last_sync for i in range(len(clients))}
+    for i in subset:download(clients[i],model,complete);held[i]=version;last[i]=r
     rpt=(args.global_rounds+1)//args.tasks
     if args.sync_local_capture and (r+1)%rpt==0:
         for i in set(range(len(clients)))-selected:clients[i].capture(task,r,datasets[i])
@@ -38,17 +39,23 @@ def continue_branch(server,originals,candidates,datasets,controller,subset,r,tas
     for rr in range(r+1,end+1):
         tt=rr//rpt
         available={c.id:c.reveal(tt,rr) for c in clients}
-        for c in clients:
+        from .policies import baseline_select,due_clients
+        ids=tuple(c.id for c in clients);policy=getattr(args,"sync_continuation_policy","full")
+        roster=baseline_select(policy,ids,due_clients(ids,last,rr,args.sync_max_skip),last,min(args.sync_k,len(ids)),args.seed,rr)
+        for i in roster:
+            c=clients[i]
             if args.sync_refresh and held[c.id]!=version:
                 download(c,model,complete);held[c.id]=version
             c.train_round(rr,tt,available[c.id])
-        weights=aggregation_weights(args,clients,available,tuple(c.id for c in clients),complete)
-        model=aggregate(model,clients,weights,complete);version+=1
-        for c in clients:download(c,model,complete);held[c.id]=version
+        weights=aggregation_weights(args,clients,available,roster,complete)
+        model=aggregate(model,[clients[i] for i in roster],weights,complete);version+=bool(roster)
+        for i in roster:download(clients[i],model,complete);held[i]=version;last[i]=rr
+        if args.sync_local_capture and (rr+1)%rpt==0:
+            for i in set(ids)-set(roster):clients[i].capture(tt,rr,available[i])
         evaluate_at(rr,tt)
     final={x["task"]:x["accuracy"] for x in trace if x["round"]==end}
     forgetting=[max(x["accuracy"] for x in trace if x["task"]==t)-final[t] for t in final if t<end//rpt]
-    return {"start_round":r,"end_round":end,"horizon":end-r+1,"policy":"full_after_initial_subset",
+    return {"start_round":r,"end_round":end,"horizon":end-r+1,"policy":getattr(args,"sync_continuation_policy","full")+"_after_initial_subset",
             "final_accuracy":sum(final.values())/len(final),
             "within_horizon_forgetting":sum(forgetting)/len(forgetting) if forgetting else 0.,
             "task_round_metrics":trace}

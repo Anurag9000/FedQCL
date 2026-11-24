@@ -5,8 +5,6 @@ The compact report uses a fixed layout, not an unscaled concatenated Euclidean m
 import math
 import json
 import time
-import torch
-from torch.utils.data import default_collate
 from .policies import Report
 
 def layout(space):
@@ -37,6 +35,7 @@ def channel_distance(a,b):
     return total/weight if weight and shared else None
 
 def gradient(ex,c,model,x,y,task):
+    import torch
     model.zero_grad(set_to_none=True)
     for xx,yy in zip(x.split(c.batch_size),y.split(c.batch_size)):
         (torch.nn.functional.cross_entropy(model(xx,task),yy,reduction="sum")/len(x)).backward()
@@ -44,6 +43,8 @@ def gradient(ex,c,model,x,y,task):
 
 def extract(ex,c,data,hist,t,r,version,kind):
     import copy
+    import torch
+    from torch.utils.data import default_collate
     start=time.monotonic();probe=ex._probe(c,data,t,r)
     cost={"forward_examples":0,"backward_examples":0,"seconds":0.}
     if probe is None:return None,cost

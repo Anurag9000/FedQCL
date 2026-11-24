@@ -56,6 +56,8 @@ def add_arguments(parser):
     p.add_argument("--sync-wire-format",choices=["binary","json","fp16","int8"],default="binary")
     p.add_argument("--sync-count-schedule",help="JSON list of predeclared participant counts for random baseline")
     p.add_argument("--sync-counterfactual-horizon",type=int,default=1)
+    p.add_argument("--sync-continuation-policy",choices=["full","oldest","random"],default="full")
+    p.add_argument("--sync-oracle-past-weight",type=float,default=0.)
     p.add_argument("--sync-verify-branches",action="store_true")
     p.add_argument("--sync-all-subsets",action="store_true")
     p.add_argument("--sync-impact-model")
@@ -118,7 +120,7 @@ def validate(a):
         raise ValueError("peer loss is supported for direct transport only")
     if a.sync_count_schedule and (a.sync_policy!="random" or a.sync_byte_cap or a.sync_campaign_byte_cap):
         raise ValueError("count schedule requires random policy without byte cap")
-    if a.sync_policy=="adaptive" and (not a.sync_impact_model or a.sync_mode!="fixed" or a.sync_signal!="histogram"):
+    if a.sync_policy=="adaptive" and (not a.sync_impact_model or a.sync_mode!="fixed" or a.sync_signal not in ("histogram","multichannel")):
         raise ValueError("adaptive requires calibrated impact model, histogram and fixed upper cap")
     if min(a.sync_current_tolerance,a.sync_past_tolerance)<0:
         raise ValueError("negative impact tolerance")
@@ -142,6 +144,7 @@ def validate(a):
         raise ValueError("weighted sparse coverage not supported")
     if a.sync_signal not in ("histogram","replay") and a.sync_bank_reference=="envelope":
         raise ValueError("coordinate envelope only supported for histogram/replay")
+    if a.sync_oracle_past_weight<0:raise ValueError("negative oracle loss weight")
     if a.sync_counterfactual_horizon<1 or ((a.sync_counterfactual_horizon>1 or a.sync_verify_branches or a.sync_all_subsets) and not a.sync_counterfactual):
         raise ValueError("invalid counterfactual settings")
     if a.sync_counterfactual and a.sync_failures:

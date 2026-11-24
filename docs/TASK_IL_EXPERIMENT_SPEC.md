@@ -1,3 +1,39 @@
+# Default Task-IL core profile
+
+The default builder and launcher select 22 representative training entries from
+the original 48-run matrix, retaining all ten study families. The expanded
+portable ledger and DAG below are archival/explicit opt-in catalogs.
+
+| Study | Core IDs | Runs |
+|---|---|---:|
+| Joint/disjoint | E01-01, E01-03, E01-05, E01-07 | 4 |
+| Sync frequency | E02-01, E02-03 | 2 |
+| Client count | E03-02, E03-06 | 2 |
+| Shared task | E04-02 | 1 |
+| Task width/offline | E05-01, E05-03, E05-05, E05-07 | 4 |
+| Recurrence | E06-02 | 1 |
+| Outage | E07-01, E07-05 | 2 |
+| Class overlap | E08-01, E08-03 | 2 |
+| Recurrence delay | E09-01, E09-05 | 2 |
+| Task granularity | E10-01, E10-03 | 2 |
+| Total | | 22 |
+
+Baseline E01-05 is reused for frequency/population, E05-05 for task granularity.
+Single-seed exploratory study; no confirmatory power claims. The complete core
+ledger includes data generation, validation and one final analysis with all
+training dependencies. Default path: experiments/task_il_core/job_ledger.jsonl.
+
+```bash
+bash run_all_task_il.sh --dry-run
+bash run_all_task_il.sh
+# Optional full matrix
+TASK_IL_SUITE=extended bash run_all_task_il.sh
+```
+
+---
+
+## Extended Task-IL catalog (48 entries)
+
 # Task-IL analysis campaign: 48 runs
 
 This opt-in campaign is separate from the existing selective-synchronization

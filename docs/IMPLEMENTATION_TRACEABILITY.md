@@ -1,3 +1,11 @@
+# Campaign scope update
+
+The default campaign now selects a prespecified economical subset: 50 sync and
+22 Task-IL training entries. The historical full research catalog is preserved
+but is not the default execution scope. All algorithmic limitations and
+scientific caveats below remain relevant to applicable configurations. The core
+subset does not constitute exhaustive empirical validation of optional features.
+
 # Current learning contract
 
 The research backbone is strictly `fedavg_uniform_er_v1` across both suites.

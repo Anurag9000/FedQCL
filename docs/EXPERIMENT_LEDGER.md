@@ -1,3 +1,78 @@
+# Default core campaign — targeted mechanism tests
+
+The production default is now **core**, not the old 3,934-job synchronization
+matrix. Both suites use fixed `fedavg_uniform_er_v1` (plain FedAvg, SGD and
+500 private exemplars/client, uniform task quotas, one pooled replay batch of 13).
+No FEDQCL queue training, FedBuff, alternative learning objective or replay policy.
+
+## Synchronization core: 50 training entries
+
+| Stage | Runs | Design |
+|---|---:|---|
+| Pilot | 29 | Full/random/oldest/own/server/peer on near and separated distributions, seeds 42/43; five policies on changing data, seed 42 |
+| Participant budget | 2 | Random and peer at k=2; reuse k=3 and full pilot |
+| Threshold | 3 | M1/M2/M3 at 0.1 |
+| Protocol ablation | 3 | Own previous, server mean, peer relay |
+| Refresh | 1 | Peer refresh versus original peer |
+| Counterfactual | 1 | Peer single-round omission analysis at the existing sampled rounds |
+| Signals | 3 | Peer with replay, feature and gradient signals |
+| Advanced | 2 | Cached coverage and combined123 |
+| Robustness | 2 | Peer relay under failures with/without fallback |
+| Hard bytes | 2 | Random and peer with 280 MB round cap, 500 MB bootstrap cap |
+| Count matched | 1 | Random with predeclared peer-threshold count schedule |
+| Byte matched | 1 | Random with predeclared peer-threshold byte caps |
+| Total | 50 | All targeted ablations use near, seed 42 |
+
+Five datasets and their five validation jobs, two schedule extraction jobs, one
+counterfactual analysis and four final analyses produce 67 ledger entries.
+All training settings and source configurations are inherited from the extended
+catalog. Core is a fixed prespecified subset, not a new training algorithm.
+The core comparison is exploratory: two seeds for primary comparisons, one for
+mechanism checks. Do not claim statistical power, exact matched-byte equality,
+or calibrated harm guarantees. No adaptive predictor fitting, large-scale client
+sweep, full advanced-statistics sweep, or TinyImageNet by default. They remain
+available for explicit follow-up, not automatic scheduling.
+
+## Task-IL core: 22 training entries
+
+All ten original study families are represented. Selective omission of
+intermediate levels is deliberate. Keep the original 48-entry portable matrix
+as an extended catalog. E10-02 is not rerun in core: reuse E05-05 for the width-5
+reference. The core analysis is a dependency-gated ledger job. See
+TASK_IL_EXPERIMENT_SPEC.md for the exact chosen IDs.
+
+## Commands
+
+```bash
+# Default reduced ledgers
+python scripts/build_job_ledger.py
+python scripts/build_task_il_ledger.py
+# Default reduced campaigns
+bash run_all_sync.sh --all --workers 2 --gpu-ids 0,1
+bash run_all_task_il.sh --workers 2 --gpu-ids 0,1
+# Inspect without training
+bash run_all_sync.sh --dry-run
+bash run_all_task_il.sh --dry-run
+# Extended catalog: explicit opt-in ONLY
+python scripts/build_job_ledger.py --suite extended
+python scripts/build_task_il_ledger.py --suite extended
+SYNC_SUITE=extended bash run_all_sync.sh --all
+TASK_IL_SUITE=extended bash run_all_task_il.sh
+```
+
+Core resolved ledgers: experiments/job_ledger.jsonl and
+experiments/task_il_core/job_ledger.jsonl. Extended ledgers use separate paths.
+Do not run both profiles concurrently: overlapping scientific runs intentionally
+have the same output identities. Use one authoritative coordinator and reconcile
+existing verified results before adding extensions. The core is the default
+campaign scope; do not expand it automatically. The two-server execution
+framework still requires external coordination and measured resource admission.
+No full production training is implied by ledger validation.
+
+---
+
+## Historical expanded-catalog reference (not default)
+
 # Mandatory research backbone: FedAvg + vanilla ER
 
 All current research training configurations, including the separate 48-entry

@@ -164,7 +164,7 @@ python -m unittest discover -s tests -v
 python scripts/build_job_ledger.py
 bash run_all_sync.sh --dry-run
 bash run_all_sync.sh --stage pilot --resume
-# Explicitly execute every currently enumerated job (very expensive):
+# Explicitly execute all core jobs (still requires GPU time):
 bash run_all_sync.sh --all
 python scripts/aggregate_results.py
 python scripts/match_budgets.py
@@ -175,12 +175,12 @@ test on the target environment before launching all training jobs.
 
 The expanded campaign includes cached/combined/adaptive selectors, binary reports,
 rich statistics, sparse and lossy peer variants, counterfactual continuations,
-rate matching and scaling to 10/20/50 clients. The fixed-backbone selective-synchronization ledger contains 3,934 jobs (3,282 training configurations); the separate Task-IL ledger contains 86 jobs (48 training entries). Both were generated in protocol CI. The exact matrix and remaining
+rate matching and scaling to 10/20/50 clients. The default core synchronization ledger has 67 jobs (50 training configurations); the default Task-IL core selects 22 training configurations plus their preparation and analysis jobs. The historical 3,934-job and 86-job matrices are available only through explicit `--suite extended` (launcher variables `SYNC_SUITE=extended` and `TASK_IL_SUITE=extended`). Do not expand the core campaign automatically. The exact matrix and remaining
 limitations are documented in the runbook above. Parallel execution: bash run_all_sync.sh --stage pilot --resume --workers 2 --gpu-ids 0,1. Use --estimate-only to inspect the scope without training. Development uses validation;
 held-out adaptive jobs use separate partition seeds. Do not use --all before
 validating the full-data pilot.
 
-## Task-IL analysis campaign (48 runs)
+## Task-IL analysis campaign (22 core runs; 48 extended entries)
 
 The separate conventional Task-IL suite uses the same direct FedAvg and pooled vanilla experience replay backbone, explicit
 client curricula and communication-only participation/outage schedules. It does

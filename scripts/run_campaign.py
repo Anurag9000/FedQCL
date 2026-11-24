@@ -18,7 +18,16 @@ def valid(job):
     try:
         if job["kind"]=="validate":
             receipt=json.loads(Path(job["artifacts"][0]).read_text())
-            manifest=json.loads((Path(job["artifacts"][0]).parent/"manifest.json").read_text())
+            root=Path(job["artifacts"][0]).parent
+            manifest=json.loads((root/"manifest.json").read_text())
+            if job.get("config",{}).get("plan_id") is not None:
+                # A matching receipt and manifest ID do not prove that the
+                # shard files still match the manifest. Revalidate every shard
+                # before reusing a private Task-IL dataset dependency.
+                from task_il_data import validate as validate_task_il
+                checked=validate_task_il(root,manifest["plan"])
+                return (checked==receipt and checked["valid"]
+                        and checked["plan_id"]==job["config"]["plan_id"])
             return receipt["valid"] and receipt["manifest_id"]==manifest["manifest_id"]
         if job["kind"]=="analysis" and job["config"].get("campaign")=="task_il_joint":
             receipt=json.loads(Path(job["artifacts"][0]).read_text())

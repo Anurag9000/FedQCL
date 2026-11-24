@@ -89,7 +89,8 @@ class Schedule(unittest.TestCase):
     def test_private_allocation_and_tamper(self):
         import numpy as np
         from types import SimpleNamespace
-        from task_il_data import generate_from_sources,validate,episode_path
+        from task_il_data import generate_from_sources,validate,atomic_json,episode_path
+        from run_campaign import valid as artifact_valid
         c=self.cfg["E04-03"];s=self.s["E04-03"]
         plan=data_plan(c,s);plan["validation_per_class"]=1
         y=np.repeat(np.arange(100),6)
@@ -102,9 +103,14 @@ class Schedule(unittest.TestCase):
             receipt=validate(root,plan)
             self.assertEqual(receipt["private_examples"],500)
             self.assertEqual(receipt["cross_client_overlap"],0)
+            atomic_json(root/"validation_receipt.json",receipt)
+            job=dict(kind="validate",config={"plan_id":receipt["plan_id"]},
+                     artifacts=[str(root/"validation_receipt.json")])
+            self.assertTrue(artifact_valid(job))
             path=root/episode_path(plan["episodes"][0])
             with path.open("ab") as f:f.write(b"tampered")
             with self.assertRaisesRegex(ValueError,"corrupt shard"):validate(root,plan)
+            self.assertFalse(artifact_valid(job))
 
 @unittest.skipUnless(os.environ.get("TASK_IL_TRAINING_TEST")=="1","opt-in neural tests")
 class Neural(unittest.TestCase):

@@ -96,8 +96,6 @@ def validate(a):
     if a.sync_staleness_predict and a.sync_policy!="cached":raise ValueError("trend prediction requires cached coverage")
     if a.sync_policy=="divfl_sketch" and (a.sync_signal!="gradient" or not a.sync_native_space or a.sync_mode!="fixed"):
         raise ValueError("gradient sketch comparator requires native gradient coordinates and fixed count")
-    if a.sync_policy=="mass_stratified" and (a.sync_signal!="histogram" or a.sync_mode!="fixed" or a.sync_posttrain or a.sync_failures or a.sync_counterfactual or a.sync_byte_cap or a.sync_campaign_byte_cap):
-        raise ValueError("stratified draws use multiplicity weights and require reliable pretraining")
     if a.sync_policy in ("random","oldest","block_random") and a.sync_mode!="fixed":
         raise ValueError("random and oldest require fixed count")
     if a.auto_break or a.client_drop_rate or a.train_slow_rate or a.send_slow_rate or a.time_select or a.num_new_clients or a.privacy:

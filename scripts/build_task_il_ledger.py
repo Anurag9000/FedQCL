@@ -9,6 +9,7 @@ import sys
 ROOT=Path(__file__).resolve().parents[1]
 sys.path.insert(0,str(ROOT/"system"))
 from flcore.sync.task_il_schedule import read_entries, resolve, make_schedule, data_plan, digest
+from flcore.sync.backbone import BACKBONE
 
 def write_json(path,value):
     path.parent.mkdir(parents=True,exist_ok=True)
@@ -56,7 +57,10 @@ def build(output,seeds=(42,),split="test"):
             artifacts=[str(p) for p in artifacts],source_commit=commit,schema=3))
     for row in entries:
         for seed in seeds:
-            c=resolve(row,seed,split);s=make_schedule(c);plan=data_plan(c,s)
+            c=resolve(row,seed,split)
+            if c["backbone"]!=BACKBONE or c["memory"]!=500 or c["replay_batch"]!=13 or c["batch"]!=13 or c["lr"]!=.005:
+                raise ValueError("Task-IL entry violates fixed production backbone")
+            s=make_schedule(c);plan=data_plan(c,s)
             key=digest([commit,plan])[:20]
             stage=f'experiment_{row["family"]:02d}'
             root=ROOT/"research_data/task_il_48"/key

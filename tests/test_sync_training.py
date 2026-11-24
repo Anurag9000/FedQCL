@@ -58,6 +58,30 @@ class Training(unittest.TestCase):
                 self.assertEqual(summary["backbone"],"fedavg_uniform_er_v1")
                 self.assertEqual(summary["total_bytes"],sum(json.loads(l)["serialized_bytes"] for l in (out/"communication_events.jsonl").read_text().splitlines()))
 
+    def test_shared_backbone_math(self):
+        import torch
+        import random
+        from types import SimpleNamespace
+        from pathlib import Path
+        sys.path.insert(0,str(Path(__file__).resolve().parents[1]/"system"))
+        from flcore.sync.engine import ResearchClient
+        from flcore.sync.backbone import fedavg, replay_ce, sample_replay
+        self.assertEqual(ResearchClient.__bases__,(object,))
+        server=torch.nn.Linear(1,1,bias=False)
+        a=torch.nn.Linear(1,1,bias=False);b=torch.nn.Linear(1,1,bias=False)
+        with torch.no_grad():server.weight.fill_(100);a.weight.fill_(2);b.weight.fill_(10)
+        fedavg(server,[SimpleNamespace(model=a),SimpleNamespace(model=b)],[1,3])
+        self.assertAlmostEqual(server.weight.item(),8.)
+        self.assertAlmostEqual(a.weight.item(),2.)
+        class Identity(torch.nn.Module):
+            def forward(self,x,k):return x
+        logits=torch.tensor([[2.,0.],[0.,1.],[3.,1.]])
+        labels=torch.tensor([0,0,1])
+        groups={0:(logits[:1],labels[:1]),1:(logits[1:],labels[1:])}
+        actual=replay_ce(Identity(),groups,lambda y,k:y)
+        self.assertTrue(torch.allclose(actual,torch.nn.functional.cross_entropy(logits,labels)))
+        self.assertEqual(len(sample_replay({i:list(range(100)) for i in range(4)},13,random.Random(42))),13)
+
     def test_richer_signal_extractors(self):
         import torch
         from types import SimpleNamespace

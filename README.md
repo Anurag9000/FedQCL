@@ -175,7 +175,7 @@ test on the target environment before launching all training jobs.
 
 The expanded campaign includes cached/combined/adaptive selectors, binary reports,
 rich statistics, sparse and lossy peer variants, counterfactual continuations,
-rate matching and scaling to 10/20/50 clients. The ledger builder enumerates the fixed-backbone research matrix; earlier counts are superseded by removal of incompatible learning ablations. The exact matrix and remaining
+rate matching and scaling to 10/20/50 clients. The fixed-backbone selective-synchronization ledger contains 3,934 jobs (3,282 training configurations); the separate Task-IL ledger contains 86 jobs (48 training entries). Both were generated in protocol CI. The exact matrix and remaining
 limitations are documented in the runbook above. Parallel execution: bash run_all_sync.sh --stage pilot --resume --workers 2 --gpu-ids 0,1. Use --estimate-only to inspect the scope without training. Development uses validation;
 held-out adaptive jobs use separate partition seeds. Do not use --all before
 validating the full-data pilot.

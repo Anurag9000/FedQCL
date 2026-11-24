@@ -19,7 +19,7 @@ delta is used. Original legacy launchers are separate and are not research jobs.
   balanced sampler, alternative memory strategies, FEDQCL correction ablations,
   queue-dependent report and multiplicity-weighted mass comparator. Remaining
   experiments are retained. The generated ledger is authoritative; the old
-  4,537-job count is superseded.
+  4,537-job count is superseded. Current protocol CI generated 3,934 jobs (3,282 training, 652 supporting) and the separate 86-job Task-IL DAG (48 training, 38 supporting). The two ledgers contain 4,020 entries total, 3,330 training entries. E10-02 is an intentional duplicate of E05-05; do not treat it as independent evidence.
 
 ```bash
 python scripts/build_job_ledger.py

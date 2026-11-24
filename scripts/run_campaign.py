@@ -28,7 +28,12 @@ def valid(job):
         metrics=[json.loads(l) for l in (out/"server_metrics.jsonl").read_text().splitlines()]
         rounds=[json.loads(l) for l in (out/"rounds.jsonl").read_text().splitlines()]
         provenance=json.loads((out/"provenance.json").read_text())
-        if summary.get("backbone")!="fedavg_uniform_er_v1" or provenance.get("backbone")!="fedavg_uniform_er_v1":return False
+        from sys import path as import_path
+        system_path=str(ROOT/"system")
+        if system_path not in import_path:import_path.insert(0,system_path)
+        from flcore.sync.backbone import BACKBONE
+        if summary.get("backbone")!=BACKBONE or provenance.get("backbone")!=BACKBONE:return False
+        if json.loads((out/"config.json").read_text()).get("backbone")!=BACKBONE:return False
         n=job["config"].get("rounds",50);tasks=job["config"].get("tasks",5)
         if job["config"].get("campaign")=="task_il_48":
             from hashlib import sha256

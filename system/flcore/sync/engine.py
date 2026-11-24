@@ -338,16 +338,12 @@ def run_research(args):
                 if histogram is not None and a.sync_windowed:
                     histogram=replace(histogram,window=f"task{t}:window{r%rpt}")
                 reports[c.id],probe_cost[c.id]=extractor.before(c,datasets[c.id],histogram,t,r,ctl.local[c.id].model_version)
-                if a.sync_policy=="mass_stratified":
-                    from .policies import Report
-                    reports[c.id]=Report(c.id,t,r,(0,),(1,),kind="mass",space="public_sample_mass",aggregation_weight=float(len(datasets[c.id])))
                 if reports[c.id] is not None:
                     mode=a.sync_coverage_weight
                     importance=(len(datasets[c.id]) if mode=="samples" else
                         1+sum(len(v) for v in c.task_memories.values()) if mode=="replay" else
                         aggregation_weights(a,clients,datasets,[c.id],complete_state)[0] if mode=="aggregation" and a.sync_weighting!="processed" else 1.)
-                    reports[c.id]=replace(reports[c.id],importance=max(1.,float(importance)),
-                        aggregation_weight=float(len(datasets[c.id])) if a.sync_policy=="mass_stratified" else reports[c.id].aggregation_weight)
+                    reports[c.id]=replace(reports[c.id],importance=max(1.,float(importance)))
                 from .wire import quantize_report
                 reports[c.id],probe_cost[c.id]["quantization_l2"]=quantize_report(reports[c.id],a.sync_wire_format)
                 if reports[c.id] is not None and a.sync_windowed:

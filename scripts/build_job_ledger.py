@@ -234,6 +234,16 @@ def build(output,tiny_root=None):
     for size in (80,1024,65536,45000000):
         out=ROOT/"research_results"/"network_benchmarks"/f"{size}-{commit[:12]}.json"
         add("transport_benchmark","benchmark",{"size":size},[sys.executable,"scripts/benchmark_transport.py","--size",str(size),"--output",str(out)],artifacts=[str(out)])
+    # Full postprocessing is dependency-gated; standalone scripts can still
+    # analyze partial completed results without claiming campaign completion.
+    training=[j["id"] for j in jobs if j["kind"]=="train"]
+    results=ROOT/"research_results"/("analysis-"+commit[:12])
+    csv_file=results/"aggregate.csv"
+    aggregate=add("postprocess","analysis",{"scope":"complete_campaign"},[sys.executable,"scripts/aggregate_results.py","--ledger",str(output.resolve()),"--output",str(csv_file)],training,[str(csv_file),str(csv_file.with_suffix(".paired.json"))])
+    matches=results/"budget_matches.json"
+    add("postprocess","analysis",{"scope":"budget_matching"},[sys.executable,"scripts/match_budgets.py","--ledger",str(output.resolve()),"--output",str(matches)],training,[str(matches)])
+    fig_receipt=results/"figures"/"receipt.json"
+    add("postprocess","analysis",{"scope":"figures"},[sys.executable,"scripts/plot_results.py","--input",str(csv_file),"--output",str(fig_receipt.parent)], [aggregate],[str(fig_receipt)])
     # Verify unique IDs and topological dependency order before writing.
     ordered=set()
     for job in jobs:

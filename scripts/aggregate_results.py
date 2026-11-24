@@ -11,25 +11,25 @@ def main():
         job=json.loads(line)
         if job["kind"]!="train":continue
         out=Path(job["artifacts"][0]).parent
-        if not (out/"status.json").exists():continue
-        if json.loads((out/"status.json").read_text())["status"]!="completed":continue
+        from run_campaign import valid
+        if not valid(job):continue
         rows.append({"id":job["id"],"stage":job["stage"],**job["config"],**json.loads((out/"final_summary.json").read_text())})
     a.output.parent.mkdir(parents=True,exist_ok=True)
     fields=sorted(set().union(*(r.keys() for r in rows))) if rows else ["id"]
     with a.output.open("w") as f:
         w=csv.DictWriter(f,fieldnames=fields);w.writeheader();w.writerows(rows)
-    full={(r["regime"],r["partition_seed"],r["training_seed"]):r for r in rows if r["stage"]=="pilot" and r["policy"]=="full"}
+    full={(r["regime"],r["partition_seed"],r["training_seed"]):r for r in rows if r["stage"] in ("pilot","confirmatory") and r["policy"]=="full"}
     contrasts={}
     for r in rows:
-        if r["stage"]!="pilot" or r["policy"]=="full":continue
+        if r["stage"] not in ("pilot","confirmatory") or r["policy"]=="full":continue
         base=full.get((r["regime"],r["partition_seed"],r["training_seed"]))
         if not base:continue
-        contrasts.setdefault((r["policy"],r["regime"]),[]).append(
+        contrasts.setdefault((r["stage"],r["policy"],r["regime"],str(r.get("flags",[]))),[]).append(
             (r["final_accuracy"]-base["final_accuracy"],r["forgetting"]-base["forgetting"],
              1-r["total_bytes"]/base["total_bytes"]))
     summaries=[]
-    for (policy,regime),values in sorted(contrasts.items()):
-        entry={"policy":policy,"regime":regime,"paired_n":len(values)}
+    for (stage,policy,regime,flags),values in sorted(contrasts.items()):
+        entry={"stage":stage,"policy":policy,"regime":regime,"flags":flags,"paired_n":len(values)}
         for name,vals in zip(("accuracy_delta","forgetting_delta","byte_savings"),zip(*values)):
             entry[name]=statistics.mean(vals)
             if len(vals)>1:

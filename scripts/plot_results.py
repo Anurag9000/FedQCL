@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Plot observed communication/accuracy/forgetting trade-offs from completed runs."""
-import argparse,csv
+import argparse,csv,json
 from pathlib import Path
 
 def frontier(rows,key,maximize):
@@ -33,4 +33,5 @@ def main():
             ax.plot([float(x["total_bytes"])/1e9 for x in pf],[float(x[metric])*100 for x in pf],linestyle="--",label="observed frontier")
             ax.set(xlabel="Logical communication (GB)",ylabel=metric.replace("_"," ")+" (%)",title=" / ".join(group))
             ax.legend(fontsize=7);fig.tight_layout();fig.savefig(a.output/("-".join(group)+"-"+metric+".png"),dpi=180);plt.close(fig)
+    (a.output/"receipt.json").write_text(json.dumps({"input":str(a.input),"figures":sorted(p.name for p in a.output.glob("*.png"))},indent=2))
 if __name__=="__main__":main()

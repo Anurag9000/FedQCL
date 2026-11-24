@@ -1,91 +1,169 @@
 #!/usr/bin/env python3
-"""Execute the canonical ledger, respecting dependencies and artifact integrity."""
-import argparse,json,os,shlex,subprocess,sys
+"""Dependency-aware campaign execution with exclusive device slots and artifact checks."""
+import argparse,concurrent.futures as futures,hashlib,json,os,shlex,subprocess,sys,time
 from pathlib import Path
 ROOT=Path(__file__).resolve().parents[1]
 
+def sha_file(path):
+    digest=hashlib.sha256()
+    with Path(path).open("rb") as f:
+        for chunk in iter(lambda:f.read(1048576),b""):digest.update(chunk)
+    return digest.hexdigest()
+
+def artifact_digests(job):
+    return {p:sha_file(p) for p in job["artifacts"]}
+
 def valid(job):
-    if not all(Path(x).is_file() for x in job["artifacts"]):
-        return False
-    if job["kind"]=="train":
+    if not all(Path(x).is_file() for x in job["artifacts"]):return False
+    try:
+        if job["kind"]=="validate":
+            receipt=json.loads(Path(job["artifacts"][0]).read_text())
+            manifest=json.loads((Path(job["artifacts"][0]).parent/"manifest.json").read_text())
+            return receipt["valid"] and receipt["manifest_id"]==manifest["manifest_id"]
+        if job["kind"]!="train":return True
         out=Path(job["artifacts"][0]).parent
-        try:
-            summary=json.loads((out/"final_summary.json").read_text())
-            status=json.loads((out/"status.json").read_text())
-            events=[json.loads(l) for l in (out/"communication_events.jsonl").read_text().splitlines()]
-            metrics=[json.loads(l) for l in (out/"server_metrics.jsonl").read_text().splitlines()]
-            provenance=json.loads((out/"provenance.json").read_text())
-            return (provenance["commit"]==job["source_commit"] and status["status"]=="completed" and summary["rounds"]==job["config"].get("rounds",50) and len(metrics)==(job["config"].get("rounds",50)//job["config"].get("tasks",5))*job["config"].get("tasks",5)*(job["config"].get("tasks",5)+1)//2
-                    and sum(x["serialized_bytes"] for x in events)==summary["total_bytes"]
-                    and (out/"rounds.jsonl").is_file())
-        except (OSError,ValueError,KeyError):
-            return False
-    return True
+        summary=json.loads((out/"final_summary.json").read_text())
+        status=json.loads((out/"status.json").read_text())
+        events=[json.loads(l) for l in (out/"communication_events.jsonl").read_text().splitlines()]
+        metrics=[json.loads(l) for l in (out/"server_metrics.jsonl").read_text().splitlines()]
+        rounds=[json.loads(l) for l in (out/"rounds.jsonl").read_text().splitlines()]
+        provenance=json.loads((out/"provenance.json").read_text())
+        n=job["config"].get("rounds",50);tasks=job["config"].get("tasks",5)
+        expected={(r,t) for r in range(n) for t in range(r//(n//tasks)+1)}
+        return (provenance["commit"]==job["source_commit"] and status["status"]=="completed"
+                and summary["rounds"]==n and len(metrics)==len(expected)
+                and {(x["round"],x["task"]) for x in metrics}==expected
+                and len(rounds)==n and [x["round"] for x in rounds]==list(range(n))
+                and sum(x["serialized_bytes"] for x in events)==summary["total_bytes"])
+    except (OSError,ValueError,KeyError,TypeError):return False
+
+def dependency_order(jobs):
+    seen=set()
+    for j in jobs:
+        if j["id"] in seen or not set(j["dependencies"])<=seen:raise ValueError("invalid dependency order")
+        seen.add(j["id"])
+    return {j["id"]:j for j in jobs}
+
+def select_jobs(jobs,stages,job_id):
+    by_id=dependency_order(jobs)
+    wanted={j["id"] for j in jobs if (not stages or j["stage"] in stages) and (not job_id or j["id"]==job_id)}
+    if not wanted:raise ValueError("no matching jobs")
+    stack=list(wanted)
+    while stack:
+        for dep in by_id[stack.pop()]["dependencies"]:
+            if dep not in wanted:wanted.add(dep);stack.append(dep)
+    return [j for j in jobs if j["id"] in wanted]
+
+def estimate(jobs):
+    training=[j for j in jobs if j["kind"]=="train"]
+    # Architecture-scale approximations, not measured memory or wall time.
+    draws=sum(j["config"]["clients"]+(j["config"]["rounds"]-1)*j["config"]["k"] for j in training)
+    return {"jobs":len(jobs),"training_jobs":len(training),"nominal_client_draws":draws,
+            "nominal_model_transfer_bytes_at_45MB":2*45000000*draws,
+            "note":"Adaptive, threshold, failures, duplicate draws and counterfactual continuation alter actual costs. No runtime or peak memory guarantee."}
+
+def execute(job,command,logs):
+    cwd=ROOT/"system" if job["kind"]=="train" else ROOT
+    with (logs/f'{job["id"]}.log').open("a") as log:
+        log.write("\nCOMMAND: "+shlex.join(command)+"\n");log.flush()
+        return subprocess.run(command,cwd=cwd,stdout=log,stderr=subprocess.STDOUT).returncode
 
 def main():
     p=argparse.ArgumentParser()
     p.add_argument("--ledger",type=Path,default=ROOT/"experiments"/"job_ledger.jsonl")
-    p.add_argument("--stage",action="append")
-    p.add_argument("--job-id")
-    p.add_argument("--dry-run",action="store_true")
-    p.add_argument("--resume",action="store_true")
-    p.add_argument("--retry-failed",action="store_true")
-    p.add_argument("--device",choices=["cpu","cuda"],default="cuda")
-    p.add_argument("--gpu-id",default="0")
+    p.add_argument("--stage",action="append");p.add_argument("--job-id")
+    p.add_argument("--dry-run",action="store_true");p.add_argument("--estimate-only",action="store_true")
+    p.add_argument("--resume",action="store_true");p.add_argument("--retry-failed",action="store_true")
+    p.add_argument("--device",choices=["cpu","cuda"],default="cuda");p.add_argument("--gpu-id",default="0")
+    p.add_argument("--gpu-ids",help="Comma-separated exclusive GPU slots")
+    p.add_argument("--workers",type=int,default=1)
     a=p.parse_args()
+    if a.workers<1:raise ValueError("positive worker count required")
+    a.ledger=a.ledger.resolve()
     jobs=[json.loads(x) for x in a.ledger.read_text().splitlines()]
     commit=subprocess.check_output(["git","rev-parse","HEAD"],cwd=ROOT,text=True).strip()
-    if any(j.get("source_commit")!=commit for j in jobs):
-        raise ValueError("ledger source commit differs; rebuild ledger for this checkout")
-    by_id={j["id"]:j for j in jobs}
-    wanted=set(j["id"] for j in jobs if (not a.stage or j["stage"] in a.stage) and (not a.job_id or j["id"]==a.job_id))
-    def include(j):
-        for d in by_id[j]["dependencies"]:
-            if d not in wanted:
-                wanted.add(d);include(d)
-    for j in list(wanted):
-        include(j)
+    if any(j.get("source_commit")!=commit for j in jobs):raise ValueError("ledger source commit differs; rebuild ledger")
+    jobs=select_jobs(jobs,a.stage,a.job_id)
+    if a.estimate_only:print(json.dumps(estimate(jobs),indent=2));return 0
+    if a.dry_run:
+        for job in jobs:
+            command=job["command"]+(["-dev",a.device,"-did",a.gpu_id] if job["kind"]=="train" else [])
+            print(job["id"],job["stage"],shlex.join(command))
+        return 0
+    devices=(a.gpu_ids or a.gpu_id).split(",") if a.device=="cuda" else [str(i) for i in range(a.workers)]
+    if any(not x.strip() for x in devices) or len(set(devices))!=len(devices):raise ValueError("invalid GPU slots")
+    # Linux/bash execution is the documented environment. Prevent two runners
+    # from overwriting the same status file or assigning the same jobs.
+    import fcntl
+    lock=a.ledger.with_suffix(".lock")
+    with lock.open("w") as guard:
+        try:fcntl.flock(guard,fcntl.LOCK_EX|fcntl.LOCK_NB)
+        except BlockingIOError:raise RuntimeError("another runner owns this ledger")
+        return run_jobs(a,jobs,devices)
+
+def run_jobs(a,jobs,devices):
     state_path=a.ledger.with_suffix(".status.json")
     state=json.loads(state_path.read_text()) if state_path.exists() else {}
+    logs=a.ledger.parent/"logs";logs.mkdir(parents=True,exist_ok=True)
     def save():
         tmp=state_path.with_suffix(".tmp")
         tmp.write_text(json.dumps(state,indent=2,sort_keys=True));os.replace(tmp,state_path)
-    logs=a.ledger.parent/"logs";logs.mkdir(parents=True,exist_ok=True)
-    failed=False
-    for job in jobs:
-        key=job["id"]
-        if key not in wanted:continue
-        command=list(job["command"])
-        if job["kind"]=="train":
-            command+=["-dev",a.device,"-did",a.gpu_id]
-        cwd=ROOT/"system" if job["kind"]=="train" else ROOT
-        if a.dry_run:
-            print(key,job["stage"],shlex.join(command));continue
-        if any(state.get(d,{}).get("status")!="completed" for d in job["dependencies"]):
-            state[key]={"status":"blocked"};save();failed=True;continue
-        old=state.get(key,{}).get("status")
-        if old=="completed" and valid(job):
-            continue
-        if old in ("failed","running") and not (a.retry_failed or a.resume):
-            failed=True;continue
-        if job["kind"]=="generate" and valid(job):
-            state[key]={"status":"completed"};save();continue
-        if job["kind"]=="train" and (a.retry_failed or a.resume):
-            out=Path(job["artifacts"][0]).parent
-            if (out/"status.json").exists() and not valid(job):
-                if a.resume and "--sync-checkpoint" in command and (out/"checkpoint.pt").exists():
-                    command.append("--sync-resume")
-                else:
-                    # Preserve failed evidence before a fresh retry.
-                    import time
-                    out.rename(out.with_name(out.name+".failed-"+str(time.time_ns())))
-        state[key]={"status":"running","command":command};save()
-        with (logs/f"{key}.log").open("a") as log:
-            rc=subprocess.run(command,cwd=cwd,stdout=log,stderr=subprocess.STDOUT).returncode
-        ok=rc==0 and valid(job)
-        state[key]={"status":"completed" if ok else "failed","exit_code":rc};save()
-        failed|=not ok
-    return int(failed)
-
-if __name__=="__main__":
-    sys.exit(main())
+    remaining={j["id"]:j for j in jobs};done=set();failed=set();running={};busy=set()
+    def deps_digest(job):
+        return {d:state[d].get("artifact_sha256",{}) for d in job["dependencies"]}
+    def mark_completed(job,rc=0):
+        state[job["id"]]={"status":"completed","exit_code":rc,"artifact_sha256":artifact_digests(job),
+                          "dependency_artifacts":deps_digest(job)}
+        done.add(job["id"]);save()
+    with futures.ThreadPoolExecutor(max_workers=a.workers) as pool:
+        while remaining or running:
+            changed=False
+            for key,job in list(remaining.items()):
+                deps=set(job["dependencies"])
+                if deps&failed:
+                    state[key]={"status":"blocked","reason":"dependency failed"};failed.add(key);del remaining[key];save();changed=True;continue
+                if not deps<=done:continue
+                old=state.get(key,{})
+                reusable=(old.get("status")=="completed" and valid(job)
+                          and old.get("dependency_artifacts")==deps_digest(job)
+                          and old.get("artifact_sha256")==artifact_digests(job))
+                if reusable:
+                    done.add(key);del remaining[key];changed=True;continue
+                if job["kind"]=="generate" and valid(job) and old.get("status")!="completed":
+                    mark_completed(job);del remaining[key];changed=True;continue
+                if old.get("status") in ("failed","running") and not (a.retry_failed or a.resume):
+                    failed.add(key);del remaining[key];changed=True;continue
+                if len(running)>=a.workers:continue
+                train=job["kind"]=="train"
+                # Dataset generation/validation and other CPU tasks are serialized
+                # to avoid simultaneous downloads and high concurrent I/O.
+                slot=next((x for x in devices if x not in busy),None) if train else "cpu-control"
+                if slot is None or slot in busy:continue
+                command=list(job["command"])
+                if train:
+                    command+=["-dev",a.device,"-did",slot]
+                    out=Path(job["artifacts"][0]).parent
+                    if (out/"status.json").exists():
+                        if a.resume and not valid(job) and (out/"checkpoint.pt").exists() and old.get("dependency_artifacts")==deps_digest(job):
+                            command.append("--sync-resume")
+                        else:out.rename(out.with_name(out.name+".archived-"+str(time.time_ns())))
+                elif job["kind"]=="generate" and Path(job["artifacts"][0]).exists():
+                    folder=Path(job["artifacts"][0]).parent
+                    folder.rename(folder.with_name(folder.name+".archived-"+str(time.time_ns())))
+                state[key]={"status":"running","command":command,"dependency_artifacts":deps_digest(job),"device_slot":slot};save()
+                future=pool.submit(execute,job,command,logs)
+                running[future]=(job,slot);busy.add(slot);del remaining[key];changed=True
+            if running:
+                ready,_=futures.wait(running,timeout=0 if changed else None,return_when=futures.FIRST_COMPLETED)
+                for future in ready:
+                    job,slot=running.pop(future);busy.remove(slot);key=job["id"]
+                    try:
+                        rc=future.result()
+                        if rc==0 and valid(job):mark_completed(job,rc)
+                        else:state[key]={"status":"failed","exit_code":rc};failed.add(key);save()
+                    except Exception as error:
+                        state[key]={"status":"failed","error":repr(error)};failed.add(key);save()
+                    changed=True
+            if not changed and remaining and not running:raise RuntimeError("dependency scheduler stalled")
+    return int(bool(failed))
+if __name__=="__main__":sys.exit(main())

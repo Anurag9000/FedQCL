@@ -298,7 +298,7 @@ def run_research(args):
     device=torch.device(a.device)
     model=copy.deepcopy(a.model).to(device)
     from .signals import SignalExtractor
-    extractor=SignalExtractor(a,copy.deepcopy(a.model) if a.sync_signal in ("feature","prototypes","feature_covariance","spectral") else None)
+    extractor=SignalExtractor(a,copy.deepcopy(a.model) if a.sync_signal in ("feature","prototypes","feature_covariance","spectral","multichannel") else None)
     clients=[]
     for i in range(a.num_clients):
         task0=os.path.join(a.dataset,"task_0")
@@ -353,6 +353,12 @@ def run_research(args):
                 if histogram is not None and a.sync_windowed:
                     histogram=replace(histogram,window=f"task{t}:window{r%rpt}")
                 reports[c.id],probe_cost[c.id]=extractor.before(c,datasets[c.id],histogram,t,r,ctl.local[c.id].model_version)
+                if reports[c.id] is not None:
+                    mode=a.sync_coverage_weight
+                    importance=(len(datasets[c.id]) if mode=="samples" else
+                        1+sum(len(v) for v in c.task_memories.values()) if mode=="replay" else
+                        aggregation_weights(a,clients,datasets,[c.id],complete_state)[0] if mode=="aggregation" and a.sync_weighting!="processed" else 1.)
+                    reports[c.id]=replace(reports[c.id],importance=max(1.,float(importance)))
                 if reports[c.id] is not None and a.sync_windowed:
                     reports[c.id]=replace(reports[c.id],window=f"task{t}:window{r%rpt}")
             budget_record=None
@@ -399,6 +405,8 @@ def run_research(args):
                 trained.append(i)
                 if a.sync_signal=="update":
                     reports[i],probe_cost[i]=extractor.after(c,update_starts.pop(i),t,r,starts[i])
+                    if a.sync_update_weighted:
+                        reports[i]=replace(reports[i],aggregation_weight=float(aggregation_weights(a,clients,datasets,[i],complete_state)[0]))
                     if a.sync_windowed:
                         reports[i]=replace(reports[i],window=f"task{t}:window{r%rpt}")
                 if not a.sync_posttrain:

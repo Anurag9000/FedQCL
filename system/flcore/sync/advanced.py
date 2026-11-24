@@ -42,7 +42,7 @@ def select_cached(ids,last,due,reports,k,round_id,max_age,solver="exact",weights
         return tuple(sorted(s))
     return tuple(sorted(min((mandatory+s for s in combinations(others,k-len(mandatory))),key=objective)))
 
-def update_match(ids,last,due,reports,k,round_id,max_age,solver="exact"):
+def update_match(ids,last,due,reports,k,round_id,max_age,solver="exact",weighted=False):
     """Match the cached equal-client-weight mean update sketch, not an oracle
     current update. Missing or incompatible records are prioritized for refresh.
     """
@@ -54,7 +54,9 @@ def update_match(ids,last,due,reports,k,round_id,max_age,solver="exact"):
         known={i:x for i,x in known.items() if distance(base,x) is not None}
     def mean(keys):
         if not keys:return None
-        return [sum(known[i].counts[j] for i in keys)/len(keys) for j in range(len(next(iter(known.values())).counts))]
+        w={i:known[i].aggregation_weight if weighted else 1. for i in keys}
+        total=sum(w.values())
+        return [sum(w[i]*known[i].counts[j] for i in keys)/total for j in range(len(next(iter(known.values())).counts))]
     target=mean(list(known))
     norm=sum(x*x for x in target) if target is not None else 0.
     def cost(s):

@@ -20,6 +20,8 @@ class Report:
     sample_count: int = 0
     metric: str = "tv"
     histogram_distance: str = "tv"
+    importance: float = 1.0
+    aggregation_weight: float = 1.0
 
     @property
     def id(self):
@@ -27,19 +29,24 @@ class Report:
 
     def valid(self, minimum=1):
         basic=(self.schema == 1 and len(self.labels) == len(self.counts)
-               and bool(self.labels) and len(set(self.labels)) == len(self.labels))
+               and bool(self.labels) and len(set(self.labels)) == len(self.labels)
+               and math.isfinite(self.importance) and self.importance>0
+               and math.isfinite(self.aggregation_weight) and self.aggregation_weight>0)
         if not basic:
             return False
         if self.metric=="tv":
             return (all(type(x) is int and x>=0 for x in self.counts)
                     and sum(self.counts)>=minimum)
-        return (self.metric in ("cosine","bounded_l2") and self.sample_count>=minimum
+        return (self.metric in ("cosine","bounded_l2","channels") and self.sample_count>=minimum
                 and all(isinstance(x,(float,int)) and math.isfinite(x) for x in self.counts))
 
 def distance(a, b):
     if (a is None or b is None or not a.valid() or not b.valid()
             or (a.task,a.labels,a.schema,a.kind,a.space,a.metric,a.histogram_distance) != (b.task,b.labels,b.schema,b.kind,b.space,b.metric,b.histogram_distance)):
         return None
+    if a.metric=="channels":
+        from .multichannel import channel_distance
+        return channel_distance(a,b)
     if a.metric=="cosine":
         na=math.sqrt(sum(x*x for x in a.counts));nb=math.sqrt(sum(x*x for x in b.counts))
         if na==0 or nb==0:
@@ -76,6 +83,8 @@ def local_reference(current, last_report, history, kind, length):
 def pooled(records, template, weighted=True):
     if not records:
         return None
+    if template.metric=="channels":
+        raise ValueError("pooling incompatible with channel-presence masks")
     if template.metric!="tv":
         from dataclasses import replace
         weights=[x.sample_count if weighted else 1 for x in records]
@@ -141,7 +150,7 @@ def coverage(ids, selected, reports, threshold):
                          "covered":d is not None and d<=threshold}
     return result
 
-def peer_select(ids, last, due, reports, threshold, k=None, solver="exact", objective="distance"):
+def peer_select(ids, last, due, reports, threshold, k=None, solver="exact", objective="distance", weighted=False):
     ids = tuple(sorted(ids))
     if k is None:
         selected = list(due)
@@ -156,16 +165,18 @@ def peer_select(ids, last, due, reports, threshold, k=None, solver="exact", obje
     remaining = tuple(i for i in ids if i not in mandatory)
     def cost(s):
         total = 0
+        missing = 0
         for i in ids:
             if i in s:
                 continue
             if reports.get(i) is None or not reports[i].valid():
-                total += len(ids)+1
+                missing += 1
                 continue
             d,_ = nearest(i,s,reports)
-            total += (int(d is None or d>threshold) if objective=="coverage"
+            weight=reports[i].importance if weighted else 1
+            total += weight*(int(d is None or d>threshold) if objective=="coverage"
                       else 1 if d is None else d)
-        return total, tuple(sorted(priority(i,last) for i in s))
+        return missing,total,tuple(sorted(priority(i,last) for i in s))
     if solver == "greedy":
         selected = list(mandatory)
         while len(selected)<k:

@@ -226,7 +226,7 @@ class Controller:
                         views[i]={int(j):Report(**{**x,"labels":tuple(x["labels"]),"counts":tuple(x["counts"])}) if x else None for j,x in payload.items()}
             if policy=="peer":
                 elections = [tuple(ids) if r==0 else peer_select(ids,last,due,views[i],threshold,k,
-                               a.sync_peer_solver,a.sync_peer_objective) for i in ids]
+                               a.sync_peer_solver,a.sync_peer_objective,getattr(a,"sync_coverage_weight","equal")!="equal") for i in ids]
             else:
                 # Deliver common scalar scores before deterministic hybrid election.
                 for i in ids:
@@ -248,9 +248,10 @@ class Controller:
             task=r//((a.global_rounds+1)//a.tasks)
             cached=cached_views(self.bank.values(),ids,task,r,a.sync_bank_age)
             if policy=="cached":
-                selected=select_cached(ids,last,due,cached,k,r,a.sync_bank_age,a.sync_peer_solver)
+                weights={i:x.importance if x is not None else 1. for i,x in cached.items()} if getattr(a,"sync_coverage_weight","equal")!="equal" else None
+                selected=select_cached(ids,last,due,cached,k,r,a.sync_bank_age,a.sync_peer_solver,weights)
             elif policy=="update_match":
-                selected=update_match(ids,last,due,cached,k,r,a.sync_bank_age,a.sync_peer_solver)
+                selected=update_match(ids,last,due,cached,k,r,a.sync_bank_age,a.sync_peer_solver,getattr(a,"sync_update_weighted",False))
             else:
                 from .impact import adaptive_select
                 selected,impact=adaptive_select(ids,last,due,cached,r,task,(a.global_rounds+1)//a.tasks,

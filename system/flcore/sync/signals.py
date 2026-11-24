@@ -48,6 +48,9 @@ class SignalExtractor:
         cost={"forward_examples":0,"backward_examples":0,"seconds":0.}
         if kind=="histogram":return hist,cost
         if kind=="update":return None,cost
+        if kind in ("multichannel","gradient_conflict"):
+            from .multichannel import extract
+            return extract(self,c,data,hist,t,r,version,kind)
         if kind in ("replay","replay_histogram","replay_queue"):
             # Current histogram and raw per-task memory counts are separate
             # studies; replay profile explicitly encodes missing memory as zero.

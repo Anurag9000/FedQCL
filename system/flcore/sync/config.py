@@ -19,6 +19,8 @@ def add_arguments(parser):
     p.add_argument("--sync-peer-degree",type=int,default=1)
     p.add_argument("--sync-peer-loss",type=float,default=0.)
     p.add_argument("--sync-peer-solver",choices=["exact","greedy"],default="exact")
+    p.add_argument("--sync-coverage-weight",choices=["equal","samples","replay","aggregation"],default="equal")
+    p.add_argument("--sync-update-weighted",action="store_true")
     p.add_argument("--sync-peer-objective",choices=["distance","coverage"],default="distance")
     p.add_argument("--sync-eval-split",choices=["validation","test"],default="test")
     p.add_argument("--sync-output",default="research_results")
@@ -39,7 +41,7 @@ def add_arguments(parser):
     p.add_argument("--sync-posttrain",action="store_true")
     p.add_argument("--sync-bank-transfer",choices=["snapshot","delta"],default="snapshot")
     p.add_argument("--sync-failures",help="JSON mapping round to upload/reject/download client IDs")
-    p.add_argument("--sync-signal",choices=["histogram","replay","feature","gradient","update","replay_histogram","replay_queue","prototypes","feature_covariance","spectral","parameter_norms","normalization","predictions","loss","uncertainty","entropy","jacobian","fisher","gradient_variance"],default="histogram")
+    p.add_argument("--sync-signal",choices=["histogram","replay","feature","gradient","update","replay_histogram","replay_queue","prototypes","feature_covariance","spectral","parameter_norms","normalization","predictions","loss","uncertainty","entropy","jacobian","fisher","gradient_variance","multichannel","gradient_conflict"],default="histogram")
     p.add_argument("--sync-histogram-distance",choices=["tv","js","hellinger"],default="tv")
     p.add_argument("--sync-sketch-dim",type=int,default=128)
     p.add_argument("--sync-byte-cap",type=int,default=0,help="Hard logical bytes per round including bootstrap")
@@ -107,6 +109,14 @@ def validate(a):
         raise ValueError("cached update matching requires update signal, native coordinates, and pre-training selection")
     if a.sync_signal=="update" and not a.sync_posttrain and a.sync_policy!="update_match":
         raise ValueError("update statistic requires post-training selection")
+    if a.sync_signal=="multichannel" and (a.sync_local_reference=="window" or a.sync_bank_reference in ("mean","weighted_mean","envelope")):
+        raise ValueError("multichannel reports require non-pooled references")
+    if a.sync_update_weighted and a.sync_policy!="update_match":
+        raise ValueError("weighted update matching requires update_match policy")
+    if a.sync_coverage_weight!="equal" and a.sync_policy not in ("cached","peer"):
+        raise ValueError("weighted coverage requires cached or peer policy")
+    if a.sync_coverage_weight!="equal" and a.sync_peer_transport=="sparse":
+        raise ValueError("weighted sparse coverage not supported")
     if a.sync_signal not in ("histogram","replay") and a.sync_bank_reference=="envelope":
         raise ValueError("coordinate envelope only supported for histogram/replay")
     if a.sync_counterfactual_horizon<1 or ((a.sync_counterfactual_horizon>1 or a.sync_verify_branches or a.sync_all_subsets) and not a.sync_counterfactual):

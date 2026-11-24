@@ -67,6 +67,11 @@ def build(output):
             run("mechanism",policy,regime,seed,flags=flags)
     for policy,regime,seed in itertools.product(policies,regimes,(42,43,44)):
         run("counterfactual",policy,regime,seed,flags=("--sync-counterfactual",))
+    for policy,regime,seed,signal in itertools.product(("own","server","peer"),regimes,(42,43,44),("replay","feature","gradient","update")):
+        flags=("--sync-signal",signal)
+        if signal=="update":flags+=("--sync-posttrain","--sync-native-space")
+        if signal=="gradient":flags+=("--sync-native-space",)
+        run("signals",policy,regime,seed,flags=flags)
     output.parent.mkdir(parents=True,exist_ok=True)
     output.write_text("".join(json.dumps(job,sort_keys=True)+"\n" for job in jobs))
     counts={}

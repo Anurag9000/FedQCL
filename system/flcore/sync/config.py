@@ -30,6 +30,9 @@ def add_arguments(parser):
     p.add_argument("--sync-posttrain",action="store_true")
     p.add_argument("--sync-bank-transfer",choices=["snapshot","delta"],default="snapshot")
     p.add_argument("--sync-failures",help="JSON mapping round to upload/reject/download client IDs")
+    p.add_argument("--sync-signal",choices=["histogram","replay","feature","gradient","update"],default="histogram")
+    p.add_argument("--sync-sketch-dim",type=int,default=128)
+    p.add_argument("--sync-native-space",action="store_true",help="Allow comparison across model versions for native gradient/update sketches; explicit ablation")
 
 def validate(a):
     if a.sync_policy=="legacy":
@@ -50,6 +53,12 @@ def validate(a):
         raise ValueError("random and oldest require fixed count")
     if a.auto_break or a.client_drop_rate or a.train_slow_rate or a.send_slow_rate or a.time_select or a.num_new_clients or a.privacy:
         raise ValueError("legacy dropout, early stopping, DP and new-client options not supported by research engine")
+    if a.sync_sketch_dim<1:
+        raise ValueError("invalid sketch dimension")
+    if a.sync_signal=="update" and not a.sync_posttrain:
+        raise ValueError("update statistic requires post-training selection")
+    if a.sync_signal not in ("histogram","replay") and a.sync_bank_reference=="envelope":
+        raise ValueError("coordinate envelope only supported for histogram/replay")
     if a.sync_posttrain and (a.sync_refresh or a.sync_counterfactual):
         raise ValueError("post-training admission cannot be combined with refresh or pre-training counterfactual")
     if a.sync_windowed and a.few_shot:

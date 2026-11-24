@@ -36,7 +36,8 @@ To execute all currently enumerated jobs explicitly:
 | reference/transport ablations: 14 alternatives x three regimes x three seeds | 126 |
 | mechanism: six policies x three regimes x three seeds x eight alternatives | 432 |
 | counterfactual: six policies x three regimes x three seeds | 54 |
-| Total nominal training jobs | 981 |
+| signals: replay counts, feature moments, gradient and update sketches | 108 |
+| Total nominal training jobs | 1089 |
 
 21 dataset-generation and 21 validation jobs are additional. The builder is authoritative:
 it deduplicates exact configuration keys. It writes every command, its dependencies, expected
@@ -47,7 +48,7 @@ Pilot regimes: near, separated, changing; paired seeds 42,43,44. Other regimes:
 clustered, disjoint Dirichlet (not the original resampling generator), equal-histogram
 conditional-domain stress and within-task drift. The current post-training variant uses
 the same histogram after training, and retains unsynchronized local updates. It is not a
-post-training gradient/update-statistic implementation.
+post-training gradient/update-statistic implementation. The separately listed update signal uses actual start-to-end parameter differences.
 
 ## Scripts
 
@@ -63,7 +64,7 @@ post-training gradient/update-statistic implementation.
 | tests/test_sync_policies.py | Pure protocol tests |
 
 Execute a stage independently with --stage budget, --stage threshold, --stage ablation,
---stage mechanism or --stage counterfactual. Use --job-id to isolate a job.
+--stage mechanism --stage counterfactual or --stage signals. Use --job-id to isolate a job.
 Use --dry-run before launching expensive runs. --resume skips valid completed jobs and
 retries failed jobs without overwriting failed output. --device cpu is available for small
 diagnostics, not recommended for a complete campaign. The current runner is serial;
@@ -81,12 +82,11 @@ network bytes and the current histogram encoding is JSON rather than the propose
 ## Remaining research gates
 
 The following are not executable jobs yet and must not be counted as completed:
-rich feature/gradient/Jacobian/Bayesian/spectral signals, centralized cached coverage,
+additional feature/prototype/gradient variants and Jacobian/Bayesian/spectral signals, centralized cached coverage,
 update-matching and impact prediction, adaptive hard byte caps, matched-byte threshold
 calibration, combined methods, sparse peer networks and imperfect peer reconciliation,
 multi-round counterfactual continuation, external baseline reproductions, held-out
-confirmatory seeds and larger cohorts. The current ledger is a concrete histogram
-campaign, not proof that the conditional research extensions work.
+confirmatory seeds and larger cohorts. The current ledger is a concrete histogram campaign with initial richer-signal ablations, not proof that the conditional research extensions work.
 
 The same-checkpoint branch runner reuses independently trained candidates for one-round
 aggregates; explicit branch equivalence testing and multi-round continuation remain

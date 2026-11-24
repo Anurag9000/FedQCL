@@ -3,6 +3,7 @@ from dataclasses import dataclass
 from fractions import Fraction
 from itertools import combinations
 import random
+import math
 
 @dataclass(frozen=True)
 class Report:
@@ -14,21 +15,38 @@ class Report:
     window: str = "static"
     schema: int = 1
     model_version: int = 0
+    kind: str = "histogram"
+    space: str = "task_labels"
+    sample_count: int = 0
+    metric: str = "tv"
 
     @property
     def id(self):
         return f"{self.client}:{self.task}:{self.round}:{self.window}:{self.schema}"
 
     def valid(self, minimum=1):
-        return (self.schema == 1 and len(self.labels) == len(self.counts)
-                and bool(self.labels) and len(set(self.labels)) == len(self.labels)
-                and all(type(x) is int and x >= 0 for x in self.counts)
-                and sum(self.counts) >= minimum)
+        basic=(self.schema == 1 and len(self.labels) == len(self.counts)
+               and bool(self.labels) and len(set(self.labels)) == len(self.labels))
+        if not basic:
+            return False
+        if self.metric=="tv":
+            return (all(type(x) is int and x>=0 for x in self.counts)
+                    and sum(self.counts)>=minimum)
+        return (self.metric in ("cosine","bounded_l2") and self.sample_count>=minimum
+                and all(isinstance(x,(float,int)) and math.isfinite(x) for x in self.counts))
 
 def distance(a, b):
     if (a is None or b is None or not a.valid() or not b.valid()
-            or (a.task, a.labels, a.schema) != (b.task, b.labels, b.schema)):
+            or (a.task,a.labels,a.schema,a.kind,a.space,a.metric) != (b.task,b.labels,b.schema,b.kind,b.space,b.metric)):
         return None
+    if a.metric=="cosine":
+        na=math.sqrt(sum(x*x for x in a.counts));nb=math.sqrt(sum(x*x for x in b.counts))
+        if na==0 or nb==0:
+            return 0.0 if na==nb==0 else 1.0
+        return max(0.,min(1.,(1-sum(x*y for x,y in zip(a.counts,b.counts))/(na*nb))/2))
+    if a.metric=="bounded_l2":
+        d=math.sqrt(sum((x-y)**2 for x,y in zip(a.counts,b.counts)))
+        return d/(1+d)
     na, nb = sum(a.counts), sum(b.counts)
     return sum(abs(Fraction(x, na)-Fraction(y, nb))
                for x, y in zip(a.counts, b.counts))/2
@@ -54,6 +72,11 @@ def local_reference(current, last_report, history, kind, length):
 def pooled(records, template, weighted=True):
     if not records:
         return None
+    if template.metric!="tv":
+        from dataclasses import replace
+        weights=[x.sample_count if weighted else 1 for x in records]
+        values=tuple(sum(x.counts[c]*w for x,w in zip(records,weights))/sum(weights) for c in range(len(template.labels)))
+        return replace(template,client=-1,round=max(x.round for x in records),counts=values,window="pooled",sample_count=sum(weights))
     if weighted:
         counts = tuple(sum(x.counts[c] for x in records) for c in range(len(template.labels)))
     else:
@@ -62,7 +85,7 @@ def pooled(records, template, weighted=True):
         counts = tuple(sum(x.counts[c]*(denom//sum(x.counts)) for x in records)
                        for c in range(len(template.labels)))
     return Report(-1, template.task, max(x.round for x in records),
-                  template.labels, counts, "pooled")
+                  template.labels, counts, "pooled",kind=template.kind,space=template.space,metric=template.metric)
 
 def bank_score(report, bank, round_id, age=5, include_self=False, kind="latest"):
     records = [x for x in bank if (include_self or x.client != report.client)

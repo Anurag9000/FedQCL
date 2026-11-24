@@ -263,6 +263,8 @@ def run_research(args):
     a.model=ResNet18_dpp(num_tasks=a.tasks,num_classes_per_task=a.num_classes)
     device=torch.device(a.device)
     model=copy.deepcopy(a.model).to(device)
+    from .signals import SignalExtractor
+    extractor=SignalExtractor(a,copy.deepcopy(a.model) if a.sync_signal=="feature" else None)
     clients=[]
     for i in range(a.num_clients):
         task0=os.path.join(a.dataset,"task_0")
@@ -303,9 +305,10 @@ def run_research(args):
             t=r//rpt
             tick=time.monotonic()
             datasets={c.id:c.reveal(t,r) for c in clients}
-            reports={}; population={}
+            reports={}; population={}; probe_cost={}; update_starts={}
             for c in clients:
-                reports[c.id],population[c.id]=ctl.observe(c.id,t,r,datasets[c.id])
+                histogram,population[c.id]=ctl.observe(c.id,t,r,datasets[c.id])
+                reports[c.id],probe_cost[c.id]=extractor.before(c,datasets[c.id],histogram,t,r,ctl.local[c.id].model_version)
             selected=ctl.decide(r,reports) if not a.sync_posttrain else ()
             if a.sync_counterfactual and r in {0, rpt//2, rpt-1, rpt, 2*rpt-1, a.global_rounds}:
                 for u in range(t+1):
@@ -331,9 +334,13 @@ def run_research(args):
                     ctl.local[i].local_revision=0
                     starts[i]=ctl.model_version
                 begin=time.monotonic()
+                if a.sync_signal=="update":
+                    update_starts[i]=extractor.snapshot(c)
                 c.train_round(r,t,datasets[i])
                 ctl.local[i].local_revision+=1
                 trained.append(i)
+                if a.sync_signal=="update":
+                    reports[i],probe_cost[i]=extractor.after(c,update_starts.pop(i),t,r,starts[i])
                 if not a.sync_posttrain and i in selected:
                     delivered=not fails(r,"upload",i)
                     admitted=delivered and not fails(r,"reject",i)
@@ -382,7 +389,7 @@ def run_research(args):
             rounds.append({"round":r,"task":t,"selected":list(selected),"trained":trained,
                            "uploaded":uploaded,"accepted":list(accepted),"downloaded":downloaded,
                            "start_versions":starts,"version":ctl.model_version,"outcomes":outcomes,
-                           "no_aggregation":not accepted,"population_histograms":population,
+                           "no_aggregation":not accepted,"population_histograms":population,"probe_cost":probe_cost,
                            "memory_missed":[i for i in range(a.num_clients) if boundary and t not in clients[i].task_memories],
                            "reference_missed":[i for i in range(a.num_clients) if r>0 and r%rpt==0 and i not in trained],
                            "queues":{c.id:c.Q.copy() for c in clients},

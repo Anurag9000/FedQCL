@@ -1,78 +1,49 @@
 # Implementation traceability and current limits
 
 Authority: FEDQCL_CLIENT_SYNC_PROTOCOLS.md, FEDQCL_SYNC_IMPLEMENTATION_SPEC.md,
-FEDQCL_COMMUNICATION_RESEARCH_PLAN.md, FEDQCL_SYNC_EXPERIMENT_ROADMAP.md,
-FEDQCL_LOW_BANDWIDTH_SIGNALS.md. See EXPERIMENT_LEDGER.md for the job matrix.
+FEDQCL_COMMUNICATION_RESEARCH_PLAN.md, FEDQCL_SYNC_EXPERIMENT_ROADMAP.md and
+FEDQCL_LOW_BANDWIDTH_SIGNALS.md. See EXPERIMENT_LEDGER.md for the verified ledger.
 
 | Requirement | Code | Status |
 |---|---|---|
-| Legacy default; mutual exclusion | main.py; sync/config.py | Implemented; legacy regression pending |
-| Bootstrap, due rules, empty rounds | sync/policies.py; sync/engine.py | Implemented; core unit tests pass |
-| Own history references | sync/policies.py; sync/protocol.py | Implemented; core unit tests pass |
-| Delivered server bank, ages/task, views, delta | sync/policies.py; sync/protocol.py | Implemented; core unit tests pass |
-| Direct/relay peer threshold/exact/greedy | sync/policies.py; sync/protocol.py | Implemented; core unit tests pass |
-| Cached age-aware facility location | sync/advanced.py | Implemented; pure tests pass |
-| Cached actual-update sketch mean matching | sync/advanced.py | Implemented; pure tests pass; equal client weights |
-| Combined 12/13/23/123 | sync/advanced.py; sync/protocol.py | Implemented; fixed and threshold variants; not all neural tests run |
-| Impact model, calibrated upper residual, adaptive selection | sync/impact.py; scripts/fit_impact.py | Implemented; exploratory calibration only; no fitted model yet |
-| Compact binary reports | sync/wire.py; sync/protocol.py | Implemented; round-trip tests pass |
-| Hard logical byte cap | sync/budgets.py | Implemented for reliable pretraining; adaptive hard bytes pending |
-| Frozen server and continual metrics | sync/engine.py; sync/metrics.py | Implemented; earlier CPU training passed |
-| Local capture, refresh, ER, posttrain | sync/engine.py | Implemented; dedicated variant integration pending |
-| Allocation, similarity, windows | scripts/generate_streams.py | Exact class inventory; approximate similarity optimization; real CIFAR run pending |
-| Histogram, replay, feature, gradient/update | sync/signals.py | Implemented |
-| Replay+histogram, queue, prototypes, covariance, spectrum, loss, predictions, confidence, entropy, norms, normalization, Jacobian and empirical head Fisher, gradient variance | sync/signals.py; sync/statistics.py | Implemented; expanded extractor smoke pending |
-| TV, JS, Hellinger, cosine, bounded L2 | sync/policies.py; sync/statistics.py | Implemented; some standalone math metrics |
-| Exhaustive subset enumeration, omission interactions, regret/opportunity | sync/counterfactual.py; scripts/analyze_counterfactuals.py | Implemented; real-data study pending |
-| Cross-task continuation and explicit branch equivalence | sync/continuation.py; sync/counterfactual.py | Implemented; expensive branch tests pending |
-| Sparse peer graph and reconciliation | sync/peer_network.py; sync/protocol.py | Implemented; sparse pure test, network integration pending |
-| Failures, availability, charged relay fallback | sync/engine.py; sync/protocol.py | Implemented; robustness integration pending |
-| Rate-matched counts | scripts/extract_count_schedule.py; sync/protocol.py | Implemented; offline |
-| Checkpoint/resume | sync/engine.py | Earlier two-task CPU deterministic restore passed |
-| Job ledger and provenance | scripts/build_job_ledger.py; run_campaign.py | Implemented; current expanded matrix in CI |
-| Paired summaries and frontier plots | scripts/aggregate_results.py; scripts/plot_results.py | Implemented; requires experimental results |
+| Legacy default, task/reference correctness, queue sample-mean ablation, V-normalized LR, aggregation weights | main.py; clientavg_tl.py; sync/engine.py; config.py | Implemented; native behavior retained, full legacy regression not established |
+| Own/server/peer selection, due/bootstrap rules, bank views, delta and delivery ordering | sync/policies.py; protocol.py; engine.py | Implemented; unit and synthetic smoke coverage |
+| Cached/weighted facility location and FedAvg-weighted update matching | sync/advanced.py | Implemented; sketches are approximations |
+| Combined fixed/threshold and joint novelty/coverage objectives | sync/advanced.py; protocol.py | Implemented |
+| Delivered-history staleness, dynamic threshold and block sampling | sync/protocol.py; advanced.py | Implemented |
+| Adaptive linear/quadratic impact, feature guards, joint seed calibration | sync/impact.py; scripts/fit_impact.py | Implemented; no fitted empirical models |
+| Budget and future reservation | sync/budgets.py | Reliable pre-training hard caps and necessary future-transfer lower bound; no optimal global planner |
+| Binary/JSON/FP16/INT8 and quantization diagnostics | sync/wire.py | Implemented; multichannel quantization excluded |
+| Count/byte-matched controls and achieved-gap assessment | scripts/extract_count_schedule.py; compare_matched_bytes.py; ledger | Implemented; exact equality not guaranteed |
+| Frozen continual evaluation, class counts, metrics and checkpoints | sync/engine.py; metrics.py | Implemented; synthetic restart equivalence tested |
+| Local memory capture, refresh, ER, posttraining, replay profiles | sync/engine.py; replay.py | Implemented; new replay profiles bounded and causally local |
+| CIFAR-10/100/TinyImageNet, drift, unequal loads, domains, integrity | scripts/generate_streams.py; validate_streams.py; sync/engine.py | Implemented; TinyImageNet requires extracted files; full real-data checks pending |
+| 30 signal types, including separate replay gradients and explicit channel masks | sync/signals.py; multichannel.py; extra_signals.py | Implemented; estimator approximations and computational costs explicit |
+| Discrete MI, CMI, TC, interaction information, transfer entropy | sync/information.py; extra_signals.py | Plug-in estimators, finite-sample bias remains |
+| Paired synthetic anchor CCA/SVCCA/PWCCA-style, CKA, RSA, HSIC, Procrustes, angles/neighborhood | sync/representation.py | Rank-limited estimators with public synthetic anchor, not exact real-data representational agreement |
+| Bayesian, Fisher, Jacobian, Hessian, conditional moments | sync/extra_signals.py | Diagonal Laplace head and bounded derivative probes; not exact full-network inference |
+| Counterfactual subset enumeration, interactions, oracle regret and continuation | sync/counterfactual.py; continuation.py; scripts/analyze_counterfactuals.py | Implemented; higher-order interactions, multiple continuation policies, false-safe/expensive diagnostics |
+| Sparse/distributed peer election, dynamic topology and message faults | sync/peer_network.py; distributed_peer.py; message_integrity.py | Simulated gossip and reliable retransmission; not Byzantine consensus |
+| Control accounting, randomized response, loopback benchmark | sync/protocol.py; scripts/benchmark_transport.py | Implemented; no end-to-end DP or physical WAN claim |
+| Stratified sample-mass and gradient-sketch facility comparators | sync/protocol.py; advanced.py | Literature-inspired adaptations, not official Clustered Sampling/DivFL reproduction |
+| Ledger, independent splits, power planning, parallel runner and postprocessing | scripts/build_job_ledger.py; run_campaign.py; plan_confirmation.py | 4,537 default jobs generated in CI, including 3,885 training configurations |
 
-## Explicit engineering choices
+## Explicit engineering choices and boundaries
 
-Research execution is sequential, uses cloned historical snapshots, stateful replay
-cursors, proportion-preserving sampling and explicit native replay boundary behavior.
-The legacy path stays default. Failed downloads retain actual locally trained
-parameters. Binary reports use uint32 counts or float64 real vectors; the latter
-preserves exact transmitted scalar values but is not FP16 compression. Model bytes
-are analytic and common clock/availability traffic is free by declared convention.
-Private diagnostic reports are not public artifacts and must not be interpreted as
-delivered policy evidence.
+Native defaults remain available for comparability. The research engine uses sequential local clients within one training job, cloned historical snapshots, stateful replay cursors, and explicit phase ordering. Parallel execution is across independent jobs on a single host. A failed download retains the actual locally trained parameters. Model payload counts are analytic; tensor transport over separate physical machines is not implemented. TCP loopback is an application-level benchmark only. Seeded randomized response is a reproducible ablation, not a formal privacy guarantee for model updates or repeated releases.
 
-Cached update matching uses equal-client-weight cached sketches in declared native
-parameter coordinates; it is not an oracle or a guarantee of matching the current
-aggregate. Combined methods use union/intersection for novelty and sequential peer
-filtering. Sparse graph is a centralized arbiter over delivered edge distances,
-not a distributed-consensus implementation. Reconciliation assumes a reliable
-fallback relay. Impact calibration is preliminary and low-confidence (0.5) because
-only two independent calibration seeds are enumerated.
+Strict calibration uses 5 fit, 20 calibration and 5 held-out partition seeds. Grouped maximum residuals across current/past targets yield a joint bound only under exchangeability. No calibration model or power estimate has been fitted from actual research training. Development variance must determine final independent replication count. Multichannel fusion has fixed declared channel weights; learned nonlinear harm prediction is separate from learned channel-metric weights.
 
-Development validation reserves 50 examples per CIFAR-100 class; held-out test is
-used in adaptive seeds 45-47 only in the generated ledger. Similarity target
-realization is approximate; integer allocation solves an exact minimum absolute
-count discrepancy problem and explicitly verifies class/client totals. Training
-class counts are recorded from actual SGD batches.
+## External method reproduction
 
-## Remaining work
+See EXTERNAL_BASELINES.md. Stratified mass sampling and gradient facility sketches are explicitly named adaptations. Uniform, class-balanced and rare-class replay are local comparators, not Re-Fed. FedWeIT's decomposition and cross-client knowledge transfer require a distinct model/training protocol; no fake FedWeIT job is included.
 
-- Full real CIFAR-100/GPU training smoke, legacy regression and complete campaign.
-- Exhaustive integration/leakage/branch equivalence and deterministic GPU tests.
-- Full advanced catalog: Bayesian posterior inference, MI/conditional MI, transfer
-  entropy, CCA/SVCCA/PWCCA, richer paired-anchor representations and other estimators.
-  Standalone linear CKA does not constitute a deployable paired-probe protocol.
-- Weighted and genuinely multichannel cached coverage/update matching, weighted
-  peer objectives, separate current/replay gradient decomposition and learned
-  impact features beyond the first cached histogram model.
-- Future-budget reserve, rate-matched byte rather than count comparisons,
-  independently calibrated confirmatory thresholds, larger independent calibration
-  samples and statistical power analysis.
-- External baseline reproduction, measured physical networking, additional
-  transport failure modes, truly distributed sparse election and privacy analysis.
-- Additional allocation/window profiles and full per-message phase order tests;
-  report ingestion currently occurs at completion in the simulator's reliable path.
+## Outstanding work distinct from full training
 
-No empirical accuracy, forgetting or physical communication superiority is claimed.
+- Faithful official Clustered Sampling, DivFL, FedWeIT and Re-Fed reproduction and a harmonized task/data/evaluation adapter, if required for paper claims.
+- True separate-host transport measurement, formal privacy guarantees, stronger adversarial consensus and globally optimal budget scheduling.
+- Exact full-network Bayesian inference and architecture-specific attention/gating signals are not implemented; the ResNet-18 path has no attention module.
+- Arbitrary replay-target similarity realization, learned channel weighting, exhaustive branch/fault integration, full legacy regression and GPU determinism checks remain unverified.
+- Study design still requires development outcomes, adequate power and statistical analysis. No empirical superiority is claimed.
+
+The protocol suite at 14a3bbd9 passed 48 tests (2 opt-in skipped); the earlier full CI at 2c7a7378 passed both synthetic neural tests. Check the latest workflow for new neural smoke coverage. Full research training remains unexecuted.

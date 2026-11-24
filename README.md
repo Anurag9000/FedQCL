@@ -175,7 +175,7 @@ test on the target environment before launching all training jobs.
 
 The expanded campaign includes cached/combined/adaptive selectors, binary reports,
 rich statistics, sparse and lossy peer variants, counterfactual continuations,
-rate matching and scaling to 10/20/50 clients. The exact matrix and remaining
-limitations are documented in the runbook above. Development uses validation;
+rate matching and scaling to 10/20/50 clients. The default ledger now contains 4,537 jobs, including 3,885 training configurations, verified in protocol CI. The exact matrix and remaining
+limitations are documented in the runbook above. Parallel execution: bash run_all_sync.sh --stage pilot --resume --workers 2 --gpu-ids 0,1. Use --estimate-only to inspect the scope without training. Development uses validation;
 held-out adaptive jobs use separate partition seeds. Do not use --all before
 validating the full-data pilot.

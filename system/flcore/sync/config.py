@@ -1,7 +1,7 @@
 """Research flags; no effect on legacy execution."""
 def add_arguments(parser):
     p=parser
-    p.add_argument("--sync-policy", choices=["legacy","full","random","oldest","own","server","peer","cached","update_match","combined12","combined13","combined23","combined123"], default="legacy")
+    p.add_argument("--sync-policy", choices=["legacy","full","random","oldest","own","server","peer","cached","update_match","combined12","combined13","combined23","combined123","adaptive"], default="legacy")
     p.add_argument("--sync-mode",choices=["threshold","fixed"],default="fixed")
     p.add_argument("--sync-k",type=int,default=3)
     p.add_argument("--sync-threshold",type=float,default=.1)
@@ -34,6 +34,11 @@ def add_arguments(parser):
     p.add_argument("--sync-sketch-dim",type=int,default=128)
     p.add_argument("--sync-byte-cap",type=int,default=0,help="Hard logical bytes per round including bootstrap")
     p.add_argument("--sync-campaign-byte-cap",type=int,default=0,help="Hard total logical bytes; exhausted budget is reported infeasible")
+    p.add_argument("--sync-all-subsets",action="store_true")
+    p.add_argument("--sync-impact-model")
+    p.add_argument("--sync-current-tolerance",type=float,default=.02)
+    p.add_argument("--sync-past-tolerance",type=float,default=.02)
+    p.add_argument("--sync-soft-budget",action="store_true")
     p.add_argument("--sync-combine-rule",choices=["union","intersection"],default="union")
     p.add_argument("--sync-native-space",action="store_true",help="Allow comparison across model versions for native gradient/update sketches; explicit ablation")
 
@@ -58,12 +63,16 @@ def validate(a):
         raise ValueError("legacy dropout, early stopping, DP and new-client options not supported by research engine")
     if min(a.sync_byte_cap,a.sync_campaign_byte_cap)<0:
         raise ValueError("invalid byte cap")
-    if (a.sync_byte_cap or a.sync_campaign_byte_cap) and (a.sync_posttrain or a.sync_failures):
+    if (a.sync_byte_cap or a.sync_campaign_byte_cap) and (a.sync_posttrain or a.sync_failures or a.sync_policy=="adaptive"):
         raise ValueError("hard caps currently require reliable pre-training delivery")
     if a.memory_size<0 or a.batch_size<1 or a.memory_batch_size<1 or a.local_epochs<1:
         raise ValueError("invalid local workload")
     if a.sync_sketch_dim<1:
         raise ValueError("invalid sketch dimension")
+    if a.sync_policy=="adaptive" and (not a.sync_impact_model or a.sync_mode!="fixed" or a.sync_signal!="histogram"):
+        raise ValueError("adaptive requires calibrated impact model, histogram and fixed upper cap")
+    if min(a.sync_current_tolerance,a.sync_past_tolerance)<0:
+        raise ValueError("negative impact tolerance")
     if a.sync_policy in ("cached","update_match") and a.sync_mode!="fixed":
         raise ValueError("cached selectors require fixed count")
     if a.sync_policy=="update_match" and (a.sync_signal!="update" or a.sync_posttrain or not a.sync_native_space):

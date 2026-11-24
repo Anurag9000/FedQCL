@@ -77,6 +77,8 @@ def build(output):
         run("advanced",policy,regime,seed,flags=flags)
     for policy,regime,seed in itertools.product(("combined12","combined123"),regimes,(42,43,44)):
         run("advanced",policy,regime,seed,flags=("--sync-combine-rule","intersection"))
+    for regime,seed in itertools.product(regimes,(42,43,44)):
+        run("impact_data","cached",regime,seed,flags=("--sync-counterfactual","--sync-all-subsets"))
     output.parent.mkdir(parents=True,exist_ok=True)
     output.write_text("".join(json.dumps(job,sort_keys=True)+"\n" for job in jobs))
     counts={}

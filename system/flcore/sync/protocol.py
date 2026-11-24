@@ -49,6 +49,10 @@ class Controller:
         self.model_version = 0
         self.arrivals = []
         self.decisions = []
+        self.impact_model=None
+        if getattr(args,"sync_policy",None)=="adaptive":
+            from pathlib import Path
+            self.impact_model=json.loads(Path(args.sync_impact_model).read_text())
 
     def observe(self, i, task, r, dataset):
         a = self.args
@@ -126,6 +130,7 @@ class Controller:
         threshold = threshold_value(a.sync_threshold)
         k = None if a.sync_mode=="threshold" else min(a.sync_k,len(ids))
         scores, refs, assignments = {},{},{}
+        impact=None
         versions = {i:self.local[i].bank_version for i in ids}
         # Every available client sees the common clock and roster under a declared
         # free common-control convention; all additional messages below are charged.
@@ -202,13 +207,17 @@ class Controller:
             selected = ids
         elif a.sync_policy in ("full","random","oldest"):
             selected = baseline_select(a.sync_policy,ids,due,last,len(ids) if k is None else k,a.seed,r)
-        elif policy in ("cached","update_match"):
+        elif policy in ("cached","update_match","adaptive"):
             task=r//((a.global_rounds+1)//a.tasks)
             cached=cached_views(self.bank.values(),ids,task,r,a.sync_bank_age)
             if policy=="cached":
                 selected=select_cached(ids,last,due,cached,k,r,a.sync_bank_age,a.sync_peer_solver)
-            else:
+            elif policy=="update_match":
                 selected=update_match(ids,last,due,cached,k,r,a.sync_bank_age,a.sync_peer_solver)
+            else:
+                from .impact import adaptive_select
+                selected,impact=adaptive_select(ids,last,due,cached,r,task,(a.global_rounds+1)//a.tasks,
+                    a.sync_bank_age,self.impact_model,k,a.sync_current_tolerance,a.sync_past_tolerance,a.sync_soft_budget)
             refs={i:None if x is None else x.id for i,x in cached.items()}
             assignments=coverage(ids,selected,cached,threshold)
             for i in selected:
@@ -232,7 +241,7 @@ class Controller:
         d = {"round":r,"available":ids,"due":due,"selected":selected,
              "deadline_cap_violations":[i for i in due if i not in selected],
              "scores":{i:None if x is None else float(x) for i,x in scores.items()},
-             "references":refs,"bank_versions":versions,"coverage":assignments,
+             "references":refs,"bank_versions":versions,"coverage":assignments,"impact":impact,
              "reasons":{i:("bootstrap" if r==0 else "mandatory" if i in due and i in selected
                            else "deadline_cap" if i in due else "unknown" if i in scores and scores[i] is None
                            else "fixed_count_fill" if i in selected and i in scores and scores[i]<=threshold
@@ -245,7 +254,7 @@ class Controller:
         complete = set(accepted)&set(downloaded)
         policy=self.args.sync_policy
         uses_bank=policy in ("server","combined12","combined23","combined123")
-        if (uses_bank and self.args.sync_delivery!="telemetry") or policy in ("cached","update_match"):
+        if (uses_bank and self.args.sync_delivery!="telemetry") or policy in ("cached","update_match","adaptive"):
 
             arrived = {}
             for i in uploaded:

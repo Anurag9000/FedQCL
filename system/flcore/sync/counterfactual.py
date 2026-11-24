@@ -7,12 +7,21 @@ import torch
 
 def analyze(server,clients,datasets,task,r,ctl,actual,loaders,complete,device,classes):
     from .engine import aggregate,evaluate,download
+    from .advanced import cached_views
+    from .impact import subset_features
     # Candidate training is isolated and reused only within this single round.
     # Under the sequential native client adapter, training uses its own starting
     # model, state, dataset, and deterministic per-client/round seeds.
     rng=(random.getstate(),np.random.get_state(),torch.get_rng_state(),
          torch.cuda.get_rng_state_all() if torch.cuda.is_available() else [])
     candidates=[]
+    ids=tuple(range(len(clients)))
+    # Capture only the pre-decision delivered evidence. For telemetry policies
+    # the observed bank is not equivalent to accepted-upload evidence.
+    prior_records=[x for x in ctl.bank.values() if x.round<r]
+    cached=cached_views(prior_records,ids,task,r,ctl.args.sync_bank_age)
+    last={i:ctl.local[i].last_sync for i in ids}
+    rpt=(ctl.args.global_rounds+1)//ctl.args.tasks
     try:
         for original in clients:
             c=copy.deepcopy(original)
@@ -24,6 +33,9 @@ def analyze(server,clients,datasets,task,r,ctl,actual,loaders,complete,device,cl
         ids=tuple(range(len(clients)))
         k=min(3,len(ids))
         subsets=set(combinations(ids,k))
+        if getattr(ctl.args,"sync_all_subsets",False):
+            if len(ids)>10:raise ValueError("exhaustive counterfactual limit is 10 clients")
+            subsets.update(s for k in range(len(ids)+1) for s in combinations(ids,k))
         subsets.add(ids)
         subsets.add(tuple(sorted(actual)))
         subsets.update(tuple(j for j in ids if j!=i) for i in ids)
@@ -37,6 +49,7 @@ def analyze(server,clients,datasets,task,r,ctl,actual,loaders,complete,device,cl
             past=sum(x["loss"] for x in rows[:-1])/task if task else None
             outcomes.append({"round":r,"task":task,"subset":list(s),"size":len(s),
                              "actual":s==tuple(sorted(actual)),"current_loss":cur,"past_loss":past,
+                             "features":subset_features(ids,s,cached,last,r,task,rpt,ctl.args.sync_bank_age),
                              "accuracy":sum(x["accuracy"] for x in rows)/len(rows)})
             del m
         full=next(x for x in outcomes if x["subset"]==list(ids))

@@ -39,6 +39,9 @@ class ResearchClient(clientAVG):
         self.current_samples=0
         self.training_counts=[]
         self.reference_task=-1
+        self.signal_history={}
+        self.memory_rounds={}
+        self.active_round=0
         super().__init__(args,**kwargs)
         if args.sync_v_normalized_lr:
             for group in self.optimizer.param_groups:
@@ -91,6 +94,8 @@ class ResearchClient(clientAVG):
         else:
             self.task_memories={}
             self.task_memoryloaders={t:None for t in range(self.num_tasks)}
+        self.memory_rounds={k:v for k,v in self.memory_rounds.items() if k in self.task_memories}
+        if self.task_memories.get(task_id):self.memory_rounds[task_id]=self.active_round
         self.replay_state.clear()
         self._mem_iterators.clear()
 
@@ -111,6 +116,7 @@ class ResearchClient(clientAVG):
         return default_collate([mem[j] for j in state["order"][start:end]])
 
     def train_round(self,r,task,dataset):
+        self.active_round=r
         loader=self.prepare_training(task,r,dataset)
         self.replay_samples=0
         self.optimizer_steps=len(loader)*self.epochs
@@ -144,6 +150,7 @@ class ResearchClient(clientAVG):
         self.training_counts=[a+b for a,b in zip(self.training_counts,counts)]
 
     def capture(self,task,r,dataset):
+        self.active_round=r
         seed_all(seed_for(self.research_seed,"capture",self.id,r))
         loader=DataLoader(dataset,batch_size=self.batch_size)
         self.save_task_memory_from_loader(self.id,task,loader,self.memory_size)
@@ -237,7 +244,7 @@ def write_jsonl(path,rows):
 def checkpoint_client(c):
     return {"model":c.model.state_dict(),"optimizer":c.optimizer.state_dict(),
             "Q":c.Q,"Q_history":c.Q_history,"theta_prev":c.theta_prev,"reference_task":c.reference_task,
-            "memories":c.task_memories,"replay_state":c.replay_state}
+            "memories":c.task_memories,"replay_state":c.replay_state,"signal_history":c.signal_history,"memory_rounds":c.memory_rounds}
 
 def restore_client(c,state):
     c.model.load_state_dict(state["model"])
@@ -245,6 +252,7 @@ def restore_client(c,state):
     c.Q=state["Q"]; c.Q_history=state["Q_history"]; c.theta_prev=state["theta_prev"]
     c.reference_task=state.get("reference_task",-1)
     c.task_memories=state["memories"]; c.replay_state=state["replay_state"]
+    c.signal_history=state.get("signal_history",{});c.memory_rounds=state.get("memory_rounds",{})
     c.task_memoryloaders={t:DataLoader(c.task_memories[t],batch_size=c.memory_batch_size,shuffle=True)
                           if c.task_memories.get(t) else None for t in range(c.num_tasks)}
 
@@ -298,7 +306,7 @@ def run_research(args):
     device=torch.device(a.device)
     model=copy.deepcopy(a.model).to(device)
     from .signals import SignalExtractor
-    extractor=SignalExtractor(a,copy.deepcopy(a.model) if a.sync_signal in ("feature","prototypes","feature_covariance","spectral","multichannel") else None)
+    extractor=SignalExtractor(a,copy.deepcopy(a.model) if a.sync_signal in ("feature","prototypes","feature_covariance","spectral","multichannel","representation_anchor","conditional_moments") else None)
     clients=[]
     for i in range(a.num_clients):
         task0=os.path.join(a.dataset,"task_0")

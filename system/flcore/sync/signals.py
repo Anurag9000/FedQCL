@@ -48,6 +48,8 @@ class SignalExtractor:
         cost={"forward_examples":0,"backward_examples":0,"seconds":0.}
         if kind=="histogram":return hist,cost
         if kind=="update":return None,cost
+        from .extra_signals import KINDS,extra
+        if kind in KINDS:return extra(self,c,data,hist,t,r,version,kind)
         if kind in ("multichannel","gradient_conflict"):
             from .multichannel import extract
             return extract(self,c,data,hist,t,r,version,kind)

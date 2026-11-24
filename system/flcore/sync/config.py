@@ -37,6 +37,7 @@ def add_arguments(parser):
     p.add_argument("--sync-byte-cap",type=int,default=0,help="Hard logical bytes per round including bootstrap")
     p.add_argument("--sync-campaign-byte-cap",type=int,default=0,help="Hard total logical bytes; exhausted budget is reported infeasible")
     p.add_argument("--sync-wire-format",choices=["binary","json"],default="binary")
+    p.add_argument("--sync-count-schedule",help="JSON list of predeclared participant counts for random baseline")
     p.add_argument("--sync-all-subsets",action="store_true")
     p.add_argument("--sync-impact-model")
     p.add_argument("--sync-current-tolerance",type=float,default=.02)
@@ -72,6 +73,8 @@ def validate(a):
         raise ValueError("invalid local workload")
     if a.sync_sketch_dim<1:
         raise ValueError("invalid sketch dimension")
+    if a.sync_count_schedule and (a.sync_policy!="random" or a.sync_byte_cap or a.sync_campaign_byte_cap):
+        raise ValueError("count schedule requires random policy without byte cap")
     if a.sync_policy=="adaptive" and (not a.sync_impact_model or a.sync_mode!="fixed" or a.sync_signal!="histogram"):
         raise ValueError("adaptive requires calibrated impact model, histogram and fixed upper cap")
     if min(a.sync_current_tolerance,a.sync_past_tolerance)<0:

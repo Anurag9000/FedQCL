@@ -100,6 +100,19 @@ def build(output):
         run("extended_signals",policy,regime,seed,flags=("--sync-signal",signal,"--sync-native-space"))
     for policy,regime,seed,metric in itertools.product(("own","server","peer"),regimes,(42,43,44),("js","hellinger")):
         run("extended_signals",policy,regime,seed,flags=("--sync-histogram-distance",metric))
+    # Derive count schedules after actual threshold/adaptive runs. This is an
+    # offline matched-rate baseline, not a deployable predictive scheduler.
+    sources=[j for j in jobs if j["kind"]=="train" and j["stage"] in ("threshold","adaptive")
+             and j["config"]["policy"] in ("own","server","peer","adaptive")]
+    for job in sources:
+        cfg=job["config"];out=Path(job["artifacts"][0]).parent
+        schedule=ROOT/"research_results"/"count_schedules"/(job["id"]+".json")
+        dep=add("rate_matched","schedule",{"source":job["id"]},[sys.executable,"scripts/extract_count_schedule.py",str(out/"rounds.jsonl"),"--output",str(schedule)],[job["id"]],[str(schedule)])
+        run("rate_matched","random",cfg["regime"],cfg["partition_seed"],flags=("--sync-count-schedule",str(schedule)),extra_deps=[dep])
+    for job in [j for j in jobs if j["kind"]=="train" and j["stage"] in ("counterfactual","impact_data")]:
+        out=Path(job["artifacts"][0]).parent
+        result=out/"counterfactual_analysis.json"
+        add("counterfactual_analysis","analysis",{"source":job["id"]},[sys.executable,"scripts/analyze_counterfactuals.py",str(out/"counterfactuals.jsonl"),"--output",str(result)],[job["id"]],[str(result)])
     output.parent.mkdir(parents=True,exist_ok=True)
     output.write_text("".join(json.dumps(job,sort_keys=True)+"\n" for job in jobs))
     counts={}

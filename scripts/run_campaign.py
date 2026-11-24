@@ -15,7 +15,8 @@ def valid(job):
             events=[json.loads(l) for l in (out/"communication_events.jsonl").read_text().splitlines()]
             metrics=[json.loads(l) for l in (out/"server_metrics.jsonl").read_text().splitlines()]
             return (status["status"]=="completed" and summary["rounds"]==50 and len(metrics)==150
-                    and sum(x["serialized_bytes"] for x in events)==summary["total_bytes"])
+                    and sum(x["serialized_bytes"] for x in events)==summary["total_bytes"]
+                    and (out/"rounds.jsonl").is_file())
         except (OSError,ValueError,KeyError):
             return False
     return True

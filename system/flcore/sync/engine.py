@@ -187,12 +187,18 @@ def evaluate(model,loaders,task,r,version,device,classes):
         for t in range(task+1):
             counts=[0]*classes
             correct=[0]*classes
-            loss=0.
+            loss=0.;brier=0.;bin_n=[0]*15;bin_conf=[0.]*15;bin_correct=[0]*15
             for loader in loaders[t]:
                 for x,y in loader:
                     x,y=x.to(device),y.to(device)%classes
                     logits=model(x,t)
                     loss+=torch.nn.functional.cross_entropy(logits,y,reduction="sum").item()
+                    prob=logits.softmax(-1);conf,pred=prob.max(-1)
+                    target=torch.nn.functional.one_hot(y,num_classes=classes)
+                    brier+=(prob-target).square().sum().item()
+                    for k in range(15):
+                        mask=(conf>=k/15)&((conf<(k+1)/15) if k<14 else (conf<=1))
+                        bin_n[k]+=int(mask.sum());bin_conf[k]+=conf[mask].sum().item();bin_correct[k]+=int((pred[mask]==y[mask]).sum())
                     n=torch.bincount(y,minlength=classes).cpu().tolist()
                     c=torch.bincount(y[logits.argmax(1)==y],minlength=classes).cpu().tolist()
                     counts=[a+b for a,b in zip(counts,n)]
@@ -200,7 +206,9 @@ def evaluate(model,loaders,task,r,version,device,classes):
             if not sum(counts):
                 raise ValueError("empty evaluation task")
             rows.append({"round":r,"task":t,"version":version,"accuracy":sum(correct)/sum(counts),
-                         "loss":loss/sum(counts),"count":sum(counts),"class_counts":counts,
+                         "loss":loss/sum(counts),"brier":brier/sum(counts),
+                         "ece":sum(abs(a-b) for a,b in zip(bin_conf,bin_correct))/sum(counts),
+                         "count":sum(counts),"class_counts":counts,
                          "class_correct":correct})
     return rows
 
@@ -279,6 +287,11 @@ def run_research(args):
         n=len(read_client_data(task0,i,True))
         clients.append(ResearchClient(a,id=i,train_samples=n,test_samples=0,train_slow=False,send_slow=False))
     ctl=Controller(a,range(a.num_clients))
+    if a.sync_count_schedule:
+        counts=json.loads(Path(a.sync_count_schedule).read_text())
+        if len(counts)!=a.global_rounds+1 or counts[0]!=a.num_clients or any(type(k) is not int or not 0<=k<=a.num_clients for k in counts):
+            raise ValueError("invalid matched-count schedule")
+        ctl.count_schedule=counts
     ctl.args=copy.copy(a)
     ctl.args.model=None
     ctl.args.encoder=None
@@ -454,6 +467,8 @@ def run_research(args):
                  "delivered_bytes":sum(x["delivered_bytes"] for x in ctl.transport.events),
                  "complete_syncs":sum(len(x["complete"]) for x in ctl.decisions),
                  "rounds":len(rounds),"accounting":f"logical tensor payload plus {a.sync_wire_format} envelope; common clock/availability free"}
+        from .metrics import summarize
+        summary.update(summarize(metrics,rounds,ctl.decisions,ctl.transport.events,a.tasks,rpt,a.num_clients))
         atomic_json(out/"final_summary.json",summary)
         torch.save(model.state_dict(),out/"server.pt")
         atomic_json(out/"status.json",{"status":"completed"})

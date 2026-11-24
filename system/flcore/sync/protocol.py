@@ -141,6 +141,8 @@ class Controller:
         due = due_clients(ids,last,r,a.sync_max_skip)
         threshold = threshold_value(a.sync_threshold)
         k = None if a.sync_mode=="threshold" else min(a.sync_k,len(ids))
+        if hasattr(self,"count_schedule"):
+            k=min(self.count_schedule[r],len(ids))
         scores, refs, assignments = {},{},{}
         impact=None
         versions = {i:self.local[i].bank_version for i in ids}

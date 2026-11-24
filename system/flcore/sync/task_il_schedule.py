@@ -8,10 +8,11 @@ import hashlib
 from collections import Counter
 from pathlib import Path
 import random
+from .backbone import BACKBONE
 
 ROOT = Path(__file__).resolve().parents[3]
 LEDGER = ROOT / "configs/task_il/job_ledger.jsonl"
-DEFAULTS = dict(clients=5, width=2, curriculum="disjoint", offline=0, syncs=5,
+DEFAULTS = dict(backbone=BACKBONE,clients=5, width=2, curriculum="disjoint", offline=0, syncs=5,
                 epochs=2, sharing=0, recurrence=0, outage=0, overlap=0, delay=None,
                 seed=42, selection_seed=42, batch=13, replay_batch=13, memory=500,
                 lr=0.005, validation_per_class=50, split="test")
@@ -33,6 +34,7 @@ def resolve(row, seed=None, split=None):
         c["seed"] = c["selection_seed"] = seed
     if split is not None:
         c["split"] = split
+    if c["backbone"]!=BACKBONE:raise ValueError("unsupported Task-IL backbone")
     if c["clients"] < 2 or not 0 <= c["offline"] < c["clients"]:
         raise ValueError("invalid client count")
     if c["syncs"] * c["epochs"] != 10:

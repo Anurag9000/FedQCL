@@ -111,7 +111,7 @@ class Neural(unittest.TestCase):
     def test_stale_aggregation_and_variable_heads(self):
         import torch
         from types import SimpleNamespace
-        from flcore.sync.task_il_engine import aggregate_buffered,local_labels
+        from flcore.sync.task_il_engine import aggregate_fedavg,local_labels
         from flcore.trainmodel.resnet import ResNet18_dpp
         server=torch.nn.Linear(1,1,bias=False)
         with torch.no_grad():server.weight.fill_(10)
@@ -120,8 +120,8 @@ class Neural(unittest.TestCase):
             model=torch.nn.Linear(1,1,bias=False)
             with torch.no_grad():model.weight.fill_(weight)
             clients.append(SimpleNamespace(model=model,base={"weight":torch.tensor([[float(base)]])},version=version))
-        aggregate_buffered(server,clients,[1,1],3)
-        self.assertAlmostEqual(server.weight.item(),12.)
+        aggregate_fedavg(server,clients,[1,3])
+        self.assertAlmostEqual(server.weight.item(),9.)
         m=ResNet18_dpp(2,3,task_widths=[3,1])
         self.assertEqual(m.heads[1].out_features,1)
         self.assertEqual(local_labels(torch.tensor([8,3]),[3,8]).tolist(),[1,0])
@@ -132,7 +132,7 @@ class Neural(unittest.TestCase):
         import torch
         from types import SimpleNamespace
         from task_il_data import generate_from_sources,validate,atomic_json
-        from flcore.sync.task_il_engine import PrivateClient,Evaluator,aggregate_buffered
+        from flcore.sync.task_il_engine import PrivateClient,Evaluator,aggregate_fedavg
         from flcore.trainmodel.resnet import ResNet18_dpp
         torch.set_num_threads(1)
         c=resolve(read_entries()[0]);c.update(clients=2,batch=2,epochs=1,memory=3,replay_batch=2,validation_per_class=1)
@@ -160,6 +160,7 @@ class Neural(unittest.TestCase):
             # A client can train on a later episode without any synchronization.
             result=a.train(es[2],2,torch.device("cpu"))
             self.assertGreater(result["replay_samples"],0)
+            self.assertLessEqual(result["replay_samples"],result["optimizer_steps"]*c["replay_batch"])
             self.assertEqual(a.version,0)
             self.assertLessEqual(sum(map(len,a.memory.values())),3)
             e=Evaluator(tmp,m,s,c,torch.device("cpu"))

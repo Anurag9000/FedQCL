@@ -1,4 +1,42 @@
-# Selective synchronization execution ledger
+# Mandatory research backbone: FedAvg + vanilla ER
+
+All current research training configurations, including the separate 48-entry
+Task-IL suite, use backbone `fedavg_uniform_er_v1`. No FEDQCL queue, drift
+constraint, historical reference model, V-scaled loss or FedBuff-style stale
+delta is used. Original legacy launchers are separate and are not research jobs.
+
+- Standard SGD, ResNet-18 with task-specific heads, current shard sample-weighted
+  full-state FedAvg. Selected stale models are averaged directly, not corrected.
+- 500 private stored examples per client, task-balanced quotas, random uniform
+  sampling without replacement. One pooled replay minibatch of at most 13
+  examples total per optimizer step; mean current CE plus mean replay CE.
+- Capture at observed task completion regardless of synchronization; a windowed
+  task admits only examples from windows actually revealed to that client.
+- All research configurations use the same memory strategy, loss, aggregation
+  and current-data sampler. Synchronization policies and original schedule
+  differences remain the experimental variables.
+- Removed redundant ER, local capture, full-state aggregation ablations,
+  balanced sampler, alternative memory strategies, FEDQCL correction ablations,
+  queue-dependent report and multiplicity-weighted mass comparator. Remaining
+  experiments are retained. The generated ledger is authoritative; the old
+  4,537-job count is superseded.
+
+```bash
+python scripts/build_job_ledger.py
+python scripts/run_campaign.py --dry-run
+bash run_all_sync.sh --stage pilot --resume
+bash run_all_sync.sh --all --workers 4 --gpu-ids 0,1,2,3
+bash run_all_task_il.sh --dry-run
+bash run_all_task_il.sh
+```
+
+The generated ledgers are commit-bound. Previous FEDQCL or FedBuff checkpoints
+and results are not compatible with this backbone and cannot be reused as
+completed research runs. See TASK_IL_EXPERIMENT_SPEC.md for the portable 48-run
+matrix and IMPLEMENTATION_TRACEABILITY.md for remaining scientific limitations.
+Full experiment execution is not implied by ledger generation or CI smoke tests.
+
+## Historical pre-conversion ledger reference (superseded counts and learning variants)
 
 ## Setup and execution
 

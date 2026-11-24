@@ -1,4 +1,15 @@
-# Implementation traceability and current limits
+# Current learning contract
+
+The research backbone is strictly `fedavg_uniform_er_v1` across both suites.
+The historical FEDQCL client remains isolated behind legacy execution only.
+All queue-related and alternative learning-backbone jobs are excluded. The
+shared backbone.py implements direct weighted FedAvg and one pooled replay loss.
+The 48-run Task-IL suite no longer uses FedBuff or stores base model snapshots.
+Earlier verification and counts below refer to pre-conversion code; consult CI
+for the current revision. Remaining non-backbone scientific limitations are not
+automatically resolved by this migration.
+
+## Historical traceability (pre-conversion)
 
 Authority: FEDQCL_CLIENT_SYNC_PROTOCOLS.md, FEDQCL_SYNC_IMPLEMENTATION_SPEC.md,
 FEDQCL_COMMUNICATION_RESEARCH_PLAN.md, FEDQCL_SYNC_EXPERIMENT_ROADMAP.md and

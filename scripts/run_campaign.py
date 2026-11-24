@@ -28,6 +28,7 @@ def valid(job):
         metrics=[json.loads(l) for l in (out/"server_metrics.jsonl").read_text().splitlines()]
         rounds=[json.loads(l) for l in (out/"rounds.jsonl").read_text().splitlines()]
         provenance=json.loads((out/"provenance.json").read_text())
+        if summary.get("backbone")!="fedavg_uniform_er_v1" or provenance.get("backbone")!="fedavg_uniform_er_v1":return False
         n=job["config"].get("rounds",50);tasks=job["config"].get("tasks",5)
         if job["config"].get("campaign")=="task_il_48":
             from hashlib import sha256
@@ -64,12 +65,15 @@ def valid(job):
                     return False
                 if any(o["samples"]!=o["shard_size"]*resolved["epochs"] or o["private_memory_count"]>resolved["memory"] for o in x["outcomes"]):
                     return False
+                if any(o["replay_samples"]>o["optimizer_steps"]*resolved["replay_batch"] for o in x["outcomes"]):return False
                 if x["uploads"]!=len(schedule["selected"][r]) or x["downloads"]!=x["uploads"]:
                     return False
             if summary["processed_samples"]!=rounds[-1]["cumulative_samples"] or summary["optimizer_steps"]!=rounds[-1]["cumulative_optimizer_steps"] or summary["replay_samples"]!=rounds[-1]["cumulative_replay_samples"] or summary["total_bytes"]!=rounds[-1]["cumulative_bytes"]:
                 return False
         else:
             expected={(r,t) for r in range(n) for t in range(r//(n//tasks)+1)}
+            if any(sum(v.values())>job["config"]["memory"] for x in rounds for v in x["memory_sizes"].values()):return False
+            if any(o["replay_samples"]>o["optimizer_steps"]*job["config"]["replay_batch"] for x in rounds for o in x["outcomes"]):return False
         return (provenance["commit"]==job["source_commit"] and status["status"]=="completed"
                 and summary["rounds"]==n and len(metrics)==len(expected)
                 and {(x["round"],x["task"]) for x in metrics}==expected

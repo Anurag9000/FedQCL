@@ -19,6 +19,7 @@ from torch.utils.data import DataLoader, TensorDataset
 from .engine import atomic_json, write_jsonl, seed_for, seed_all, model_bytes
 from .protocol import Transport
 from .replay import select_memory
+from .backbone import BACKBONE, fedavg, sample_replay, replay_ce
 from .task_il_schedule import digest, make_schedule, data_plan, validate_schedule, ROOT
 from ..trainmodel.resnet import ResNet18_dpp
 
@@ -40,7 +41,7 @@ def clone_state(model):
 class PrivateClient:
     """Only reads its own episode shards. Replay contains private source IDs."""
     def __init__(self,i,model,c,s,root,manifest):
-        self.id=i;self.model=copy.deepcopy(model);self.base=clone_state(model)
+        self.id=i;self.model=copy.deepcopy(model)
         self.version=0;self.revision=0;self.pending_steps=0
         self.c=c;self.s=s;self.root=root;self.manifest=manifest
         self.memory={};self.cache={};self.seen=set();self.revealed=set()
@@ -54,17 +55,17 @@ class PrivateClient:
             self.cache[eid]=(torch.from_numpy(x),torch.from_numpy(y).long(),ids)
         return self.cache[eid]
 
-    def replay_batch(self,task,eid,local_epoch,step,device):
-        pool=self.memory[task]
-        rng=random.Random(seed_for(self.c["seed"],"replay",self.id,eid,local_epoch,step,task))
-        chosen=rng.sample(pool,min(len(pool),self.c["replay_batch"]))
-        xs=[];ys=[]
-        for (eid,sid,image),label in chosen:
-            e=self.s["episodes"][eid]
-            if e["client"]!=self.id or eid not in self.revealed or e["task"]!=task or label not in self.s["tasks"][task]:
+    def replay_batch(self,eid,local_epoch,step,device):
+        rng=random.Random(seed_for(self.c["seed"],"pooled_replay",self.id,eid,local_epoch,step))
+        chosen=sample_replay(self.memory,self.c["replay_batch"],rng)
+        groups={}
+        for task,((old_eid,sid,image),label) in chosen:
+            e=self.s["episodes"][old_eid]
+            if e["client"]!=self.id or old_eid not in self.revealed or e["task"]!=task or label not in self.s["tasks"][task]:
                 raise ValueError("replay provenance violation")
-            xs.append(image);ys.append(label)
-        return torch.stack(xs).to(device),torch.tensor(ys,device=device)
+            groups.setdefault(task,[]).append((image,label))
+        return {k:(torch.stack([x for x,_ in items]).to(device),torch.tensor([y for _,y in items],device=device))
+                for k,items in groups.items()}
 
     def train(self,e,r,device):
         if not e["start"]<=r<=e["end"] or e["client"]!=self.id:
@@ -75,7 +76,7 @@ class PrivateClient:
         self.model.to(device).train()
         optimizer=torch.optim.SGD(self.model.parameters(),lr=c["lr"])
         steps=0;samples=0;replay=0;loss_sum=0.;class_counts={}
-        # Preserve existing ER objective: one mean loss per remembered task.
+        # Fixed total replay batch and sample-mean loss, independent of task count.
         # Epoch keys depend on the episode-local epoch, not sync frequency.
         for epoch in range(c["epochs"]):
             local_epoch=(r-e["start"])*c["epochs"]+epoch
@@ -87,11 +88,10 @@ class PrivateClient:
                 optimizer.zero_grad()
                 current=F.cross_entropy(self.model(bx,task),local_labels(by,classes[task]))
                 loss=current
-                for k in sorted(self.memory):
-                    if not self.memory[k]:continue
-                    mx,my=self.replay_batch(k,e["id"],local_epoch,step,device)
-                    loss=loss+F.cross_entropy(self.model(mx,k),local_labels(my,classes[k]))
-                    replay+=len(my)
+                groups=self.replay_batch(e["id"],local_epoch,step,device)
+                past=replay_ce(self.model,groups,lambda y,k:local_labels(y,classes[k]))
+                if past is not None:loss=loss+past
+                replay+=sum(len(y) for _,y in groups.values())
                 if not torch.isfinite(loss):
                     raise FloatingPointError("nonfinite local objective")
                 loss.backward();optimizer.step()
@@ -122,55 +122,22 @@ class PrivateClient:
 
     def download(self,model,version):
         self.model.load_state_dict(model.state_dict())
-        self.base=clone_state(model)
         self.version=version;self.revision=0;self.pending_steps=0
 
     def state(self):
-        return dict(model=clone_state(self.model),base=self.base,version=self.version,
+        return dict(model=clone_state(self.model),backbone=BACKBONE,version=self.version,
                     revision=self.revision,pending_steps=self.pending_steps,
                     memory=self.memory,seen=sorted(self.seen),revealed=sorted(self.revealed))
 
     def restore(self,state):
-        self.model.load_state_dict(state["model"]);self.base=state["base"]
+        if state.get("backbone")!=BACKBONE:raise ValueError("incompatible local checkpoint backbone")
+        self.model.load_state_dict(state["model"])
         self.version=state["version"];self.revision=state["revision"]
         self.pending_steps=state["pending_steps"];self.memory=state["memory"]
         self.seen=set(state["seen"]);self.revealed=set(state["revealed"]);self.cache.clear()
 
-def aggregate_buffered(server,clients,weights,version):
-    """FedBuff-inspired round-buffered update; not vanilla FedAvg.
-
-    Fixed inverse-sqrt version-lag scaling of accumulated parameter deltas.
-    Current shard sample weighting, server LR 1. Float buffers are averaged
-    directly (not stale deltas), integer buffers use max as in complete-state
-    aggregation. All configurations use precisely the same rule.
-    """
-    if not clients:return server
-    if len(clients)!=len(weights) or any(w<=0 for w in weights):
-        raise ValueError("invalid aggregation weights")
-    total=sum(weights)
-    states=[c.model.state_dict() for c in clients]
-    old=server.state_dict()
-    params=set(dict(server.named_parameters()))
-    new={}
-    with torch.no_grad():
-        for key,value in old.items():
-            if key in params:
-                tensor=value.clone()
-                for c,w,state in zip(clients,weights,states):
-                    lag=version-c.version
-                    if lag<0:raise ValueError("future client version")
-                    tensor.add_(state[key]-c.base[key],alpha=(w/total)/(1+lag)**0.5)
-            elif value.is_floating_point() or value.is_complex():
-                tensor=torch.zeros_like(value)
-                for w,state in zip(weights,states):
-                    tensor.add_(state[key],alpha=w/total)
-            else:
-                tensor=torch.stack([state[key] for state in states]).amax(0)
-            if tensor.is_floating_point() and not torch.isfinite(tensor).all():
-                raise FloatingPointError("nonfinite server model")
-            new[key]=tensor
-        server.load_state_dict(new)
-    return server
+def aggregate_fedavg(server,clients,weights):
+    return fedavg(server,clients,weights)
 
 class Evaluator:
     def __init__(self,root,manifest,s,c,device):
@@ -224,6 +191,7 @@ def round_summary(rows,current,peaks):
 
 def run(c,s,root,out,device,resume=False,stop=None):
     root=Path(root);out=Path(out);out.mkdir(parents=True,exist_ok=True)
+    if c.get("backbone")!=BACKBONE:raise ValueError("Task-IL requires fixed FedAvg + vanilla ER backbone")
     validate_schedule(c,s)
     manifest=verify_manifest(root,data_plan(c,s))
     receipt=json.loads((root/"validation_receipt.json").read_text())
@@ -233,7 +201,7 @@ def run(c,s,root,out,device,resume=False,stop=None):
     signature=digest(dict(config=c,schedule=s,manifest=manifest["manifest_id"],commit=commit,device=str(device)))
     if (out/"status.json").exists() and not resume:raise FileExistsError("output already exists")
     atomic_json(out/"config.json",c);atomic_json(out/"schedule.json",s)
-    atomic_json(out/"provenance.json",dict(commit=commit,signature=signature,manifest_id=manifest["manifest_id"],torch=str(torch.__version__)))
+    atomic_json(out/"provenance.json",dict(commit=commit,signature=signature,manifest_id=manifest["manifest_id"],torch=str(torch.__version__),backbone=BACKBONE))
     atomic_json(out/"status.json",dict(status="running"))
     seed_all(c["seed"]);torch.backends.cudnn.deterministic=True;torch.backends.cudnn.benchmark=False
     server=ResNet18_dpp(len(s["tasks"]),c["width"],task_widths=[len(t) for t in s["tasks"]])
@@ -292,7 +260,7 @@ def run(c,s,root,out,device,resume=False,stop=None):
                     {"base_version":clients[i].version,"pending_steps":clients[i].pending_steps,"episode":e["id"]},payload)
                 weights.append(outcome_by_client[i]["shard_size"])
             if selected:
-                aggregate_buffered(server,[clients[i] for i in selected],weights,version)
+                aggregate_fedavg(server,[clients[i] for i in selected],weights)
                 version+=1
             for i in selected:
                 transport.send(r,"download","server",i,"MODEL_DOWNLOAD",{"version":version},payload)
@@ -347,7 +315,7 @@ def run(c,s,root,out,device,resume=False,stop=None):
             optimizer_steps=sum(o["optimizer_steps"] for x in rounds for o in x["outcomes"]),
             processed_samples=sum(o["samples"] for x in rounds for o in x["outcomes"]),
             replay_samples=sum(o["replay_samples"] for x in rounds for o in x["outcomes"]),
-            terminal_flush=False,aggregation="FedBuff-inspired round-buffered inverse-square-root stale delta; current shard weights",
+            terminal_flush=False,backbone=BACKBONE,aggregation="FedAvg direct current-shard-weighted complete-state average",
             accounting="logical tensor payload plus serialized envelopes, predeclared schedule local; no physical network measurement")
         result["final_"+c["split"]+"_accuracy"]=result["final_accuracy"]
         atomic_json(out/"final_summary.json",result);torch.save(server.state_dict(),out/"server.pt")

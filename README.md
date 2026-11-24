@@ -150,7 +150,7 @@ builds on [PFLlib](https://github.com/TsingZ0/PFLlib) (GPL-2.0).
 
 ## Selective synchronization research
 
-The original launchers still use the legacy simulator. The research path adds
+All research jobs use plain sample-weighted FedAvg and vanilla experience replay (500 private examples/client, uniform task-balanced admission, one pooled replay batch of 13). The original launchers still use the legacy simulator and are not part of either research suite. The research path adds
 own-history, server-history and peer-representative policies, controlled CIFAR-100
 streams, communication accounting, global-model evaluation, and a staged campaign.
 
@@ -175,14 +175,14 @@ test on the target environment before launching all training jobs.
 
 The expanded campaign includes cached/combined/adaptive selectors, binary reports,
 rich statistics, sparse and lossy peer variants, counterfactual continuations,
-rate matching and scaling to 10/20/50 clients. The default ledger now contains 4,537 jobs, including 3,885 training configurations, verified in protocol CI. The exact matrix and remaining
+rate matching and scaling to 10/20/50 clients. The ledger builder enumerates the fixed-backbone research matrix; earlier counts are superseded by removal of incompatible learning ablations. The exact matrix and remaining
 limitations are documented in the runbook above. Parallel execution: bash run_all_sync.sh --stage pilot --resume --workers 2 --gpu-ids 0,1. Use --estimate-only to inspect the scope without training. Development uses validation;
 held-out adaptive jobs use separate partition seeds. Do not use --all before
 validating the full-data pilot.
 
 ## Task-IL analysis campaign (48 runs)
 
-The separate conventional Task-IL suite uses private experience replay, explicit
+The separate conventional Task-IL suite uses the same direct FedAvg and pooled vanilla experience replay backbone, explicit
 client curricula and communication-only participation/outage schedules. It does
 not launch the FEDQCL selective-synchronization campaign.
 

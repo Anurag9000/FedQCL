@@ -2,8 +2,8 @@
 
 This opt-in campaign is separate from the existing selective-synchronization
 and FEDQCL queue-regulation studies. It uses CIFAR-100, the existing ResNet-18,
-ordinary private task-balanced experience replay, SGD, and one consistent
-FedBuff-inspired buffered stale-delta aggregation rule. No shared raw-data
+ordinary private task-balanced experience replay, SGD, and direct sample-weighted
+FedAvg model aggregation. No shared raw-data
 archive, intelligent selection, class-incremental method, queue weighting,
 or extra terminal flush is involved.
 
@@ -89,23 +89,19 @@ automatically a confirmatory power calculation.
   No bootstrap training override or mandatory deadline. Initial distribution
   to all N clients is separately charged as MODEL_INITIAL. Selection uses a
   seeded uniform permutation independent of training and replay.
-- Default five rounds per episode, two local epochs per round. Only frequency
-  and population studies vary this. Default per-client memory 500, current
-  and per-task replay batch size 13, LR 0.005, seed 42. Ordinary existing ER
-  semantics: current mean CE plus one mean replay CE per remembered task;
-  therefore actual replay exposure and gradient scale depend on memory task
-  count. This is intentionally not a new replay algorithm. Use actual exposure
-  to interpret the population/width comparisons. Memory selection reuses the
-  bounded uniform task-balanced selector. No dropped current minibatches.
-- Each upload contributes its accumulated parameter delta from its last
-  downloaded global model. Weight by current private shard size and scale by
-  1/sqrt(1+server_version-base_version); server LR 1. For fresh common-base
-  updates this reduces to sample-weighted model averaging. Floating model
-  buffers use weighted submitted-state averaging, integer buffers max. This
-  is a documented round-buffered adaptation of FedBuff (Nguyen et al.,
-  AISTATS 2022, https://proceedings.mlr.press/v151/nguyen22b.html), not
-  an exact reproduction of asynchronous FedBuff or vanilla FedAvg. The
-  identical rule applies to all configurations, including full participation.
+- Default five rounds per episode, two local epochs per round. Frequency
+  studies retain ten local epochs per episode. Each client stores at most 500
+  private examples, uniformly selected without replacement within task-balanced
+  quotas. Each SGD step uses at most 13 current examples and one pooled replay
+  batch of at most 13 historical examples total. The loss is current mean CE
+  plus replay sample-mean CE, with coefficient 1. No dropped minibatches.
+  Replay is sampled uniformly without replacement within each step.
+- Global aggregation is direct sample-weighted FedAvg of the submitted models,
+  including floating buffers (integer counters use maximum). Current private
+  shard sizes are the weights. Stale models are averaged as submitted; the
+  communication-only outage schedule is preserved. No buffered delta,
+  staleness attenuation, server optimizer or extra reference-model correction.
+  The shared backbone ID is fedavg_uniform_er_v1.
 - 50 original training examples per class are reserved for validation.
   Original test data is held out. The default test evaluation is for a frozen
   specification; use TASK_IL_SPLIT=validation during development. Do not tune

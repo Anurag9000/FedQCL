@@ -246,6 +246,11 @@ def build(output,tiny_root=None):
     # Verify unique IDs and topological dependency order before writing.
     ordered=set()
     for job in jobs:
+        if job["kind"]=="train":
+            cmd=job["command"]
+            required={"--sync-memory-profile":"uniform","--sync-aggregation":"complete","--sync-weighting":"current","-memory_size":"500","-memory_batch_size":"13","-algo":"FedAvg"}
+            if job["config"]["backbone"]!=BACKBONE or "--sync-er" not in cmd or "--sync-local-capture" not in cmd or any(cmd.count(k)!=1 or cmd[cmd.index(k)+1]!=v for k,v in required.items()) or any(k in cmd for k in ("-V","-delta","--sync-queue-mode","--sync-reference-recovery","--sync-v-normalized-lr","--sync-balanced-sampler","replay_queue","mass_stratified")):
+                raise RuntimeError("ledger violates fixed FedAvg + ER backbone")
         if job["id"] in ordered or not set(job["dependencies"])<=ordered:
             raise RuntimeError("invalid campaign dependency graph")
         ordered.add(job["id"])

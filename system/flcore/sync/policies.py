@@ -19,6 +19,7 @@ class Report:
     space: str = "task_labels"
     sample_count: int = 0
     metric: str = "tv"
+    histogram_distance: str = "tv"
 
     @property
     def id(self):
@@ -37,7 +38,7 @@ class Report:
 
 def distance(a, b):
     if (a is None or b is None or not a.valid() or not b.valid()
-            or (a.task,a.labels,a.schema,a.kind,a.space,a.metric) != (b.task,b.labels,b.schema,b.kind,b.space,b.metric)):
+            or (a.task,a.labels,a.schema,a.kind,a.space,a.metric,a.histogram_distance) != (b.task,b.labels,b.schema,b.kind,b.space,b.metric,b.histogram_distance)):
         return None
     if a.metric=="cosine":
         na=math.sqrt(sum(x*x for x in a.counts));nb=math.sqrt(sum(x*x for x in b.counts))
@@ -47,6 +48,9 @@ def distance(a, b):
     if a.metric=="bounded_l2":
         d=math.sqrt(sum((x-y)**2 for x,y in zip(a.counts,b.counts)))
         return d/(1+d)
+    if a.histogram_distance!="tv":
+        from .statistics import js,hellinger
+        return (js if a.histogram_distance=="js" else hellinger)(a.counts,b.counts)
     na, nb = sum(a.counts), sum(b.counts)
     return sum(abs(Fraction(x, na)-Fraction(y, nb))
                for x, y in zip(a.counts, b.counts))/2
@@ -85,7 +89,7 @@ def pooled(records, template, weighted=True):
         counts = tuple(sum(x.counts[c]*(denom//sum(x.counts)) for x in records)
                        for c in range(len(template.labels)))
     return Report(-1, template.task, max(x.round for x in records),
-                  template.labels, counts, "pooled",kind=template.kind,space=template.space,metric=template.metric)
+                  template.labels, counts, "pooled",kind=template.kind,space=template.space,metric=template.metric,histogram_distance=template.histogram_distance)
 
 def bank_score(report, bank, round_id, age=5, include_self=False, kind="latest"):
     records = [x for x in bank if (include_self or x.client != report.client)

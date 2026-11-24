@@ -94,6 +94,12 @@ def build(output):
             run("adaptive","adaptive",regime,seed,flags=("--sync-impact-model",str(model),*extra),extra_deps=[fit])
     for n,policy,regime,seed in itertools.product((10,20,50),("full","random","oldest","cached","peer"),("near","clustered","separated"),(42,43,44)):
         run("scale",policy,regime,seed,k=max(1,int(.6*n)),n=n,flags=("--sync-peer-solver","greedy") if policy in ("cached","peer") else ())
+    extended=("replay_histogram","replay_queue","prototypes","feature_covariance","spectral","parameter_norms",
+              "normalization","predictions","loss","uncertainty","entropy","jacobian","fisher","gradient_variance")
+    for policy,regime,seed,signal in itertools.product(("own","server","peer"),regimes,(42,43,44),extended):
+        run("extended_signals",policy,regime,seed,flags=("--sync-signal",signal,"--sync-native-space"))
+    for policy,regime,seed,metric in itertools.product(("own","server","peer"),regimes,(42,43,44),("js","hellinger")):
+        run("extended_signals",policy,regime,seed,flags=("--sync-histogram-distance",metric))
     output.parent.mkdir(parents=True,exist_ok=True)
     output.write_text("".join(json.dumps(job,sort_keys=True)+"\n" for job in jobs))
     counts={}

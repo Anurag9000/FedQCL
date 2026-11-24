@@ -48,18 +48,41 @@ class SignalExtractor:
         cost={"forward_examples":0,"backward_examples":0,"seconds":0.}
         if kind=="histogram":return hist,cost
         if kind=="update":return None,cost
-        if kind=="replay":
+        if kind in ("replay","replay_histogram","replay_queue"):
             # Current histogram and raw per-task memory counts are separate
             # studies; replay profile explicitly encodes missing memory as zero.
             vals=tuple(len(c.task_memories.get(k,[])) for k in range(c.num_tasks))
+            if kind=="replay_histogram":
+                if hist is None:return None,cost
+                h=np.array(hist.counts,dtype=float);h/=h.sum()
+                m=np.array(vals,dtype=float);m=m/m.sum() if m.sum() else m
+                vector=np.r_[h,m,float(m.sum()==0)]
+                return self._vector(c,t,r,version,kind,"task_labels_replay_tasks",vector,sum(hist.counts),"bounded_l2"),cost
+            if kind=="replay_queue":
+                vector=[*vals,*[float(v) for v in c.Q],*[float(k in c.task_memories) for k in range(c.num_tasks)]]
+                return self._vector(c,t,r,version,kind,"replay_queue_tasks",np.log1p(vector),max(1,len(data)),"bounded_l2"),cost
             report=Report(c.id,t,r,tuple(range(len(vals))),vals,kind="replay",
                           space=f"replay_tasks:{c.num_tasks}",model_version=version)
             cost["seconds"]=time.monotonic()-start
             return (report if report.valid() else None),cost
+        if kind in ("parameter_norms","normalization"):
+            if kind=="parameter_norms":
+                v=[]
+                for p in c.model.parameters():
+                    z=p.detach().float()
+                    v.extend([z.abs().mean().item(),z.square().mean().sqrt().item(),z.abs().max().item()])
+            else:
+                v=[]
+                for name,b in c.model.named_buffers():
+                    if "running_mean" in name or "running_var" in name:
+                        z=b.detach().float()
+                        v.extend([z.mean().item(),z.var(unbiased=False).item()])
+            cost["seconds"]=time.monotonic()-start
+            return self._vector(c,t,r,version,kind,"native_parameter_coordinates",v,max(1,len(data)),"bounded_l2"),cost
         probe=self._probe(c,data,t,r)
         if probe is None:return None,cost
         x,y=probe
-        if kind=="feature":
+        if kind in ("feature","prototypes","feature_covariance","spectral"):
             values=[]
             with torch.no_grad():
                 model=self.anchor
@@ -68,17 +91,85 @@ class SignalExtractor:
                     z=model.layer4(model.layer3(model.layer2(model.layer1(z))))
                     values.append(model.avgpool(z).flatten(1).cpu())
             z=torch.cat(values)
-            vector=torch.cat((z.mean(0),z.var(0,unbiased=False)))
-            # Fixed projection on mean/variance coordinates.
-            v=self.sketch([("feature_moments",vector)])
+            if kind=="prototypes":
+                yc=y.cpu(); parts=[]
+                for label in range(c.classes_per_task):
+                    group=z[yc==label]
+                    parts.extend([torch.tensor([float(len(group)>0)]),group.mean(0) if len(group) else torch.zeros(z.shape[1])])
+                vector=torch.cat(parts)
+            elif kind=="feature_covariance":
+                centered=z-z.mean(0)
+                vector=(centered.T@centered/max(1,len(z))).flatten()
+            elif kind=="spectral":
+                from .statistics import spectral_summary
+                vector=torch.tensor(spectral_summary((z-z.mean(0)).numpy()))
+            else:
+                vector=torch.cat((z.mean(0),z.var(0,unbiased=False)))
+            v=self.sketch([(kind,vector)]) if kind!="spectral" else vector.tolist()
             report=self._vector(c,t,r,version,kind,f"fixed_init:{self.args.seed}",v,len(x),"bounded_l2")
+        elif kind in ("predictions","loss","uncertainty","entropy"):
+            model=c.model
+            previous=model.training;model.eval()
+            try:
+                with torch.no_grad():
+                    logits=torch.cat([model(xx,t) for xx in x.split(c.batch_size)])
+                    probs=logits.softmax(-1)
+                    losses=torch.nn.functional.cross_entropy(logits,y,reduction="none")
+                    ent=-(probs*probs.clamp_min(1e-12).log()).sum(-1)
+                    top=probs.topk(min(2,probs.shape[1]),dim=-1).values
+                    margin=top[:,0]-top[:,-1]
+                    if kind=="predictions":
+                        vector=torch.cat((probs.mean(0),probs.var(0,unbiased=False),logits.mean(0)))
+                    elif kind=="loss":
+                        vector=torch.cat((losses.mean().view(1),losses.var(unbiased=False).view(1),torch.quantile(losses,torch.tensor([.1,.5,.9],device=losses.device))))
+                    elif kind=="entropy":
+                        vector=torch.stack((ent.mean(),ent.var(unbiased=False),-(probs.mean(0)*probs.mean(0).clamp_min(1e-12).log()).sum()))
+                    else:
+                        vector=torch.stack((ent.mean(),ent.var(unbiased=False),top[:,0].mean(),margin.mean(),margin.var(unbiased=False)))
+                space="native_output_coordinates" if self.args.sync_native_space else f"server_version:{version}"
+                report=self._vector(c,t,r,version,kind,space,vector.cpu().tolist(),len(x),"bounded_l2")
+            finally:model.train(previous)
+        elif kind in ("jacobian","fisher"):
+            # Jacobian: input gradient of a fixed projected logit per example.
+            # Fisher: empirical diagonal of per-example gradients of the current head.
+            model=copy.deepcopy(c.model).eval()
+            if kind=="jacobian":
+                grads=[]
+                for xx in x.split(c.batch_size):
+                    xx=xx.detach().requires_grad_(True)
+                    outputs=model(xx,t)
+                    direction=torch.arange(1,outputs.shape[1]+1,device=outputs.device,dtype=outputs.dtype)
+                    direction=direction/direction.norm()
+                    grad=torch.autograd.grad((outputs*direction).sum(),xx)[0]
+                    grads.append(grad.detach().flatten(1).cpu())
+                z=torch.cat(grads)
+                vector=self.sketch([("jacobian",torch.cat((z.mean(0),z.square().mean(0))))])
+            else:
+                head=list(model.heads[t].parameters())
+                sums=[torch.zeros_like(p) for p in head]
+                for xx,yy in zip(x,y):
+                    loss=torch.nn.functional.cross_entropy(model(xx.unsqueeze(0),t),yy.unsqueeze(0))
+                    grads=torch.autograd.grad(loss,head)
+                    for acc,g in zip(sums,grads):acc.add_(g.detach().square())
+                vector=self.sketch([(f"head_{i}",g/len(x)) for i,g in enumerate(sums)])
+            space="native_parameter_coordinates" if self.args.sync_native_space else f"server_version:{version}"
+            report=self._vector(c,t,r,version,kind,space,vector,len(x),"bounded_l2")
+            cost["backward_examples"]=len(x)
         else:
             model=copy.deepcopy(c.model).eval()
             model.zero_grad(set_to_none=True)
-            for xx,yy in zip(x.split(c.batch_size),y.split(c.batch_size)):
-                loss=torch.nn.functional.cross_entropy(model(xx,t),yy,reduction="sum")/len(x)
-                loss.backward()
-            v=self.sketch((name,p.grad) for name,p in model.named_parameters() if p.grad is not None)
+            if kind=="gradient_variance":
+                sketches=[]
+                for xx,yy in zip(x.split(c.batch_size),y.split(c.batch_size)):
+                    model.zero_grad(set_to_none=True)
+                    torch.nn.functional.cross_entropy(model(xx,t),yy).backward()
+                    sketches.append(self.sketch((name,p.grad) for name,p in model.named_parameters() if p.grad is not None))
+                z=np.asarray(sketches);v=np.r_[z.mean(0),z.var(0)].tolist()
+            else:
+                for xx,yy in zip(x.split(c.batch_size),y.split(c.batch_size)):
+                    loss=torch.nn.functional.cross_entropy(model(xx,t),yy,reduction="sum")/len(x)
+                    loss.backward()
+                v=self.sketch((name,p.grad) for name,p in model.named_parameters() if p.grad is not None)
             space="native_parameter_coordinates" if self.args.sync_native_space else f"server_version:{version}"
             report=self._vector(c,t,r,version,kind,space,v,len(x))
             cost["backward_examples"]=len(x)

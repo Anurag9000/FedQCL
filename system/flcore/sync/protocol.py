@@ -78,7 +78,7 @@ class Controller:
         for idx in rng.sample(range(len(dataset)),n):
             counts[int(dataset[idx][1])]+=1
         report = Report(i,task,r,labels,tuple(counts.values()),
-                        model_version=self.local[i].model_version)
+                        model_version=self.local[i].model_version,histogram_distance=getattr(a,"sync_histogram_distance","tv"))
         return (report if report.valid(a.sync_min_observation) else None,
                 tuple(population.values()))
 

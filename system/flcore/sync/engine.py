@@ -272,7 +272,7 @@ def run_research(args):
     device=torch.device(a.device)
     model=copy.deepcopy(a.model).to(device)
     from .signals import SignalExtractor
-    extractor=SignalExtractor(a,copy.deepcopy(a.model) if a.sync_signal in ("feature","prototypes","feature_covariance") else None)
+    extractor=SignalExtractor(a,copy.deepcopy(a.model) if a.sync_signal in ("feature","prototypes","feature_covariance","spectral") else None)
     clients=[]
     for i in range(a.num_clients):
         task0=os.path.join(a.dataset,"task_0")

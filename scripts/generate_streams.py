@@ -57,9 +57,6 @@ def desired_profiles(matrix,rows,cols,seed,floor=0):
     if matrix.shape!=(n,n) or not np.allclose(matrix,matrix.T) or not np.allclose(np.diag(matrix),1) or np.any((matrix<0)|(matrix>1)):
         raise ValueError("invalid similarity matrix")
     d=1-matrix
-    if np.any(d[:,:,None]>d[:,None,:]+d[None,:,:].transpose(2,0,1)+1e-10):
-        # Explicit triangle check below avoids relying on a broadcast convention.
-        pass
     if any(d[i,j]>d[i,k]+d[k,j]+1e-10 for i in range(n) for j in range(n) for k in range(n)):
         raise ValueError("target violates triangle inequality")
     rows=np.asarray(rows); cols=np.asarray(cols)

@@ -44,6 +44,7 @@ class Controller:
         self.transport = Transport()
         self.bank = {}
         self.bank_version = 0
+        self.bank_snapshots = {0:()}
         self.model_version = 0
         self.arrivals = []
         self.decisions = []
@@ -78,18 +79,39 @@ class Controller:
                 key = (i,report.task,report.round if self.args.sync_bank_reference in ("history","prior") else -1)
                 self.bank[key] = report
                 changed = True
+        previous_size=len(self.bank)
         self.bank = {k:v for k,v in self.bank.items() if r-v.round<=self.args.sync_bank_age}
-        if changed:
+        if changed or len(self.bank)!=previous_size:
             self.bank_version += 1
+            self.bank_snapshots[self.bank_version]=tuple(sorted(self.bank.values(),key=lambda x:(x.client,x.task,x.round)))
+            self.bank_snapshots={k:v for k,v in self.bank_snapshots.items() if k>=self.bank_version-self.args.sync_history}
 
     def deliver_bank(self,r,recipients,phase):
         records = tuple(sorted(self.bank.values(),key=lambda x:(x.client,x.task,x.round)))
         for i in recipients:
-            payload = self.transport.send(r,phase,"server",i,"BANK_SNAPSHOT",
-                {"version":self.bank_version,"records":[asdict(x) for x in records]})
-            self.local[i].bank = tuple(Report(**{**x,"labels":tuple(x["labels"]),
-                                               "counts":tuple(x["counts"])}) for x in payload["records"])
-            self.local[i].bank_version = payload["version"]
+            local=self.local[i]
+            if self.args.sync_bank_transfer=="delta" and local.bank_version in self.bank_snapshots:
+                old={x.id:x for x in self.bank_snapshots[local.bank_version]}
+                new={x.id:x for x in records}
+                payload=self.transport.send(r,phase,"server",i,"BANK_DELTA",
+                    {"base":local.bank_version,"version":self.bank_version,
+                     "remove":sorted(old.keys()-new.keys()),
+                     "upsert":[asdict(x) for key,x in new.items() if old.get(key)!=x]})
+                if payload["base"]!=local.bank_version:
+                    raise RuntimeError("bank delta base mismatch")
+                current={x.id:x for x in local.bank if x.id not in payload["remove"]}
+                for x in payload["upsert"]:
+                    record=Report(**{**x,"labels":tuple(x["labels"]),"counts":tuple(x["counts"])})
+                    current[record.id]=record
+                local.bank=tuple(sorted(current.values(),key=lambda x:(x.client,x.task,x.round)))
+            else:
+                if self.args.sync_bank_transfer=="delta":
+                    self.transport.send(r,phase,i,"server","BANK_CATCHUP_REQUEST",{"base":local.bank_version})
+                payload = self.transport.send(r,phase,"server",i,"BANK_SNAPSHOT",
+                    {"version":self.bank_version,"records":[asdict(x) for x in records]})
+                local.bank = tuple(Report(**{**x,"labels":tuple(x["labels"]),
+                                             "counts":tuple(x["counts"])}) for x in payload["records"])
+            local.bank_version=payload["version"]
 
     def decide(self,r,reports,available=None):
         a = self.args
@@ -146,6 +168,8 @@ class Controller:
                                                 "counts":tuple(msg["counts"])}) if msg else None
             elections = [tuple(ids) if r==0 else peer_select(ids,last,due,views[i],threshold,k,
                            a.sync_peer_solver,a.sync_peer_objective) for i in ids]
+            for i,election in zip(ids,elections):
+                self.transport.send(r,'admission',i,'server','ELECTION_RESULT',{'selected':election})
             if elections and any(x!=elections[0] for x in elections):
                 raise RuntimeError("peer election disagreement")
             selected = elections[0] if elections else ()

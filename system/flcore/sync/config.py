@@ -27,6 +27,8 @@ def add_arguments(parser):
     p.add_argument("--sync-counterfactual",action="store_true")
     p.add_argument("--sync-er",action="store_true")
     p.add_argument("--sync-windowed",action="store_true")
+    p.add_argument("--sync-posttrain",action="store_true")
+    p.add_argument("--sync-bank-transfer",choices=["snapshot","delta"],default="snapshot")
 
 def validate(a):
     if a.sync_policy=="legacy":
@@ -47,5 +49,9 @@ def validate(a):
         raise ValueError("random and oldest require fixed count")
     if a.auto_break or a.client_drop_rate or a.train_slow_rate or a.send_slow_rate or a.time_select or a.num_new_clients or a.privacy:
         raise ValueError("legacy dropout, early stopping, DP and new-client options not supported by research engine")
+    if a.sync_posttrain and (a.sync_refresh or a.sync_counterfactual):
+        raise ValueError("post-training admission cannot be combined with refresh or pre-training counterfactual")
+    if a.sync_windowed and a.few_shot:
+        raise ValueError("windowed few-shot indexing is unsupported")
     if a.sync_resume and not a.sync_checkpoint:
         raise ValueError("resume requires checkpoints")

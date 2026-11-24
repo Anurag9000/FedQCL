@@ -55,7 +55,7 @@ class ResearchClient(clientAVG):
         if isinstance(current,DataLoader):
             current=current.dataset
         if a.sync_windowed:
-            path=Path(self.dataset)/f"task_{task}"/"train"/f"{self.id}.npz"
+            path=Path('../dataset')/self.dataset/f"task_{task}"/"train"/f"{self.id}.npz"
             with np.load(path,allow_pickle=True) as z:
                 data=z["data"].item()
             if "window" not in data:
@@ -221,10 +221,11 @@ def restore_client(c,state):
     c.task_memoryloaders={t:DataLoader(c.task_memories[t],batch_size=c.memory_batch_size,shuffle=True)
                           if c.task_memories.get(t) else None for t in range(c.num_tasks)}
 
-def save_checkpoint(path,r,model,clients,controller,metrics,rounds,signature):
+def save_checkpoint(path,r,model,clients,controller,metrics,rounds,signature,counterfactual_rows):
     tmp=path.with_suffix(".tmp")
     torch.save({"round":r,"server":model.state_dict(),"clients":[checkpoint_client(c) for c in clients],
                 "controller":controller,"metrics":metrics,"rounds":rounds,"signature":signature,
+                "counterfactual_rows":counterfactual_rows,
                 "python_rng":random.getstate(),"numpy_rng":np.random.get_state(),
                 "torch_rng":torch.get_rng_state(),
                 "cuda_rng":torch.cuda.get_rng_state_all() if torch.cuda.is_available() else []},tmp)
@@ -235,6 +236,16 @@ def run_research(args):
     out=Path(a.sync_output).resolve()
     out.mkdir(parents=True,exist_ok=True)
     config={k:v for k,v in vars(a).items() if k not in ("sync_resume",)}
+    dataset_root=Path(a.dataset).resolve() if Path(a.dataset).is_absolute() else (Path('../dataset')/a.dataset).resolve()
+    manifest_path=dataset_root/'manifest.json'
+    manifest=json.loads(manifest_path.read_text()) if manifest_path.exists() else None
+    if manifest and (manifest['clients']!=a.num_clients or manifest['tasks']!=a.tasks or (a.sync_windowed and manifest['windows']!=(a.global_rounds+1)//a.tasks)):
+        raise ValueError('dataset manifest does not match workload')
+    if a.sync_windowed and not manifest:
+        raise ValueError('windowed runs require dataset manifest')
+    if a.sync_counterfactual and not manifest:
+        raise ValueError('counterfactual validation requires controlled dataset manifest')
+    config['dataset_manifest_id']=manifest['manifest_id'] if manifest else None
     signature=hashlib.sha256(json.dumps(config,sort_keys=True).encode()).hexdigest()
     if not a.sync_resume and (out/"status.json").exists():
         raise FileExistsError("research output already exists; use --sync-resume or a fresh directory")
@@ -277,6 +288,10 @@ def run_research(args):
         if state["cuda_rng"] and torch.cuda.is_available():
             torch.cuda.set_rng_state_all(state["cuda_rng"])
     loaders={}
+    validation_loaders={}
+    counterfactual_rows=[]
+    if a.sync_resume:
+        counterfactual_rows=state.get('counterfactual_rows',[])
     rpt=(a.global_rounds+1)//a.tasks
     complete_state=a.sync_aggregation=="complete"
     payload=model_bytes(model,complete_state)
@@ -288,11 +303,24 @@ def run_research(args):
             reports={}; population={}
             for c in clients:
                 reports[c.id],population[c.id]=ctl.observe(c.id,t,r,datasets[c.id])
-            selected=ctl.decide(r,reports)
+            selected=ctl.decide(r,reports) if not a.sync_posttrain else ()
+            if a.sync_counterfactual and r in {0, rpt//2, rpt-1, rpt, 2*rpt-1, a.global_rounds}:
+                for u in range(t+1):
+                    if u not in validation_loaders:
+                        validation_loaders[u]=[]
+                        for i in range(a.num_clients):
+                            with np.load(dataset_root/f"task_{u}"/"validation"/f"{i}.npz",allow_pickle=True) as z:
+                                v=z["data"].item()
+                            validation_loaders[u].append(DataLoader(list(zip(torch.from_numpy(v["x"]),torch.from_numpy(v["y"]))),
+                                                                    batch_size=a.batch_size,shuffle=False))
+                from .counterfactual import analyze
+                counterfactual_rows.extend(analyze(model,clients,datasets,t,r,ctl,selected,validation_loaders,
+                                                   complete_state,device,a.num_classes))
             starts={i:ctl.local[i].model_version for i in selected}
             trained=[]; outcomes=[]
-            for i in selected:
+            for i in (range(a.num_clients) if a.sync_posttrain else selected):
                 c=clients[i]
+                starts[i]=ctl.local[i].model_version
                 if a.sync_refresh and ctl.local[i].model_version!=ctl.model_version:
                     ctl.transport.send(r,"refresh","server",i,"MODEL_REFRESH",{"version":ctl.model_version},payload)
                     download(c,model,complete_state)
@@ -303,12 +331,17 @@ def run_research(args):
                 c.train_round(r,t,datasets[i])
                 ctl.local[i].local_revision+=1
                 trained.append(i)
-                ctl.transport.send(r,"upload",i,"server","MODEL_UPLOAD",
-                                   {"start_version":starts[i],"accepted":True},payload)
+                if not a.sync_posttrain and i in selected:
+                    ctl.transport.send(r,"upload",i,"server","MODEL_UPLOAD",
+                                       {"start_version":starts[i],"accepted":True},payload)
                 outcomes.append({"client":i,"optimizer_steps":c.optimizer_steps,
                                  "samples":c.current_samples,"replay_samples":c.replay_samples,
                                  "seconds":time.monotonic()-begin})
-            accepted=tuple(trained)
+            if a.sync_posttrain:
+                selected=ctl.decide(r,reports)
+                for i in selected:
+                    ctl.transport.send(r,'upload',i,'server','MODEL_UPLOAD',{'start_version':starts[i],'accepted':True},payload)
+            accepted=tuple(i for i in trained if i in selected)
             if r==0 and len(accepted)!=a.num_clients:
                 raise RuntimeError("bootstrap incomplete")
             weights=[clients[i].train_samples if not complete_state else len(datasets[i]) for i in accepted]
@@ -323,7 +356,7 @@ def run_research(args):
             ctl.complete(r,reports,accepted,downloaded)
             boundary=(r+1)%rpt==0
             if boundary and a.sync_local_capture:
-                for i in set(range(a.num_clients))-set(selected):
+                for i in set(range(a.num_clients))-set(trained):
                     clients[i].capture(t,r,datasets[i])
             for u in range(t+1):
                 if u not in loaders:
@@ -336,7 +369,7 @@ def run_research(args):
                            "start_versions":starts,"version":ctl.model_version,"outcomes":outcomes,
                            "no_aggregation":not accepted,"population_histograms":population,
                            "memory_missed":[i for i in range(a.num_clients) if boundary and t not in clients[i].task_memories],
-                           "reference_missed":[i for i in range(a.num_clients) if r>0 and r%rpt==0 and i not in selected],
+                           "reference_missed":[i for i in range(a.num_clients) if r>0 and r%rpt==0 and i not in trained],
                            "queues":{c.id:c.Q.copy() for c in clients},
                            "memory_sizes":{c.id:{k:len(v) for k,v in c.task_memories.items()} for c in clients},
                            "model_ages":{i:ctl.model_version-s.model_version for i,s in ctl.local.items()},
@@ -346,8 +379,10 @@ def run_research(args):
             write_jsonl(out/"communication_events.jsonl",ctl.transport.events)
             write_jsonl(out/"server_metrics.jsonl",metrics)
             write_jsonl(out/"report_arrivals.jsonl",ctl.arrivals)
+            if a.sync_counterfactual:
+                write_jsonl(out/'counterfactuals.jsonl',counterfactual_rows)
             if a.sync_checkpoint:
-                save_checkpoint(ckpt,r,model,clients,ctl,metrics,rounds,signature)
+                save_checkpoint(ckpt,r,model,clients,ctl,metrics,rounds,signature,counterfactual_rows)
         final=[x for x in metrics if x["round"]==a.global_rounds]
         forgetting=[max(x["accuracy"] for x in metrics if x["task"]==t)-
                     next(x["accuracy"] for x in final if x["task"]==t) for t in range(a.tasks-1)]
@@ -361,8 +396,8 @@ def run_research(args):
                  "complete_syncs":sum(len(x["complete"]) for x in ctl.decisions),
                  "rounds":len(rounds),"accounting":"logical tensor payload plus canonical JSON envelope; common clock/availability free"}
         atomic_json(out/"final_summary.json",summary)
-        atomic_json(out/"status.json",{"status":"completed"})
         torch.save(model.state_dict(),out/"server.pt")
+        atomic_json(out/"status.json",{"status":"completed"})
         return summary
     except BaseException as error:
         atomic_json(out/"status.json",{"status":"failed","error":repr(error)})

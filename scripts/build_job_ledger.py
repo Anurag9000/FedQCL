@@ -55,16 +55,18 @@ def build(output):
     variants={
       "own":[("--sync-local-reference",x) for x in ("previous","window")],
       "server":[("--sync-bank-reference",x) for x in ("prior","mean","weighted_mean","envelope","history")]+
-               [("--sync-delivery",x) for x in ("broadcast","telemetry")]+[("--sync-include-self",)],
+               [("--sync-delivery",x) for x in ("broadcast","telemetry")]+[("--sync-include-self",),("--sync-bank-transfer","delta")],
       "peer":[("--sync-peer-transport","relay"),("--sync-peer-solver","greedy"),("--sync-peer-objective","coverage")]}
     for policy,opts in variants.items():
         for flags,regime,seed in itertools.product(opts,regimes,(42,43,44)):
             run("ablation",policy,regime,seed,flags=flags)
     for policy,regime,seed in itertools.product(policies,regimes,(42,43,44)):
         for flags in (("--sync-refresh",),("--sync-local-capture",),("--sync-balanced-sampler",),
-                      ("--sync-aggregation","complete"),("--sync-er",),
+                      ("--sync-aggregation","complete"),("--sync-er",),("--sync-posttrain",),
                       ("--sync-max-skip","2"),("--sync-max-skip","8")):
             run("mechanism",policy,regime,seed,flags=flags)
+    for policy,regime,seed in itertools.product(policies,regimes,(42,43,44)):
+        run("counterfactual",policy,regime,seed,flags=("--sync-counterfactual",))
     output.parent.mkdir(parents=True,exist_ok=True)
     output.write_text("".join(json.dumps(job,sort_keys=True)+"\n" for job in jobs))
     counts={}

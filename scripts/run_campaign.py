@@ -137,20 +137,22 @@ def run_jobs(a,jobs,devices):
                 train=job["kind"]=="train"
                 # Dataset generation/validation and other CPU tasks are serialized
                 # to avoid simultaneous downloads and high concurrent I/O.
-                slot=next((x for x in devices if x not in busy),None) if train else "cpu-control"
+                preferred=old.get("device_slot")
+                slot=(preferred if a.resume and preferred in devices and preferred not in busy else
+                      next((x for x in devices if x not in busy),None)) if train else "cpu-control"
                 if slot is None or slot in busy:continue
                 command=list(job["command"])
                 if train:
                     command+=["-dev",a.device,"-did",slot]
                     out=Path(job["artifacts"][0]).parent
                     if (out/"status.json").exists():
-                        if a.resume and not valid(job) and (out/"checkpoint.pt").exists() and old.get("dependency_artifacts")==deps_digest(job):
+                        if a.resume and not valid(job) and (out/"checkpoint.pt").exists() and old.get("dependency_artifacts")==deps_digest(job) and old.get("device_slot")==slot and old.get("device")==a.device:
                             command.append("--sync-resume")
                         else:out.rename(out.with_name(out.name+".archived-"+str(time.time_ns())))
                 elif job["kind"]=="generate" and Path(job["artifacts"][0]).exists():
                     folder=Path(job["artifacts"][0]).parent
                     folder.rename(folder.with_name(folder.name+".archived-"+str(time.time_ns())))
-                state[key]={"status":"running","command":command,"dependency_artifacts":deps_digest(job),"device_slot":slot};save()
+                state[key]={"status":"running","command":command,"dependency_artifacts":deps_digest(job),"device_slot":slot,"device":a.device};save()
                 future=pool.submit(execute,job,command,logs)
                 running[future]=(job,slot);busy.add(slot);del remaining[key];changed=True
             if running:
@@ -160,9 +162,9 @@ def run_jobs(a,jobs,devices):
                     try:
                         rc=future.result()
                         if rc==0 and valid(job):mark_completed(job,rc)
-                        else:state[key]={"status":"failed","exit_code":rc};failed.add(key);save()
+                        else:state[key].update(status="failed",exit_code=rc);failed.add(key);save()
                     except Exception as error:
-                        state[key]={"status":"failed","error":repr(error)};failed.add(key);save()
+                        state[key].update(status="failed",error=repr(error));failed.add(key);save()
                     changed=True
             if not changed and remaining and not running:raise RuntimeError("dependency scheduler stalled")
     return int(bool(failed))

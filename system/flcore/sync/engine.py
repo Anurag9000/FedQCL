@@ -28,6 +28,20 @@ def seed_all(seed):
     if torch.cuda.is_available():
         torch.cuda.manual_seed_all(seed)
 
+def verify_shard(args,task,split,i):
+    manifest=getattr(args,"dataset_manifest",None)
+    if not manifest or manifest.get("schema",1)<2:return
+    key=f"task_{task}/{split}/{i}.npz"
+    path=Path("../dataset")/args.dataset/key
+    stat=path.stat();identity=(stat.st_size,stat.st_mtime_ns,stat.st_ctime_ns)
+    cache=getattr(args,"_verified_shards",{})
+    if cache.get(key)==identity:return
+    digest=hashlib.sha256()
+    with path.open("rb") as handle:
+        for chunk in iter(lambda:handle.read(1048576),b""):digest.update(chunk)
+    if digest.hexdigest()!=manifest["shards"].get(key):raise ValueError("shard fingerprint mismatch: "+key)
+    cache[key]=identity;args._verified_shards=cache
+
 class ResearchClient(clientAVG):
     def __init__(self,args,**kwargs):
         self.research_seed=args.seed
@@ -35,6 +49,7 @@ class ResearchClient(clientAVG):
         self.research_args=args
         self.replay_state={}
         self.replay_samples=0
+        self.replay_by_task={}
         self.optimizer_steps=0
         self.current_samples=0
         self.training_counts=[]
@@ -57,6 +72,7 @@ class ResearchClient(clientAVG):
 
     def reveal(self,task,r):
         a=self.research_args
+        verify_shard(a,task,"train",self.id)
         if self.task_trainloaders[task] is None:
             path=os.path.join(self.dataset,f"task_{task}")
             self.task_trainloaders[task]=read_client_data(path,self.id,True,self.few_shot)
@@ -89,8 +105,15 @@ class ResearchClient(clientAVG):
         return loader
 
     def save_task_memory_from_loader(self,client_id,task_id,trainloader,memory_size):
-        if memory_size:
+        if memory_size and self.research_args.sync_memory_profile=="native":
             super().save_task_memory_from_loader(client_id,task_id,trainloader,memory_size)
+        elif memory_size:
+            from .replay import select_memory
+            rng=random.Random(seed_for(self.research_seed,"memory_profile",self.id,task_id,self.active_round))
+            pool={**self.task_memories,task_id:list(trainloader.dataset)}
+            self.task_memories=select_memory(pool,memory_size,self.research_args.sync_memory_profile,rng)
+            self.task_memoryloaders={t:DataLoader(self.task_memories[t],batch_size=self.memory_batch_size,shuffle=True)
+                if self.task_memories.get(t) else None for t in range(self.num_tasks)}
         else:
             self.task_memories={}
             self.task_memoryloaders={t:None for t in range(self.num_tasks)}
@@ -113,12 +136,14 @@ class ResearchClient(clientAVG):
         end=min(start+self.memory_batch_size,len(mem))
         state["cursor"]=end
         self.replay_samples+=end-start
+        self.replay_by_task[k]=self.replay_by_task.get(k,0)+end-start
         return default_collate([mem[j] for j in state["order"][start:end]])
 
     def train_round(self,r,task,dataset):
         self.active_round=r
         loader=self.prepare_training(task,r,dataset)
         self.replay_samples=0
+        self.replay_by_task={}
         self.optimizer_steps=len(loader)*self.epochs
         self.current_samples=self.optimizer_steps*self.batch_size
         self.training_counts=[0]*self.classes_per_task
@@ -139,7 +164,7 @@ class ResearchClient(clientAVG):
                             loss=loss+self.loss(self.model(mx.to(self.device),k),my.to(self.device)%self.classes_per_task)
                     loss.backward()
                     self.optimizer.step()
-            if r>0 and (r+1)%self.round_per_task==0:
+            if (r+1)%self.round_per_task==0:
                 self.save_task_memory_from_loader(self.id,task,loader,self.memory_size)
         # Static raw shard stays resident; windowed runs re-read raw task data
         # at next reveal rather than interpreting a previous window as the shard.
@@ -301,6 +326,8 @@ def run_research(args):
         commit="unknown"
     atomic_json(out/"provenance.json",{"commit":commit,"torch":torch.__version__,"signature":signature})
     atomic_json(out/"status.json",{"status":"running"})
+    a.dataset_manifest=manifest
+    a._verified_shards={}
     seed_all(a.seed)
     torch.backends.cudnn.deterministic=True
     torch.backends.cudnn.benchmark=False
@@ -313,6 +340,7 @@ def run_research(args):
     clients=[]
     for i in range(a.num_clients):
         task0=os.path.join(a.dataset,"task_0")
+        verify_shard(a,0,"train",i)
         n=len(read_client_data(task0,i,True))
         clients.append(ResearchClient(a,id=i,train_samples=n,test_samples=0,train_slow=False,send_slow=False))
     ctl=Controller(a,range(a.num_clients))
@@ -401,6 +429,7 @@ def run_research(args):
                     if u not in validation_loaders:
                         validation_loaders[u]=[]
                         for i in range(a.num_clients):
+                            verify_shard(a,u,"validation",i)
                             with np.load(dataset_root/f"task_{u}"/"validation"/f"{i}.npz",allow_pickle=True) as z:
                                 v=z["data"].item()
                             validation_loaders[u].append(DataLoader(list(zip(torch.from_numpy(v["x"]),torch.from_numpy(v["y"]))),
@@ -441,7 +470,7 @@ def run_research(args):
                     if delivered: uploaded.append(i)
                     if admitted: accepted.append(i)
                 outcomes.append({"client":i,"optimizer_steps":c.optimizer_steps,
-                                 "samples":c.current_samples,"replay_samples":c.replay_samples,"training_class_counts":c.training_counts.copy(),
+                                 "samples":c.current_samples,"replay_samples":c.replay_samples,"replay_by_task":c.replay_by_task.copy(),"training_class_counts":c.training_counts.copy(),
                                  "seconds":time.monotonic()-begin})
                 if a.sync_fallback and i==training_roster[-1] and len(accepted)<len(selected):
                     # Reliable relay has delivered current reports to the server.
@@ -505,10 +534,12 @@ def run_research(args):
                     if a.sync_eval_split=="validation":
                         loaders[u]=[]
                         for i in range(a.num_clients):
+                            verify_shard(a,u,"validation",i)
                             with np.load(dataset_root/f"task_{u}"/"validation"/f"{i}.npz",allow_pickle=True) as z:
                                 v=z["data"].item()
                             loaders[u].append(DataLoader(list(zip(torch.from_numpy(v["x"]),torch.from_numpy(v["y"]))),batch_size=a.batch_size,shuffle=False))
                     else:
+                        for i in range(a.num_clients):verify_shard(a,u,"test",i)
                         loaders[u]=[DataLoader(read_client_data(os.path.join(a.dataset,f"task_{u}"),i,False),
                                                batch_size=a.batch_size,shuffle=False) for i in range(a.num_clients)]
             metrics.extend(evaluate(model,loaders,t,r,ctl.model_version,device,a.num_classes))
@@ -523,6 +554,7 @@ def run_research(args):
                            "reference_missed":[i for i in range(a.num_clients) if r>0 and r%rpt==0 and i not in trained],
                            "queues":{c.id:c.Q.copy() for c in clients},
                            "memory_sizes":{c.id:{k:len(v) for k,v in c.task_memories.items()} for c in clients},
+                           "memory_class_counts":{c.id:{k:np.bincount(np.asarray([int(y)%a.num_classes for _,y in v],dtype=int),minlength=a.num_classes).tolist() for k,v in c.task_memories.items()} for c in clients},
                            "model_ages":{i:ctl.model_version-s.model_version for i,s in ctl.local.items()},
                            "seconds":time.monotonic()-tick})
             write_jsonl(out/"rounds.jsonl",rounds)

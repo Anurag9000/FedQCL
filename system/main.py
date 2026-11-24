@@ -224,6 +224,7 @@ if __name__ == "__main__":
     os.environ["CUDA_VISIBLE_DEVICES"] = args.device_id
 
     if args.device == "cuda" and not torch.cuda.is_available():
+        if args.sync_policy!="legacy":raise RuntimeError("CUDA requested but unavailable")
         print("\ncuda is not avaiable.\n")
         args.device = "cpu"
 

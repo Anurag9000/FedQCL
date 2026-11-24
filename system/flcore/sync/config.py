@@ -41,6 +41,7 @@ def add_arguments(parser):
     p.add_argument("--sync-checkpoint",action="store_true")
     p.add_argument("--sync-counterfactual",action="store_true")
     p.add_argument("--sync-er",action="store_true")
+    p.add_argument("--sync-memory-profile",choices=["native","uniform","balanced","rare"],default="native")
     p.add_argument("--sync-windowed",action="store_true")
     p.add_argument("--sync-posttrain",action="store_true")
     p.add_argument("--sync-bank-transfer",choices=["snapshot","delta"],default="snapshot")

@@ -9,7 +9,7 @@ import torch
 from torch.utils.data import DataLoader
 
 def continue_branch(server,originals,candidates,datasets,controller,subset,r,task,horizon,complete,device,classes):
-    from .engine import aggregate,download,evaluate,aggregation_weights
+    from .engine import aggregate,download,evaluate,aggregation_weights,verify_shard
     args=controller.args
     selected=set(subset)
     clients=[copy.deepcopy(candidates[i] if i in selected else c) for i,c in enumerate(originals)]
@@ -30,6 +30,7 @@ def continue_branch(server,originals,candidates,datasets,controller,subset,r,tas
             if u not in validation:
                 validation[u]=[]
                 for i in range(len(clients)):
+                    verify_shard(args,u,"validation",i)
                     with np.load(data_root/f"task_{u}"/"validation"/f"{i}.npz",allow_pickle=True) as z:
                         d=z["data"].item()
                     validation[u].append(DataLoader(list(zip(torch.from_numpy(d["x"]),torch.from_numpy(d["y"]))),batch_size=args.batch_size,shuffle=False))

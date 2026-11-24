@@ -164,6 +164,9 @@ def build(output,tiny_root=None):
             run("dynamic_threshold",policy,regime,seed,flags=("--sync-mode","threshold","--sync-dynamic-threshold"))
         for policy,tau in itertools.product(("combined12","combined13","combined23","combined123"),(.05,.1,.2,.35)):
             run("combined_threshold",policy,regime,seed,flags=("--sync-mode","threshold","--sync-threshold",str(tau)))
+        for profile in ("uniform","balanced","rare"):
+            for policy in ("full","cached","own"):
+                run("replay_profiles",policy,regime,seed,flags=("--sync-memory-profile",profile))
         for policy in ("full","random","own","server","peer"):
             for variant in (("--sync-queue-mode","sample_mean"),("--sync-reference-recovery",),("--sync-v-normalized-lr",),
                             ("--sync-weighting","equal"),("--sync-weighting","current"),("--sync-weighting","processed")):

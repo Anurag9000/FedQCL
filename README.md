@@ -193,3 +193,11 @@ not launch the FEDQCL selective-synchronization campaign.
 See [the exact Task-IL specification](docs/TASK_IL_EXPERIMENT_SPEC.md) and the
 [committed portable job ledger](configs/task_il/job_ledger.jsonl). Training results
 are not bundled with the implementation.
+
+## Temporal-overlap Task-IL mirror
+
+For consecutive local class overlap (e.g. {0,1} -> {1,2}), run
+`bash run_all_task_il_joint.sh --dry-run` or `bash run_all_task_il_joint.sh`.
+The separate [44-entry mirror specification](docs/TASK_IL_JOINT_SPEC.md) and
+[portable ledger](configs/task_il_joint/job_ledger.jsonl) exclude existing E08
+interventions and reuse the width-five baseline. The default core suite is unchanged.

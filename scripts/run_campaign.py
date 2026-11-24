@@ -20,6 +20,9 @@ def valid(job):
             receipt=json.loads(Path(job["artifacts"][0]).read_text())
             manifest=json.loads((Path(job["artifacts"][0]).parent/"manifest.json").read_text())
             return receipt["valid"] and receipt["manifest_id"]==manifest["manifest_id"]
+        if job["kind"]=="analysis" and job["config"].get("campaign")=="task_il_joint":
+            receipt=json.loads(Path(job["artifacts"][0]).read_text())
+            return receipt["completed"]==receipt["expected"]==job["config"]["expected_training"] and receipt["incomplete"]==0
         if job["kind"]!="train":return True
         out=Path(job["artifacts"][0]).parent
         summary=json.loads((out/"final_summary.json").read_text())
@@ -35,7 +38,7 @@ def valid(job):
         if summary.get("backbone")!=BACKBONE or provenance.get("backbone")!=BACKBONE:return False
         if json.loads((out/"config.json").read_text()).get("backbone")!=BACKBONE:return False
         n=job["config"].get("rounds",50);tasks=job["config"].get("tasks",5)
-        if job["config"].get("campaign")=="task_il_48":
+        if job["config"].get("campaign") in ("task_il_48","task_il_joint"):
             from hashlib import sha256
             schedule=json.loads(Path(job["config"]["schedule"]).read_text())
             fingerprint=sha256(json.dumps(schedule,sort_keys=True,separators=(",",":")).encode()).hexdigest()
@@ -107,7 +110,7 @@ def estimate(jobs):
     training=[j for j in jobs if j["kind"]=="train"]
     # Architecture-scale approximations, not measured memory or wall time.
     draws=sum(j["config"].get("selected_draws",j["config"]["clients"]+(j["config"]["rounds"]-1)*j["config"]["k"]) for j in training)
-    initial=sum(j["config"]["clients"] for j in training if j["config"].get("campaign")=="task_il_48")
+    initial=sum(j["config"]["clients"] for j in training if j["config"].get("campaign") in ("task_il_48","task_il_joint"))
     return {"jobs":len(jobs),"training_jobs":len(training),"nominal_client_draws":draws,
             "nominal_model_transfer_bytes_at_45MB":45000000*(2*draws+initial),
             "initial_task_il_downloads":initial,

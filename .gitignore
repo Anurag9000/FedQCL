@@ -8,3 +8,6 @@ experiments/job_ledger.status.json
 experiments/logs/
 
 experiments/task_il_48/
+
+experiments/task_il_joint/
+experiments/task_il_core/

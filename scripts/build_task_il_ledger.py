@@ -8,7 +8,7 @@ import sys
 
 ROOT=Path(__file__).resolve().parents[1]
 sys.path.insert(0,str(ROOT/"system"))
-from flcore.sync.task_il_schedule import read_entries, resolve, make_schedule, data_plan, digest
+from flcore.sync.task_il_schedule import read_entries, read_joint_entries, resolve, make_schedule, data_plan, digest
 from flcore.sync.backbone import BACKBONE
 from core_suite import CORE_TASK_IL_IDS
 
@@ -41,7 +41,7 @@ def portable_graph(jobs):
     return rows
 
 def build(output,seeds=(42,),split="test",suite="core"):
-    if suite not in ("core","extended"):raise ValueError("unknown suite")
+    if suite not in ("core","extended","joint"):raise ValueError("unknown suite")
     if not seeds or len(set(seeds))!=len(seeds):
         raise ValueError("seeds must be distinct")
     output=Path(output).resolve()
@@ -51,14 +51,15 @@ def build(output,seeds=(42,),split="test",suite="core"):
     changed=subprocess.check_output(["git","diff","--name-only","-z","HEAD"],cwd=ROOT,text=True).split("\0")
     if any(path and not path.endswith(".pyc") for path in changed):
         raise ValueError("commit tracked source changes before generating the source-bound ledger")
-    entries=read_entries();jobs=[];registered={}
+    entries=read_joint_entries() if suite=="joint" else read_entries();jobs=[];registered={}
+    campaign="task_il_joint" if suite=="joint" else "task_il_48"
     if suite=="core":
         entries=[r for r in entries if r["id"] in CORE_TASK_IL_IDS]
         ids={r["id"] for r in entries}
         if ids!=set(CORE_TASK_IL_IDS) or any(r["baseline"] not in ids for r in entries):
             raise ValueError("core Task-IL entries must include all named baselines")
     metadata=output.parent/"manifests"/commit[:12]
-    results=ROOT/"research_results/task_il_48"
+    results=ROOT/"research_results"/campaign
     def add(id,stage,kind,config,command,dependencies,artifacts):
         jobs.append(dict(id=id,stage=stage,kind=kind,config=config,command=command,dependencies=dependencies,
             artifacts=[str(p) for p in artifacts],source_commit=commit,schema=3))
@@ -70,7 +71,7 @@ def build(output,seeds=(42,),split="test",suite="core"):
             s=make_schedule(c);plan=data_plan(c,s)
             key=digest([commit,plan])[:20]
             stage=f'experiment_{row["family"]:02d}'
-            root=ROOT/"research_data/task_il_48"/key
+            root=ROOT/"research_data"/campaign/key
             if key not in registered:
                 planpath=metadata/(key+".data.json");write_json(planpath,plan)
                 gen="data-"+key;val="validate-"+key
@@ -84,13 +85,14 @@ def build(output,seeds=(42,),split="test",suite="core"):
             cfgpath=metadata/(jid+".config.json");spath=metadata/(jid+".schedule.json")
             write_json(cfgpath,c);write_json(spath,s)
             out=results/jid
-            cfg={**c,"campaign":"task_il_48","experiment_id":row["id"],"family":row["family"],
+            cfg={**c,"campaign":campaign,"experiment_id":row["id"],"family":row["family"],
                  "baseline":row["baseline"],"partition_seed":seed,"training_seed":seed,
                  "evaluation_split":split,"rounds":s["rounds"],"tasks":len(s["tasks"]),
                  "k":c["clients"]-c["offline"],"schedule":str(spath),"schedule_sha256":digest(s),
                  "manifest_plan_id":digest(plan),"resolved_config_sha256":digest(c),"data_root":str(root),
                  "selected_draws":sum(map(len,s["selected"])),
                  "local_training_rounds":sum(map(len,s["active"]))}
+            if suite=="joint":cfg["mirror_of"]=row["mirror_of"]
             command=[sys.executable,"task_il_main.py","--config",str(cfgpath),"--schedule",str(spath),"--data",str(root),"--output",str(out)]
             names=("final_summary.json","status.json","communication_events.jsonl","server_metrics.jsonl","server.pt",
                    "provenance.json","rounds.jsonl","client_metrics.jsonl","schedule.json","config.json")
@@ -98,16 +100,16 @@ def build(output,seeds=(42,),split="test",suite="core"):
     from run_campaign import dependency_order
     dependency_order(jobs)
     assert sum(j["kind"]=="train" for j in jobs)==len(entries)*len(seeds)
-    if suite=="extended" and list(seeds)==[42]:
-        expected=[json.loads(line) for line in (ROOT/"configs/task_il/execution_dag.jsonl").read_text().splitlines()]
+    if suite in ("extended","joint") and list(seeds)==[42]:
+        expected=[json.loads(line) for line in (ROOT/"configs"/("task_il_joint" if suite=="joint" else "task_il")/"execution_dag.jsonl").read_text().splitlines()]
         if portable_graph(jobs)!=expected:
             raise ValueError("default runtime jobs diverge from committed portable execution DAG")
-    if suite=="core":
+    if suite in ("core","joint"):
         training=[j["id"] for j in jobs if j["kind"]=="train"]
-        analysis=ROOT/"research_results/task_il_48"/("analysis-core-"+digest([commit,list(seeds),split])[:12])
-        add("task-il-analysis-"+digest([commit,training])[:16],"postprocess","analysis",{"scope":"core_task_il"},
+        analysis=results/("analysis-"+suite+"-"+digest([commit,list(seeds),split])[:12])
+        add("task-il-analysis-"+digest([commit,training])[:16],"postprocess","analysis",{"scope":suite+"_task_il","campaign":campaign,"expected_training":len(training)},
             [sys.executable,"scripts/analyze_task_il.py","--ledger",str(output),"--output",str(analysis),"--require-complete"],training,
-            [analysis/"receipt.json",analysis/"experiment_results.csv",analysis/"baseline_contrasts.csv",analysis/"incomplete_jobs.csv"])
+            [analysis/"receipt.json",analysis/"experiment_results.csv",analysis/"baseline_contrasts.csv",analysis/"incomplete_jobs.csv"]+([analysis/name for name in ("study_results.csv","round_metrics.csv","task_metrics.csv","class_metrics.csv","client_diagnostics.csv","diagnostic_class_metrics.csv","recurrence_gains.csv","overlap_retention.csv")] if suite=="joint" else []))
         dependency_order(jobs)
     tmp=output.with_suffix(".tmp")
     tmp.write_text("".join(json.dumps(j,sort_keys=True)+"\n" for j in jobs));tmp.replace(output)
@@ -115,11 +117,11 @@ def build(output,seeds=(42,),split="test",suite="core"):
 
 def main():
     p=argparse.ArgumentParser();p.add_argument("--output",type=Path)
-    p.add_argument("--suite",choices=["core","extended"],default="core")
+    p.add_argument("--suite",choices=["core","extended","joint"],default="core")
     p.add_argument("--seed",type=int,action="append")
     p.add_argument("--split",choices=["test","validation"],default="test")
     a=p.parse_args()
-    output=a.output or ROOT/"experiments"/("task_il_core" if a.suite=="core" else "task_il_48")/"job_ledger.jsonl"
+    output=a.output or ROOT/"experiments"/({"core":"task_il_core","extended":"task_il_48","joint":"task_il_joint"}[a.suite])/"job_ledger.jsonl"
     jobs=build(output,a.seed or [42],a.split,a.suite)
     print(json.dumps(dict(suite=a.suite,jobs=len(jobs),training_jobs=sum(j["kind"]=="train" for j in jobs),ledger=str(output))))
 if __name__=="__main__":main()

@@ -43,6 +43,104 @@ def resolve(row, seed=None, split=None):
         raise ValueError("invalid workload")
     return c
 
+JOINT_LEDGER=ROOT/"configs/task_il_joint/job_ledger.jsonl"
+JOINT_OMIT={"E08-01","E08-02","E08-03","E10-02"}
+
+def read_joint_entries(path=JOINT_LEDGER):
+    rows=[json.loads(line) for line in Path(path).read_text().splitlines() if line.strip()]
+    source=[r for r in read_entries() if r["id"] not in JOINT_OMIT]
+    expected=[dict(id=r["id"].replace("E","J",1),family=r["family"],mirror_of=r["id"],
+                   overrides={**r["overrides"],"temporal_overlap":True},
+                   baseline=r["baseline"].replace("E","J",1)) for r in source]
+    if rows!=expected or len(rows)!=44:
+        raise ValueError("joint mirror ledger differs from full original catalog")
+    return rows
+
+def _joint_pending(c):
+    """Insert one-class-at-a-time bridges between original local task anchors.
+
+    The original cross-client joint/disjoint distinction remains orthogonal.
+    Sharing and recurrence anchors retain their original client memberships;
+    bridge task identities are unique outside the all-client joint condition.
+    """
+    syncs=c["syncs"];width=c["width"];n=c["clients"]
+    if width<2:raise ValueError("temporal overlap needs width >= 2")
+    if c["delay"] is not None:
+        return _joint_delay_pending(c)
+    base=make_schedule({**c,"temporal_overlap":False})
+    tasks=base["tasks"]
+    used={tuple(t) for t in tasks}
+    pending=[]
+    for client in range(n):
+        es=sorted((e for e in base["episodes"] if e["client"]==client),key=lambda e:e["start"])
+        prev=None
+        for e in es:
+            target=tuple(tasks[e["task"]])
+            slot=(e["start"]//syncs)*width
+            bridges=[]
+            if prev is not None:
+                # A smaller original remainder is a full-width sliding window
+                # with just the required novel labels (no singleton head).
+                if len(target)<width:
+                    target=tuple(sorted(list(prev)[len(target):]+list(target)))
+                common=set(prev)&set(target)
+                remove=sorted(set(prev)-common);add=sorted(set(target)-common)
+                if len(remove)!=len(add):raise ValueError("unequal temporal task widths")
+                if len(remove)>1 and width==2 and (c["sharing"] or c["recurrence"]):
+                    # Four possible bridges for a pair of disjoint two-class
+                    # anchors; at most four clients share a target. Avoid
+                    # accidentally introducing extra repeated task identities.
+                    choices=sorted(tuple(sorted((a,b))) for a in prev for b in target)
+                    bridge=next((x for x in choices if x not in used),None)
+                    if bridge is None:raise ValueError("cannot allocate unique sharing bridge")
+                    bridges=[bridge];used.add(bridge)
+                else:
+                    current=set(prev)
+                    for a,b in zip(remove,add):
+                        current.remove(a);current.add(b)
+                        window=tuple(sorted(current))
+                        if window!=target:bridges.append(window)
+            for j,window in enumerate(bridges):
+                pending.append((slot-len(bridges)+j,client,window))
+            pending.append((slot,client,target));prev=target
+    # Compress only globally empty slots; all original simultaneous anchor
+    # relationships and the chronological order of sequential targets survive.
+    slots={slot:j for j,slot in enumerate(sorted({p[0] for p in pending}))}
+    return [(slots[slot]*syncs,i,t) for slot,i,t in pending]
+
+def _joint_delay_pending(c):
+    """Exact intervening-round delay with the same occurrence inventory.
+
+    The 1/2-round delays cannot hold a complete five-round intervening
+    episode. In those two cases the explicitly repeated target is the sole
+    identical adjacent task; all distinct adjacent tasks share one class.
+    """
+    if c["clients"]!=5 or c["width"]!=2 or c["syncs"]!=5 or c["delay"] not in (1,2,5,10,15):
+        raise ValueError("unsupported joint delay")
+    d=c["delay"];labels=list(range(100));random.Random(c["seed"]).shuffle(labels)
+    groups=[tuple(sorted(labels[i:i+2])) for i in range(0,100,2)]
+    pending=[]
+    def path(gs):
+        windows=[gs[0]]
+        for a,b in zip(gs,gs[1:]):
+            windows.extend((tuple(sorted((a[1],b[0]))),b))
+        return windows
+    for i in range(1,5):
+        for j,t in enumerate(path(groups[i::5])):
+            pending.append((j*5+(30 if i==1 else 0),i,t))
+    gs=groups[0::5];target=gs[0]
+    # Three unique anchor-sharing fillers, with fixed membership independent
+    # of delay. They all share target[1] with the return and main-path bridge.
+    fillers=[tuple(sorted((target[1],gs[j][1]))) for j in (2,3,4)]
+    pending.append((0,0,target))
+    before=d//5
+    for j,t in enumerate(fillers[:before]):pending.append((5+5*j,0,t))
+    start=5+d;pending.append((start,0,target))
+    tail=fillers[before:]+path(gs)[1:]
+    for j,t in enumerate(tail):
+        pending.append((120 if j==len(tail)-1 else start+5+5*j,0,t))
+    return pending
+
 def make_schedule(c):
     n, width, syncs = c["clients"], c["width"], c["syncs"]
     labels = list(range(100))
@@ -54,7 +152,9 @@ def make_schedule(c):
     def stage(client, classes, s):
         add(client, classes, s*syncs)
 
-    if c["overlap"]:
+    if c.get("temporal_overlap"):
+        pending=_joint_pending(c)
+    elif c["overlap"]:
         # Equal 16 episodes per client for all overlap variants. Each client has
         # its own 20-class universe; all 100 classes are introduced. The number
         # of novel classes per episode is maximized until the universe is covered.

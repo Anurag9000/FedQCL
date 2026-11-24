@@ -29,7 +29,7 @@ def run(ledger,output,require_complete=False):
             missing.append(dict(experiment_id=cfg["experiment_id"],seed=cfg["seed"],job_id=job["id"]))
             continue
         out=Path(job["artifacts"][0]).parent
-        prefix=dict(experiment_id=cfg["experiment_id"],seed=cfg["seed"],job_id=job["id"],family=cfg["family"],evaluation_split=cfg["evaluation_split"])
+        prefix=dict(experiment_id=cfg["experiment_id"],seed=cfg["seed"],job_id=job["id"],family=cfg["family"],evaluation_split=cfg["evaluation_split"],temporal_overlap=cfg.get("temporal_overlap",False),mirror_of=cfg.get("mirror_of"))
         summary=json.loads((out/"final_summary.json").read_text())
         summaries.append({**cfg,**prefix,**summary})
         for r in read_jsonl(out/"rounds.jsonl"):
@@ -56,11 +56,11 @@ def run(ledger,output,require_complete=False):
     # Reuse mandated 5-sync / 5-client baselines without executing extra jobs.
     study_rows=[dict(x,study_family=x["family"],reused=False) for x in summaries]
     for x in summaries:
-        if x["experiment_id"]=="E01-05":
+        if x["experiment_id"] in ("E01-05","J01-05"):
             study_rows.extend(dict(x,study_family=f,reused=True) for f in (2,3))
-        elif x["experiment_id"]=="E02-01":
+        elif x["experiment_id"] in ("E02-01","J02-01"):
             study_rows.append(dict(x,study_family=3,reused=True))
-        elif x["experiment_id"]=="E05-05" and not any(y["experiment_id"]=="E10-02" and y["seed"]==x["seed"] and y["evaluation_split"]==x["evaluation_split"] for y in summaries):
+        elif x["experiment_id"] in ("E05-05","J05-05") and not any(y["experiment_id"]==x["experiment_id"][0]+"10-02" and y["seed"]==x["seed"] and y["evaluation_split"]==x["evaluation_split"] for y in summaries):
             study_rows.append(dict(x,study_family=10,reused=True))
     diagnostic_classes=[];recurrence_gains=[]
     grouped=defaultdict(dict)
@@ -81,7 +81,7 @@ def run(ledger,output,require_complete=False):
                     accuracy_before=c0/n,accuracy_after=c1/n,accuracy_gain=(c1-c0)/n))
     overlap_rows=[]
     for x in summaries:
-        if x["family"]!=8:continue
+        if x["family"]!=8 and not x.get("temporal_overlap"):continue
         out=Path(next(j for j in jobs if j["id"]==x["job_id"])["artifacts"][0]).parent
         s=json.loads((out/"schedule.json").read_text())
         rows={(r["round"],r["task"]):r for r in task_rows if r["job_id"]==x["job_id"]}

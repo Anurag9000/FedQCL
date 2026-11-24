@@ -7,11 +7,15 @@ suite="${TASK_IL_SUITE:-core}"
 case "$suite" in
   core) ledger=experiments/task_il_core/job_ledger.jsonl ;;
   extended) ledger=experiments/task_il_48/job_ledger.jsonl ;;
+  joint) ledger=experiments/task_il_joint/job_ledger.jsonl ;;
   *) echo "Unknown TASK_IL_SUITE: $suite" >&2; exit 2 ;;
 esac
 seed_args=()
 for seed in ${TASK_IL_SEEDS:-42}; do seed_args+=(--seed "$seed"); done
 python -m unittest discover -s tests -p 'test_task_il.py' -v
+if [[ "$suite" == "joint" ]]; then
+  python -m unittest discover -s tests -p 'test_task_il_joint.py' -v
+fi
 python scripts/build_task_il_ledger.py --suite "$suite" --output "$ledger" --split "${TASK_IL_SPLIT:-test}" "${seed_args[@]}"
 python scripts/run_campaign.py --ledger "$ledger" --resume "$@"
 if [[ "$suite" == "extended" ]]; then

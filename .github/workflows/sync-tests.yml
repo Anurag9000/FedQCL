@@ -6,6 +6,8 @@ on:
       - 'system/**'
       - 'scripts/**'
       - 'tests/**'
+      - 'configs/task_il_joint/**'
+      - 'run_all_task_il*.sh'
       - '.github/workflows/sync-tests.yml'
 jobs:
   protocol:
@@ -25,6 +27,8 @@ jobs:
       - run: python scripts/build_job_ledger.py --suite extended
       - run: python scripts/build_task_il_ledger.py --suite extended
       - run: python -m unittest discover -s tests -p test_core_ledgers.py -v
+      - run: bash run_all_task_il_joint.sh --dry-run
+      - run: bash run_all_task_il_joint.sh --estimate-only
   training:
     runs-on: ubuntu-latest
     timeout-minutes: 20
@@ -37,3 +41,4 @@ jobs:
       - run: pip install numpy scikit-learn scipy
       - run: FEDQCL_TRAINING_TEST=1 python -m unittest discover -s tests -p test_sync_training.py -v
       - run: TASK_IL_TRAINING_TEST=1 python -m unittest discover -s tests -p test_task_il.py -v
+      - run: TASK_IL_TRAINING_TEST=1 python -m unittest discover -s tests -p test_task_il_joint.py -v

@@ -14,7 +14,9 @@ def add_arguments(parser):
     p.add_argument("--sync-bank-age",type=int,default=5)
     p.add_argument("--sync-include-self",action="store_true")
     p.add_argument("--sync-delivery",choices=["piggyback","broadcast","telemetry"],default="piggyback")
-    p.add_argument("--sync-peer-transport",choices=["direct","relay"],default="direct")
+    p.add_argument("--sync-peer-transport",choices=["direct","relay","sparse"],default="direct")
+    p.add_argument("--sync-peer-degree",type=int,default=1)
+    p.add_argument("--sync-peer-loss",type=float,default=0.)
     p.add_argument("--sync-peer-solver",choices=["exact","greedy"],default="exact")
     p.add_argument("--sync-peer-objective",choices=["distance","coverage"],default="distance")
     p.add_argument("--sync-output",default="research_results")
@@ -73,6 +75,12 @@ def validate(a):
         raise ValueError("invalid local workload")
     if a.sync_sketch_dim<1:
         raise ValueError("invalid sketch dimension")
+    if a.sync_peer_degree<1 or not 0<=a.sync_peer_loss<=1:
+        raise ValueError("invalid peer topology/loss")
+    if a.sync_peer_transport=="sparse" and a.sync_policy!="peer":
+        raise ValueError("sparse graph is a standalone centralized peer variant")
+    if a.sync_peer_loss and a.sync_peer_transport!="direct":
+        raise ValueError("peer loss is supported for direct transport only")
     if a.sync_count_schedule and (a.sync_policy!="random" or a.sync_byte_cap or a.sync_campaign_byte_cap):
         raise ValueError("count schedule requires random policy without byte cap")
     if a.sync_policy=="adaptive" and (not a.sync_impact_model or a.sync_mode!="fixed" or a.sync_signal!="histogram"):

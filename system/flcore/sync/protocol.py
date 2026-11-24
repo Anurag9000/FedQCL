@@ -2,6 +2,7 @@
 from dataclasses import dataclass, asdict, field
 import json
 import random
+import hashlib
 from .advanced import cached_views, select_cached, update_match, combine_scores, peer_filter
 from .policies import (Report, distance, threshold_value, due_clients,
                        local_reference, bank_score, novelty_admit, peer_select,
@@ -180,7 +181,12 @@ class Controller:
             for i in ids:
                 self.transport.send(r,"observe",i,"server","HYBRID_SCORE",
                     {"score":None if scores[i] is None else float(scores[i])})
-        if peer:
+        if peer and a.sync_peer_transport=="sparse":
+            from .peer_network import sparse_election
+            selected,assignments=sparse_election(self.transport,ids,last,due,reports,r,threshold,k,
+                getattr(a,"sync_peer_degree",2),a.sync_peer_solver,a.sync_peer_objective)
+            if r==0:selected=ids;assignments={}
+        elif peer:
             views = {i:{i:reports[i]} for i in ids}
             if a.sync_peer_transport=="relay":
                 arrived = {}
@@ -198,9 +204,25 @@ class Controller:
                         if i==j:
                             continue
                         msg = self.transport.send(r,"observe",i,j,"PEER_STAT_REPORT",
-                                                  asdict(reports[i]) if reports[i] else None)
+                                                  asdict(reports[i]) if reports[i] else None,
+                                                  delivered=random.Random(f"{a.seed}:peer:{r}:{i}:{j}").random()>=getattr(a,"sync_peer_loss",0.))
                         views[j][i] = Report(**{**msg,"labels":tuple(msg["labels"]),
                                                 "counts":tuple(msg["counts"])}) if msg else None
+            if getattr(a,"sync_peer_loss",0.)>0:
+                # Digest exchange observes different views; if needed use a paid
+                # reliable relay reconciliation before selection.
+                digests=[]
+                for i in ids:
+                    digest=hashlib.sha256(encoded({j:asdict(x) if x else None for j,x in views[i].items()})).hexdigest()
+                    payload=self.transport.send(r,"observe",i,"server","ROSTER_DIGEST",{"digest":digest})
+                    digests.append(payload["digest"])
+                if len(set(digests))>1:
+                    arrived={}
+                    for i in ids:
+                        arrived[i]=self.transport.send(r,"reconcile",i,"server","PEER_RECOVERY_REPORT",asdict(reports[i]) if reports[i] else None)
+                    for i in ids:
+                        payload=self.transport.send(r,"reconcile","server",i,"PEER_RECOVERY_ROSTER",arrived)
+                        views[i]={int(j):Report(**{**x,"labels":tuple(x["labels"]),"counts":tuple(x["counts"])}) if x else None for j,x in payload.items()}
             if policy=="peer":
                 elections = [tuple(ids) if r==0 else peer_select(ids,last,due,views[i],threshold,k,
                                a.sync_peer_solver,a.sync_peer_objective) for i in ids]
@@ -286,8 +308,13 @@ class Controller:
             self.local[i].last_sync = r
             self.local[i].last_report = reports.get(i)
         if policy in ("peer","combined13","combined23","combined123"):
-            self.decisions[-1]["accepted_coverage"] = coverage(self.ids,accepted,reports,
-                                                               threshold_value(self.args.sync_threshold))
+            if self.args.sync_peer_transport=="sparse":
+                # Sparse graph must not retroactively infer unobserved edges.
+                original=self.decisions[-1]["coverage"]
+                self.decisions[-1]["accepted_coverage"]={i:{**x,"covered":x["covered"] and x["representative"] in accepted} for i,x in original.items()}
+            else:
+                self.decisions[-1]["accepted_coverage"] = coverage(self.ids,accepted,reports,
+                                                                   threshold_value(self.args.sync_threshold))
         self.decisions[-1].update(accepted=list(accepted),downloaded=list(downloaded),
                                   complete=sorted(complete),model_version=self.model_version)
         return complete

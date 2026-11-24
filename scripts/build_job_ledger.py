@@ -113,6 +113,9 @@ def build(output):
         out=Path(job["artifacts"][0]).parent
         result=out/"counterfactual_analysis.json"
         add("counterfactual_analysis","analysis",{"source":job["id"]},[sys.executable,"scripts/analyze_counterfactuals.py",str(out/"counterfactuals.jsonl"),"--output",str(result)],[job["id"]],[str(result)])
+    for regime,seed in itertools.product(regimes,(42,43,44)):
+        for flags in (("--sync-peer-transport","sparse"),("--sync-peer-loss",".1"),("--sync-peer-loss",".3")):
+            run("network","peer",regime,seed,flags=flags)
     output.parent.mkdir(parents=True,exist_ok=True)
     output.write_text("".join(json.dumps(job,sort_keys=True)+"\n" for job in jobs))
     counts={}

@@ -18,6 +18,26 @@ def write_json(path,value):
     if not path.exists():
         tmp=path.with_suffix(".tmp");tmp.write_text(body);tmp.replace(path)
 
+def portable_graph(jobs):
+    """Project machine-specific jobs onto stable checked-in dependency IDs."""
+    aliases={};data_ids={};rows=[]
+    for j in jobs:
+        kind=j["kind"]
+        if kind=="generate":
+            data=f"D{len(data_ids)+1:02d}";data_ids[j["id"]]=data
+            jid=data+"-generate"
+        elif kind=="validate":
+            data=data_ids[j["dependencies"][0]];data_ids[j["id"]]=data
+            jid=data+"-validate"
+        else:
+            data=data_ids[j["dependencies"][0]]
+            jid=j["config"]["experiment_id"]
+        row=dict(id=jid,stage=j["stage"],kind=kind,data_id=data,
+                 dependencies=[aliases[d] for d in j["dependencies"]])
+        if kind=="train":row["entry"]=jid
+        rows.append(row);aliases[j["id"]]=jid
+    return rows
+
 def build(output,seeds=(42,),split="test"):
     if not seeds or len(set(seeds))!=len(seeds):
         raise ValueError("seeds must be distinct")
@@ -67,6 +87,10 @@ def build(output,seeds=(42,),split="test"):
     from run_campaign import dependency_order
     dependency_order(jobs)
     assert sum(j["kind"]=="train" for j in jobs)==48*len(seeds)
+    if list(seeds)==[42]:
+        expected=[json.loads(line) for line in (ROOT/"configs/task_il/execution_dag.jsonl").read_text().splitlines()]
+        if portable_graph(jobs)!=expected:
+            raise ValueError("default runtime jobs diverge from committed portable execution DAG")
     tmp=output.with_suffix(".tmp")
     tmp.write_text("".join(json.dumps(j,sort_keys=True)+"\n" for j in jobs));tmp.replace(output)
     return jobs

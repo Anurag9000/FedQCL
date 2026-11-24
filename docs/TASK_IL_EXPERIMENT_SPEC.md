@@ -20,7 +20,10 @@ From the repository root with the existing requirements (and scipy) installed:
 
 The no-argument launcher executes all ten studies in dependency/priority order,
 resuming validated outputs. The committed portable ledger is
-configs/task_il/job_ledger.jsonl. The builder resolves it into
+configs/task_il/job_ledger.jsonl (48 parameter entries). The independently
+CI-generated default dependency graph is checked in as
+configs/task_il/execution_dag.jsonl (86 jobs: 48 train, 19 generate, 19 validate).
+The builder verifies the default graph and resolves it into
 experiments/task_il_48/job_ledger.jsonl, with commands, source commit, schedule
 hashes, data generation and validation dependencies, and artifact paths. The
 resolved ledger is machine- and checkout-specific and intentionally not tracked.

@@ -24,7 +24,7 @@ def portable_graph(jobs):
     for j in jobs:
         kind=j["kind"]
         if kind=="generate":
-            data=f"D{len(data_ids)+1:02d}";data_ids[j["id"]]=data
+            data=f"D{len(set(data_ids.values()))+1:02d}";data_ids[j["id"]]=data
             jid=data+"-generate"
         elif kind=="validate":
             data=data_ids[j["dependencies"][0]];data_ids[j["id"]]=data

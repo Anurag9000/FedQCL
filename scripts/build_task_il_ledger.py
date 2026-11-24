@@ -10,6 +10,7 @@ ROOT=Path(__file__).resolve().parents[1]
 sys.path.insert(0,str(ROOT/"system"))
 from flcore.sync.task_il_schedule import read_entries, resolve, make_schedule, data_plan, digest
 from flcore.sync.backbone import BACKBONE
+from core_suite import CORE_TASK_IL_IDS
 
 def write_json(path,value):
     path.parent.mkdir(parents=True,exist_ok=True)
@@ -39,7 +40,8 @@ def portable_graph(jobs):
         rows.append(row);aliases[j["id"]]=jid
     return rows
 
-def build(output,seeds=(42,),split="test"):
+def build(output,seeds=(42,),split="test",suite="core"):
+    if suite not in ("core","extended"):raise ValueError("unknown suite")
     if not seeds or len(set(seeds))!=len(seeds):
         raise ValueError("seeds must be distinct")
     output=Path(output).resolve()
@@ -50,6 +52,11 @@ def build(output,seeds=(42,),split="test"):
     if any(path and not path.endswith(".pyc") for path in changed):
         raise ValueError("commit tracked source changes before generating the source-bound ledger")
     entries=read_entries();jobs=[];registered={}
+    if suite=="core":
+        entries=[r for r in entries if r["id"] in CORE_TASK_IL_IDS]
+        ids={r["id"] for r in entries}
+        if ids!=set(CORE_TASK_IL_IDS) or any(r["baseline"] not in ids for r in entries):
+            raise ValueError("core Task-IL entries must include all named baselines")
     metadata=output.parent/"manifests"/commit[:12]
     results=ROOT/"research_results/task_il_48"
     def add(id,stage,kind,config,command,dependencies,artifacts):
@@ -90,19 +97,29 @@ def build(output,seeds=(42,),split="test"):
             add(jid,stage,"train",cfg,command,[registered[key]],[out/name for name in names])
     from run_campaign import dependency_order
     dependency_order(jobs)
-    assert sum(j["kind"]=="train" for j in jobs)==48*len(seeds)
-    if list(seeds)==[42]:
+    assert sum(j["kind"]=="train" for j in jobs)==len(entries)*len(seeds)
+    if suite=="extended" and list(seeds)==[42]:
         expected=[json.loads(line) for line in (ROOT/"configs/task_il/execution_dag.jsonl").read_text().splitlines()]
         if portable_graph(jobs)!=expected:
             raise ValueError("default runtime jobs diverge from committed portable execution DAG")
+    if suite=="core":
+        training=[j["id"] for j in jobs if j["kind"]=="train"]
+        analysis=ROOT/"research_results/task_il_48"/("analysis-core-"+digest([commit,list(seeds),split])[:12])
+        add("task-il-analysis-"+digest([commit,training])[:16],"postprocess","analysis",{"scope":"core_task_il"},
+            [sys.executable,"scripts/analyze_task_il.py","--ledger",str(output),"--output",str(analysis),"--require-complete"],training,
+            [analysis/"receipt.json",analysis/"experiment_results.csv",analysis/"baseline_contrasts.csv",analysis/"incomplete_jobs.csv"])
+        dependency_order(jobs)
     tmp=output.with_suffix(".tmp")
     tmp.write_text("".join(json.dumps(j,sort_keys=True)+"\n" for j in jobs));tmp.replace(output)
     return jobs
 
 def main():
-    p=argparse.ArgumentParser();p.add_argument("--output",type=Path,default=ROOT/"experiments/task_il_48/job_ledger.jsonl")
+    p=argparse.ArgumentParser();p.add_argument("--output",type=Path)
+    p.add_argument("--suite",choices=["core","extended"],default="core")
     p.add_argument("--seed",type=int,action="append")
     p.add_argument("--split",choices=["test","validation"],default="test")
-    a=p.parse_args();jobs=build(a.output,a.seed or [42],a.split)
-    print(json.dumps(dict(jobs=len(jobs),training_jobs=sum(j["kind"]=="train" for j in jobs),ledger=str(a.output))))
+    a=p.parse_args()
+    output=a.output or ROOT/"experiments"/("task_il_core" if a.suite=="core" else "task_il_48")/"job_ledger.jsonl"
+    jobs=build(output,a.seed or [42],a.split,a.suite)
+    print(json.dumps(dict(suite=a.suite,jobs=len(jobs),training_jobs=sum(j["kind"]=="train" for j in jobs),ledger=str(output))))
 if __name__=="__main__":main()

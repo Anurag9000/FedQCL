@@ -19,7 +19,7 @@ def write_csv(path,rows):
         for row in rows:
             w.writerow({k:json.dumps(v,sort_keys=True) if isinstance(v,(dict,list)) else v for k,v in row.items()})
 
-def run(ledger,output):
+def run(ledger,output,require_complete=False):
     jobs=[j for j in read_jsonl(ledger) if j["kind"]=="train"]
     output.mkdir(parents=True,exist_ok=True)
     summaries=[];round_rows=[];task_rows=[];class_rows=[];diagnostics=[];missing=[]
@@ -41,6 +41,7 @@ def run(ledger,output):
                                    "count":count,"correct":correct,"accuracy":correct/count if count else None})
         for r in read_jsonl(out/"client_metrics.jsonl"):
             diagnostics.append({**prefix,**r})
+    if require_complete and missing:raise ValueError("Task-IL analysis requires all selected jobs to pass verification")
     by_id={(x["experiment_id"],x["seed"],x["evaluation_split"]):x for x in summaries}
     contrasts=[]
     for x in summaries:
@@ -59,6 +60,8 @@ def run(ledger,output):
             study_rows.extend(dict(x,study_family=f,reused=True) for f in (2,3))
         elif x["experiment_id"]=="E02-01":
             study_rows.append(dict(x,study_family=3,reused=True))
+        elif x["experiment_id"]=="E05-05" and not any(y["experiment_id"]=="E10-02" and y["seed"]==x["seed"] and y["evaluation_split"]==x["evaluation_split"] for y in summaries):
+            study_rows.append(dict(x,study_family=10,reused=True))
     diagnostic_classes=[];recurrence_gains=[]
     grouped=defaultdict(dict)
     for r in diagnostics:
@@ -147,10 +150,13 @@ def run(ledger,output):
                 values.sort();ax.plot([p[0] for p in values],[p[1] for p in values],marker=".",label=jid.split("-s")[0]+" "+phase)
             ax.set(xlabel="round",ylabel="task-macro accuracy",title=f"Study {family:02d} local / exposure diagnostics")
             ax.legend(fontsize=5);fig.tight_layout();fig.savefig(plot/f"E{family:02d}_diagnostics.png",dpi=150);plt.close(fig)
-    print(json.dumps(dict(completed=len(summaries),expected=len(jobs),incomplete=len(missing),output=str(output))))
+    receipt=dict(completed=len(summaries),expected=len(jobs),incomplete=len(missing),output=str(output))
+    (output/"receipt.json").write_text(json.dumps(receipt,indent=2))
+    print(json.dumps(receipt))
 
 def main():
     p=argparse.ArgumentParser();p.add_argument("--ledger",type=Path,required=True)
     p.add_argument("--output",type=Path,default=Path("research_results/task_il_48/analysis"))
-    a=p.parse_args();run(a.ledger,a.output)
+    p.add_argument("--require-complete",action="store_true")
+    a=p.parse_args();run(a.ledger,a.output,a.require_complete)
 if __name__=="__main__":main()

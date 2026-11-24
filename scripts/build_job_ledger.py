@@ -10,9 +10,12 @@ import itertools
 import subprocess
 sys.path.insert(0,str(Path(__file__).resolve().parents[1]/"system"))
 from flcore.sync.backbone import BACKBONE
+from core_suite import core_sync_jobs
 ROOT=Path(__file__).resolve().parents[1]
 
-def build(output,tiny_root=None):
+def build(output,tiny_root=None,suite="core"):
+    if suite not in ("core","extended"):raise ValueError("unknown suite")
+    if tiny_root is not None and suite!="extended":raise ValueError("TinyImageNet is an explicit extended-suite experiment")
     jobs=[]; seen=set()
     commit=subprocess.check_output(["git","rev-parse","HEAD"],cwd=ROOT,text=True).strip()
     generator_digest=hashlib.sha256((ROOT/"scripts/generate_streams.py").read_bytes()).hexdigest()[:12]
@@ -230,13 +233,14 @@ def build(output,tiny_root=None):
     for size in (80,1024,65536,45000000):
         out=ROOT/"research_results"/"network_benchmarks"/f"{size}-{commit[:12]}.json"
         add("transport_benchmark","benchmark",{"size":size},[sys.executable,"scripts/benchmark_transport.py","--size",str(size),"--output",str(out)],artifacts=[str(out)])
+    if suite=="core":jobs=core_sync_jobs(jobs)
     byte_dependencies=[j["id"] for j in jobs if j["kind"]=="train" and j["stage"] in ("byte_matched","threshold")]
-    byte_report=ROOT/"research_results"/("matched_bytes-"+commit[:12]+".json")
+    byte_report=ROOT/"research_results"/("matched_bytes-"+suite+"-"+commit[:12]+".json")
     add("postprocess","analysis",{"scope":"achieved_byte_matching"},[sys.executable,"scripts/compare_matched_bytes.py","--ledger",str(output.resolve()),"--output",str(byte_report)],byte_dependencies,[str(byte_report)])
     # Full postprocessing is dependency-gated; standalone scripts can still
     # analyze partial completed results without claiming campaign completion.
     training=[j["id"] for j in jobs if j["kind"]=="train"]
-    results=ROOT/"research_results"/("analysis-"+commit[:12])
+    results=ROOT/"research_results"/("analysis-"+suite+"-"+commit[:12])
     csv_file=results/"aggregate.csv"
     aggregate=add("postprocess","analysis",{"scope":"complete_campaign"},[sys.executable,"scripts/aggregate_results.py","--ledger",str(output.resolve()),"--output",str(csv_file)],training,[str(csv_file),str(csv_file.with_suffix(".paired.json"))])
     matches=results/"budget_matches.json"
@@ -260,9 +264,13 @@ def build(output,tiny_root=None):
     for job in jobs:
         key=f'{job["stage"]}:{job["kind"]}'
         counts[key]=counts.get(key,0)+1
-    print(json.dumps({"jobs":len(jobs),"counts":counts},indent=2))
+    print(json.dumps({"suite":suite,"jobs":len(jobs),"training_jobs":sum(j["kind"]=="train" for j in jobs),"counts":counts},indent=2))
+    return jobs
 
 if __name__=="__main__":
-    p=argparse.ArgumentParser();p.add_argument("--output",type=Path,default=ROOT/"experiments"/"job_ledger.jsonl")
+    p=argparse.ArgumentParser();p.add_argument("--output",type=Path)
+    p.add_argument("--suite",choices=["core","extended"],default="core")
     p.add_argument("--tiny-root",type=Path,help="Opt in to extracted TinyImageNet transfer runs")
-    a=p.parse_args();build(a.output,a.tiny_root.resolve() if a.tiny_root else None)
+    a=p.parse_args()
+    output=a.output or ROOT/"experiments"/("job_ledger.jsonl" if a.suite=="core" else "job_ledger_extended.jsonl")
+    build(output,a.tiny_root.resolve() if a.tiny_root else None,a.suite)

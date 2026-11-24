@@ -8,6 +8,8 @@ import shlex
 import sys
 import itertools
 import subprocess
+sys.path.insert(0,str(Path(__file__).resolve().parents[1]/"system"))
+from flcore.sync.backbone import BACKBONE
 ROOT=Path(__file__).resolve().parents[1]
 
 def build(output,tiny_root=None):
@@ -52,14 +54,14 @@ def build(output,tiny_root=None):
         training_seed=seed if training_seed is None else training_seed
         dataset,tasks,classes=dimensions.get((regime,seed,n),("cifar100",5,20))
         total_rounds=tasks*10
-        cfg={"policy":policy,"regime":regime,"partition_seed":seed,"training_seed":training_seed,"evaluation_split":split,"dataset":dataset,"tasks":tasks,"rounds":total_rounds,
+        cfg={"backbone":BACKBONE,"memory":500,"replay_batch":13,"policy":policy,"regime":regime,"partition_seed":seed,"training_seed":training_seed,"evaluation_split":split,"dataset":dataset,"tasks":tasks,"rounds":total_rounds,
              "k":n if policy=="full" else k,"flags":list(flags),"clients":n}
         key=hashlib.sha256(json.dumps([cfg,commit],sort_keys=True).encode()).hexdigest()[:16]
         out=ROOT/"research_results"/key
         command=[sys.executable,"main.py","-data",str(folder),"-m","resnet18","-algo","FedAvg",
                  "-tasks",str(tasks),"-nb",str(classes),"-nc",str(n),"-gr",str(total_rounds-1),"-lbs","13","-lr","0.005","-ls","5",
-                 "-V",str(20 if dataset=="cifar10" else 220 if dataset=="tinyimagenet" else 200),"-delta","1","-memory_size","500","-memory_batch_size","13","-seed",str(training_seed),
-                 "--sync-policy",policy,"--sync-k",str(cfg["k"]),"--sync-output",str(out),"--sync-checkpoint","--sync-eval-split",split,*flags]
+                 "-memory_size","500","-memory_batch_size","13","-seed",str(training_seed),
+                 "--sync-er","--sync-memory-profile","uniform","--sync-aggregation","complete","--sync-weighting","current","--sync-local-capture","--sync-policy",policy,"--sync-k",str(cfg["k"]),"--sync-output",str(out),"--sync-checkpoint","--sync-eval-split",split,*flags]
         return add(stage,"train",cfg,command,[dep,*extra_deps],[str(out/"final_summary.json"),str(out/"status.json"),
             str(out/"communication_events.jsonl"),str(out/"server_metrics.jsonl"),str(out/"server.pt"),str(out/"provenance.json"),str(out/"rounds.jsonl")]+([str(out/"counterfactuals.jsonl")] if "--sync-counterfactual" in flags else []))
     policies=("full","random","oldest","own","server","peer")
@@ -81,8 +83,7 @@ def build(output,tiny_root=None):
         for flags,regime,seed in itertools.product(opts,regimes,(42,43,44)):
             run("ablation",policy,regime,seed,flags=flags)
     for policy,regime,seed in itertools.product(policies,regimes,(42,43,44)):
-        for flags in (("--sync-refresh",),("--sync-local-capture",),("--sync-balanced-sampler",),
-                      ("--sync-aggregation","complete"),("--sync-er",),("--sync-posttrain",),
+        for flags in (("--sync-refresh",),("--sync-posttrain",),
                       ("--sync-max-skip","2"),("--sync-max-skip","8")):
             run("mechanism",policy,regime,seed,flags=flags)
     for policy,regime,seed in itertools.product(policies,regimes,(42,43,44)):
@@ -114,7 +115,7 @@ def build(output,tiny_root=None):
             run("adaptive","adaptive",regime,seed,flags=("--sync-impact-model",str(model),*extra),extra_deps=[fit])
     for n,policy,regime,seed in itertools.product((10,20,50),("full","random","oldest","cached","peer"),("near","clustered","separated"),(42,43,44)):
         run("scale",policy,regime,seed,k=max(1,int(.6*n)),n=n,flags=("--sync-peer-solver","greedy") if policy in ("cached","peer") else ())
-    extended=("replay_histogram","replay_queue","prototypes","feature_covariance","spectral","parameter_norms",
+    extended=("replay_histogram","prototypes","feature_covariance","spectral","parameter_norms",
               "normalization","predictions","loss","uncertainty","entropy","jacobian","fisher","gradient_variance")
     for policy,regime,seed,signal in itertools.product(("own","server","peer"),regimes,(42,43,44),extended):
         run("extended_signals",policy,regime,seed,flags=("--sync-signal",signal,"--sync-native-space"))
@@ -164,13 +165,6 @@ def build(output,tiny_root=None):
             run("dynamic_threshold",policy,regime,seed,flags=("--sync-mode","threshold","--sync-dynamic-threshold"))
         for policy,tau in itertools.product(("combined12","combined13","combined23","combined123"),(.05,.1,.2,.35)):
             run("combined_threshold",policy,regime,seed,flags=("--sync-mode","threshold","--sync-threshold",str(tau)))
-        for profile in ("uniform","balanced","rare"):
-            for policy in ("full","cached","own"):
-                run("replay_profiles",policy,regime,seed,flags=("--sync-memory-profile",profile))
-        for policy in ("full","random","own","server","peer"):
-            for variant in (("--sync-queue-mode","sample_mean"),("--sync-reference-recovery",),("--sync-v-normalized-lr",),
-                            ("--sync-weighting","equal"),("--sync-weighting","current"),("--sync-weighting","processed")):
-                run("correctness",policy,regime,seed,flags=variant)
         for policy in ("random","own","server","peer","cached"):
             for cap in (190000000,280000000,370000000):
                 run("hard_bytes",policy,regime,seed,k=5,flags=("--sync-byte-cap",str(cap),"--sync-bootstrap-byte-cap","500000000"))
@@ -185,7 +179,6 @@ def build(output,tiny_root=None):
             run("distributed", "peer",regime,seed,flags=("--sync-peer-transport","distributed_sparse","--sync-dynamic-topology","--sync-peer-loss",".1","--sync-gossip-fault",fault))
         for length in (2,4):
             run("comparators","block_random",regime,seed,flags=("--sync-block-length",str(length)))
-        run("comparators","mass_stratified",regime,seed)
         run("comparators","divfl_sketch",regime,seed,flags=("--sync-signal","gradient","--sync-native-space"))
         for policy in ("oldest","random"):
             run("continuation_extended","cached",regime,seed,flags=("--sync-counterfactual","--sync-counterfactual-horizon","12","--sync-continuation-policy",policy,"--sync-oracle-past-weight","1"))

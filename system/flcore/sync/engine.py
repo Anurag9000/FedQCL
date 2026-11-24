@@ -1,4 +1,4 @@
-"""Research execution adapter for the native FEDQCL client.
+"""Independent research engine for plain FedAvg + vanilla experience replay.
 Sequential local workers deliberately avoid the legacy shared-RNG thread race.
 """
 import copy
@@ -13,7 +13,7 @@ import time
 import numpy as np
 import torch
 from torch.utils.data import DataLoader, default_collate
-from flcore.clients.clientavg_tl import clientAVG
+from .backbone import BACKBONE, fedavg, sample_replay, replay_ce
 from flcore.trainmodel.resnet import ResNet18_dpp
 from utils.data_utils import read_client_data
 from .protocol import Controller
@@ -42,33 +42,24 @@ def verify_shard(args,task,split,i):
     if digest.hexdigest()!=manifest["shards"].get(key):raise ValueError("shard fingerprint mismatch: "+key)
     cache[key]=identity;args._verified_shards=cache
 
-class ResearchClient(clientAVG):
+class ResearchClient:
+    """Independent of the legacy FEDQCL client, with no queue or reference state."""
     def __init__(self,args,**kwargs):
-        self.research_seed=args.seed
-        self.research_mode=True
-        self.research_args=args
-        self.replay_state={}
-        self.replay_samples=0
-        self.replay_by_task={}
-        self.optimizer_steps=0
-        self.current_samples=0
-        self.training_counts=[]
-        self.reference_task=-1
-        self.signal_history={}
-        self.memory_rounds={}
-        self.active_round=0
-        super().__init__(args,**kwargs)
-        if args.sync_v_normalized_lr:
-            for group in self.optimizer.param_groups:
-                group["lr"]/=self.V
-
-    def load_train_data(self,batch_size=None,round=0):
-        # Client base initializes a list of handles. The actual shard is loaded
-        # only at its lawful reveal round.
-        return None
-
-    def load_test_data(self,batch_size=None,round=0):
-        return None
+        self.research_seed=args.seed;self.research_args=args
+        self.id=kwargs["id"];self.train_samples=kwargs["train_samples"]
+        self.device=torch.device(args.device);self.dataset=args.dataset;self.few_shot=args.few_shot
+        self.num_tasks=args.tasks;self.classes_per_task=args.num_classes
+        self.round_per_task=(args.global_rounds+1)//args.tasks
+        self.batch_size=args.batch_size;self.epochs=args.local_epochs
+        self.memory_size=args.memory_size;self.memory_batch_size=args.memory_batch_size
+        self.model=copy.deepcopy(args.model).to(self.device)
+        self.optimizer=torch.optim.SGD(self.model.parameters(),lr=args.local_learning_rate)
+        self.loss=torch.nn.CrossEntropyLoss()
+        self.task_trainloaders=[None]*self.num_tasks
+        self.task_memories={};self.observed_windows={}
+        self.replay_samples=0;self.replay_by_task={}
+        self.optimizer_steps=0;self.current_samples=0;self.training_counts=[]
+        self.signal_history={};self.memory_rounds={};self.active_round=0
 
     def reveal(self,task,r):
         a=self.research_args
@@ -76,6 +67,7 @@ class ResearchClient(clientAVG):
         if self.task_trainloaders[task] is None:
             path=os.path.join(self.dataset,f"task_{task}")
             self.task_trainloaders[task]=read_client_data(path,self.id,True,self.few_shot)
+        self.observed_windows.setdefault(task,set()).add(r%self.round_per_task)
         current=self.task_trainloaders[task]
         if isinstance(current,DataLoader):
             current=current.dataset
@@ -89,138 +81,87 @@ class ResearchClient(clientAVG):
         return current
 
     def prepare_training(self,task,r,dataset):
-        a=self.research_args
-        g=torch.Generator().manual_seed(seed_for(a.seed,"train",self.id,task,r))
-        if a.sync_balanced_sampler:
-            labels=np.array([int(y) for _,y in dataset])
-            counts=np.bincount(labels)
-            weights=[1/counts[y] for y in labels]
-            sampler=torch.utils.data.WeightedRandomSampler(weights,len(weights),replacement=True,generator=g)
-            loader=DataLoader(dataset,batch_size=self.batch_size,sampler=sampler,drop_last=True,generator=g)
-        else:
-            loader=DataLoader(dataset,batch_size=self.batch_size,shuffle=True,drop_last=True,generator=g)
-        if len(loader)==0:
-            raise ValueError("empty training workload")
-        self.task_trainloaders[task]=loader
-        return loader
+        g=torch.Generator().manual_seed(seed_for(self.research_seed,"train",self.id,task,r))
+        if not len(dataset):raise ValueError("empty training workload")
+        return DataLoader(dataset,batch_size=self.batch_size,shuffle=True,drop_last=False,generator=g)
 
     def save_task_memory_from_loader(self,client_id,task_id,trainloader,memory_size):
-        if memory_size and self.research_args.sync_memory_profile=="native":
-            super().save_task_memory_from_loader(client_id,task_id,trainloader,memory_size)
-        elif memory_size:
-            from .replay import select_memory
-            rng=random.Random(seed_for(self.research_seed,"memory_profile",self.id,task_id,self.active_round))
-            pool={**self.task_memories,task_id:list(trainloader.dataset)}
-            self.task_memories=select_memory(pool,memory_size,self.research_args.sync_memory_profile,rng)
-            self.task_memoryloaders={t:DataLoader(self.task_memories[t],batch_size=self.memory_batch_size,shuffle=True)
-                if self.task_memories.get(t) else None for t in range(self.num_tasks)}
-        else:
-            self.task_memories={}
-            self.task_memoryloaders={t:None for t in range(self.num_tasks)}
+        from .replay import select_memory
+        rng=random.Random(seed_for(self.research_seed,"memory_profile",self.id,task_id))
+        pool={**self.task_memories,task_id:list(trainloader.dataset)}
+        selected=select_memory(pool,memory_size,"uniform",rng)
+        self.task_memories={k:[(x.detach().cpu().clone(),torch.as_tensor(y).detach().cpu().clone()) for x,y in items]
+                            for k,items in selected.items()}
         self.memory_rounds={k:v for k,v in self.memory_rounds.items() if k in self.task_memories}
         if self.task_memories.get(task_id):self.memory_rounds[task_id]=self.active_round
-        self.replay_state.clear()
-        self._mem_iterators.clear()
-
-    def _get_next_from_memloader(self,k):
-        mem=self.task_memories.get(k,[])
-        if not mem:
-            return None,None
-        state=self.replay_state.get(k)
-        if state is None or state["cursor"]>=len(state["order"]):
-            epoch=0 if state is None else state["epoch"]+1
-            g=torch.Generator().manual_seed(seed_for(self.research_seed,"replay",self.id,k,epoch))
-            state={"order":torch.randperm(len(mem),generator=g).tolist(),"cursor":0,"epoch":epoch}
-            self.replay_state[k]=state
-        start=state["cursor"]
-        end=min(start+self.memory_batch_size,len(mem))
-        state["cursor"]=end
-        self.replay_samples+=end-start
-        self.replay_by_task[k]=self.replay_by_task.get(k,0)+end-start
-        return default_collate([mem[j] for j in state["order"][start:end]])
+        if sum(map(len,self.task_memories.values()))>memory_size:raise RuntimeError("replay capacity exceeded")
 
     def train_round(self,r,task,dataset):
         self.active_round=r
         loader=self.prepare_training(task,r,dataset)
-        self.replay_samples=0
-        self.replay_by_task={}
-        self.optimizer_steps=len(loader)*self.epochs
-        self.current_samples=self.optimizer_steps*self.batch_size
+        self.replay_samples=0;self.replay_by_task={}
+        self.optimizer_steps=0;self.current_samples=0
         self.training_counts=[0]*self.classes_per_task
-        if not self.research_args.sync_er:
-            self.train(r)
-        else:
-            seed_all(seed_for(self.research_seed,"er",self.id,r))
-            self.model.train()
-            for _ in range(self.epochs):
-                for x,y in loader:
-                    x,y=x.to(self.device),y.to(self.device)%self.classes_per_task
-                    self.record_training_labels(y)
-                    self.optimizer.zero_grad()
-                    loss=self.loss(self.model(x,task),y)
-                    for k in range(task):
-                        mx,my=self._get_next_from_memloader(k)
-                        if mx is not None:
-                            loss=loss+self.loss(self.model(mx.to(self.device),k),my.to(self.device)%self.classes_per_task)
-                    loss.backward()
-                    self.optimizer.step()
-            if (r+1)%self.round_per_task==0:
-                self.save_task_memory_from_loader(self.id,task,loader,self.memory_size)
-        # Static raw shard stays resident; windowed runs re-read raw task data
-        # at next reveal rather than interpreting a previous window as the shard.
-        self.task_trainloaders[task]=None if self.research_args.sync_windowed else loader
+        seed_all(seed_for(self.research_seed,"er",self.id,r))
+        self.model.train()
+        for epoch in range(self.epochs):
+            for step,(x,y) in enumerate(loader):
+                x,y=x.to(self.device),y.to(self.device)%self.classes_per_task
+                self.record_training_labels(y)
+                self.optimizer.zero_grad()
+                loss=self.loss(self.model(x,task),y)
+                memory={k:v for k,v in self.task_memories.items() if k<task}
+                rng=random.Random(seed_for(self.research_seed,"pooled_replay",self.id,r,epoch,step))
+                chosen=sample_replay(memory,self.memory_batch_size,rng)
+                grouped={}
+                for k,item in chosen:grouped.setdefault(k,[]).append(item)
+                groups={}
+                for k,items in grouped.items():
+                    mx,my=default_collate(items);groups[k]=(mx.to(self.device),my.to(self.device))
+                    self.replay_by_task[k]=self.replay_by_task.get(k,0)+len(items)
+                past=replay_ce(self.model,groups,lambda labels,k:labels%self.classes_per_task)
+                if past is not None:loss=loss+past
+                if not torch.isfinite(loss):raise FloatingPointError("nonfinite local ER objective")
+                loss.backward();self.optimizer.step()
+                self.replay_samples+=len(chosen);self.optimizer_steps+=1;self.current_samples+=len(y)
+        if (r+1)%self.round_per_task==0:self.capture(task,r)
+        if self.research_args.sync_windowed:self.task_trainloaders[task]=None
 
     def record_training_labels(self,y):
         counts=torch.bincount(y.detach().cpu(),minlength=self.classes_per_task).tolist()
         self.training_counts=[a+b for a,b in zip(self.training_counts,counts)]
 
-    def capture(self,task,r,dataset):
+    def capture(self,task,r,dataset=None):
         self.active_round=r
-        seed_all(seed_for(self.research_seed,"capture",self.id,r))
-        loader=DataLoader(dataset,batch_size=self.batch_size)
-        self.save_task_memory_from_loader(self.id,task,loader,self.memory_size)
+        observed=self.observed_windows.get(task,set())
+        if not observed:return
+        a=self.research_args
+        verify_shard(a,task,"train",self.id)
+        raw=self.task_trainloaders[task]
+        if raw is None:raw=read_client_data(os.path.join(self.dataset,f"task_{task}"),self.id,True,self.few_shot)
+        if a.sync_windowed:
+            path=Path("../dataset")/self.dataset/f"task_{task}"/"train"/f"{self.id}.npz"
+            with np.load(path,allow_pickle=True) as z:windows=z["data"].item()["window"]
+            raw=[raw[j] for j,w in enumerate(windows) if int(w) in observed]
+        self.save_task_memory_from_loader(self.id,task,DataLoader(raw,batch_size=self.batch_size),self.memory_size)
+        self.task_trainloaders[task]=None
+        self.observed_windows.pop(task,None)
 
 def aggregation_weights(args,clients,datasets,ids,complete):
-    mode=getattr(args,"sync_weighting","profile")
-    if mode=="profile":mode="current" if complete else "first_task"
-    return [1 if mode=="equal" else clients[i].train_samples if mode=="first_task" else
-            clients[i].current_samples if mode=="processed" else len(datasets[i]) for i in ids]
+    if not complete:raise ValueError("research requires complete-state FedAvg")
+    return [len(datasets[i]) for i in ids]
 
 def model_bytes(model,complete):
     tensors=model.state_dict().values() if complete else model.parameters()
     return sum(t.numel()*t.element_size() for t in tensors)
 
 def aggregate(global_model,clients,weights,complete):
-    if not clients:
-        return global_model
-    total=sum(weights)
-    if total<=0:
-        raise ValueError("zero aggregation weight")
-    result=copy.deepcopy(clients[0].model)
-    with torch.no_grad():
-        if complete:
-            target=result.state_dict()
-            states=[c.model.state_dict() for c in clients]
-            for key,tensor in target.items():
-                if tensor.is_floating_point() or tensor.is_complex():
-                    tensor.zero_()
-                    for state,w in zip(states,weights):
-                        tensor.add_(state[key],alpha=w/total)
-                else:
-                    tensor.copy_(torch.stack([s[key] for s in states]).amax(0))
-            result.load_state_dict(target)
-        else:
-            for target,params in zip(result.parameters(),zip(*(c.model.parameters() for c in clients))):
-                target.zero_()
-                for param,w in zip(params,weights):
-                    target.add_(param,alpha=w/total)
-    return result
+    if not complete:raise ValueError("research requires complete-state FedAvg")
+    return fedavg(copy.deepcopy(global_model),clients,weights) if clients else global_model
 
 def download(client,model,complete):
-    if complete:
-        client.model.load_state_dict(model.state_dict())
-    else:
-        client.set_parameters(model)
+    if not complete:raise ValueError("research requires complete-state FedAvg")
+    client.model.load_state_dict(model.state_dict())
 
 def evaluate(model,loaders,task,r,version,device,classes):
     model.eval()
@@ -268,18 +209,14 @@ def write_jsonl(path,rows):
 
 def checkpoint_client(c):
     return {"model":c.model.state_dict(),"optimizer":c.optimizer.state_dict(),
-            "Q":c.Q,"Q_history":c.Q_history,"theta_prev":c.theta_prev,"reference_task":c.reference_task,
-            "memories":c.task_memories,"replay_state":c.replay_state,"signal_history":c.signal_history,"memory_rounds":c.memory_rounds}
+            "backbone":BACKBONE,"memories":c.task_memories,"observed_windows":c.observed_windows,
+            "signal_history":c.signal_history,"memory_rounds":c.memory_rounds}
 
 def restore_client(c,state):
-    c.model.load_state_dict(state["model"])
-    c.optimizer.load_state_dict(state["optimizer"])
-    c.Q=state["Q"]; c.Q_history=state["Q_history"]; c.theta_prev=state["theta_prev"]
-    c.reference_task=state.get("reference_task",-1)
-    c.task_memories=state["memories"]; c.replay_state=state["replay_state"]
-    c.signal_history=state.get("signal_history",{});c.memory_rounds=state.get("memory_rounds",{})
-    c.task_memoryloaders={t:DataLoader(c.task_memories[t],batch_size=c.memory_batch_size,shuffle=True)
-                          if c.task_memories.get(t) else None for t in range(c.num_tasks)}
+    if state.get("backbone")!=BACKBONE:raise ValueError("incompatible local checkpoint backbone")
+    c.model.load_state_dict(state["model"]);c.optimizer.load_state_dict(state["optimizer"])
+    c.task_memories=state["memories"];c.observed_windows=state["observed_windows"]
+    c.signal_history=state["signal_history"];c.memory_rounds=state["memory_rounds"]
 
 def save_checkpoint(path,r,model,clients,controller,metrics,rounds,signature,counterfactual_rows):
     tmp=path.with_suffix(".tmp")
@@ -292,10 +229,14 @@ def save_checkpoint(path,r,model,clients,controller,metrics,rounds,signature,cou
     os.replace(tmp,path)
 
 def run_research(args):
+    from .config import validate
     a=args
+    validate(a)
+    if a.sync_policy=="legacy":raise ValueError("legacy is not a research policy")
     out=Path(a.sync_output).resolve()
     out.mkdir(parents=True,exist_ok=True)
-    config={k:v for k,v in vars(a).items() if k not in ("sync_resume","sync_stop_after_round")}
+    config={k:v for k,v in vars(a).items() if k not in ("sync_resume","sync_stop_after_round","V","delta")}
+    config["backbone"]=BACKBONE
     dataset_root=Path(a.dataset).resolve() if Path(a.dataset).is_absolute() else (Path('../dataset')/a.dataset).resolve()
     manifest_path=dataset_root/'manifest.json'
     manifest=json.loads(manifest_path.read_text()) if manifest_path.exists() else None
@@ -324,7 +265,7 @@ def run_research(args):
         commit=subprocess.check_output(["git","rev-parse","HEAD"],text=True).strip()
     except (OSError,subprocess.CalledProcessError):
         commit="unknown"
-    atomic_json(out/"provenance.json",{"commit":commit,"torch":torch.__version__,"signature":signature})
+    atomic_json(out/"provenance.json",{"commit":commit,"torch":torch.__version__,"signature":signature,"backbone":BACKBONE})
     atomic_json(out/"status.json",{"status":"running"})
     a.dataset_manifest=manifest
     a._verified_shards={}
@@ -378,7 +319,7 @@ def run_research(args):
     if a.sync_resume:
         counterfactual_rows=state.get('counterfactual_rows',[])
     rpt=(a.global_rounds+1)//a.tasks
-    complete_state=a.sync_aggregation=="complete"
+    complete_state=True
     payload=model_bytes(model,complete_state)
     failures=json.loads(Path(a.sync_failures).read_text()) if a.sync_failures else {}
     def fails(r,kind,i):
@@ -506,7 +447,6 @@ def run_research(args):
                 raise RuntimeError("bootstrap incomplete")
             ctl.ingest_uploads(r,reports,accepted,uploaded)
             weights=aggregation_weights(a,clients,datasets,accepted,complete_state)
-            if a.sync_policy=="mass_stratified":weights=[ctl.decisions[-1]["multiplicity"][i] for i in accepted]
             if accepted:
                 model=aggregate(model,[clients[i] for i in accepted],weights,complete_state)
                 ctl.model_version+=1
@@ -526,9 +466,9 @@ def run_research(args):
             if r==0 and len(downloaded)!=a.num_clients:
                 raise RuntimeError("bootstrap download incomplete")
             boundary=(r+1)%rpt==0
-            if boundary and a.sync_local_capture:
-                for i in set(available)-set(trained):
-                    clients[i].capture(t,r,datasets[i])
+            if boundary:
+                for i in set(range(a.num_clients))-set(trained):
+                    clients[i].capture(t,r)
             for u in range(t+1):
                 if u not in loaders:
                     if a.sync_eval_split=="validation":
@@ -551,8 +491,6 @@ def run_research(args):
                            "last_complete_sync":{i:s.last_sync for i,s in ctl.local.items()},
                            "local_revisions":{i:s.local_revision for i,s in ctl.local.items()},
                            "memory_missed":[i for i in range(a.num_clients) if boundary and t not in clients[i].task_memories],
-                           "reference_missed":[i for i in range(a.num_clients) if r>0 and r%rpt==0 and i not in trained],
-                           "queues":{c.id:c.Q.copy() for c in clients},
                            "memory_sizes":{c.id:{k:len(v) for k,v in c.task_memories.items()} for c in clients},
                            "memory_class_counts":{c.id:{k:np.bincount(np.asarray([int(y)%a.num_classes for _,y in v],dtype=int),minlength=a.num_classes).tolist() for k,v in c.task_memories.items()} for c in clients},
                            "model_ages":{i:ctl.model_version-s.model_version for i,s in ctl.local.items()},
@@ -575,7 +513,7 @@ def run_research(args):
         by_kind={}
         for e in ctl.transport.events:
             by_kind[e["kind"]]=by_kind.get(e["kind"],0)+e["serialized_bytes"]
-        summary={"final_accuracy":sum(x["accuracy"] for x in final)/len(final),
+        summary={"backbone":BACKBONE,"final_accuracy":sum(x["accuracy"] for x in final)/len(final),
                  "forgetting":sum(forgetting)/len(forgetting) if forgetting else 0.,
                  "worst_task_accuracy":min(x["accuracy"] for x in final),
                  "total_bytes":sum(by_kind.values()),"bytes_by_kind":by_kind,

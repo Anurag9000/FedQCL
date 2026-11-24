@@ -1,7 +1,7 @@
 """Research flags; no effect on legacy execution."""
 def add_arguments(parser):
     p=parser
-    p.add_argument("--sync-policy", choices=["legacy","full","random","oldest","own","server","peer","cached","update_match","combined12","combined13","combined23","combined123","adaptive","mass_stratified","divfl_sketch","block_random"], default="legacy")
+    p.add_argument("--sync-policy", choices=["legacy","full","random","oldest","own","server","peer","cached","update_match","combined12","combined13","combined23","combined123","adaptive","divfl_sketch","block_random"], default="legacy")
     p.add_argument("--sync-mode",choices=["threshold","fixed"],default="fixed")
     p.add_argument("--sync-k",type=int,default=3)
     p.add_argument("--sync-threshold",type=float,default=.1)
@@ -29,24 +29,24 @@ def add_arguments(parser):
     p.add_argument("--sync-eval-split",choices=["validation","test"],default="test")
     p.add_argument("--sync-output",default="research_results")
     p.add_argument("--sync-refresh",action="store_true")
-    p.add_argument("--sync-local-capture",action="store_true")
+    p.add_argument("--sync-local-capture",action="store_true",default=True)
     p.add_argument("--sync-balanced-sampler",action="store_true")
     p.add_argument("--sync-queue-mode",choices=["native","sample_mean"],default="native")
     p.add_argument("--sync-reference-recovery",action="store_true")
     p.add_argument("--sync-v-normalized-lr",action="store_true",help="Divide local LR by V for a controlled penalty-weight ablation")
-    p.add_argument("--sync-weighting",choices=["profile","first_task","current","processed","equal"],default="profile")
-    p.add_argument("--sync-aggregation",choices=["legacy","complete"],default="legacy")
+    p.add_argument("--sync-weighting",choices=["current"],default="current")
+    p.add_argument("--sync-aggregation",choices=["complete"],default="complete")
     p.add_argument("--sync-resume",action="store_true")
     p.add_argument("--sync-stop-after-round",type=int,help="Pause at committed round for restart verification")
     p.add_argument("--sync-checkpoint",action="store_true")
     p.add_argument("--sync-counterfactual",action="store_true")
-    p.add_argument("--sync-er",action="store_true")
-    p.add_argument("--sync-memory-profile",choices=["native","uniform","balanced","rare"],default="native")
+    p.add_argument("--sync-er",action="store_true",default=True,help="Mandatory vanilla replay in research runs")
+    p.add_argument("--sync-memory-profile",choices=["uniform"],default="uniform")
     p.add_argument("--sync-windowed",action="store_true")
     p.add_argument("--sync-posttrain",action="store_true")
     p.add_argument("--sync-bank-transfer",choices=["snapshot","delta"],default="snapshot")
     p.add_argument("--sync-failures",help="JSON mapping round to upload/reject/download client IDs")
-    p.add_argument("--sync-signal",choices=["histogram","replay","feature","gradient","update","replay_histogram","replay_queue","prototypes","feature_covariance","spectral","parameter_norms","normalization","predictions","loss","uncertainty","entropy","jacobian","fisher","gradient_variance","multichannel","gradient_conflict","information","temporal","bayesian_head","representation_anchor","replay_diagnostics","fisher_full","parameter_jacobian","head_hessian","conditional_moments"],default="histogram")
+    p.add_argument("--sync-signal",choices=["histogram","replay","feature","gradient","update","replay_histogram","prototypes","feature_covariance","spectral","parameter_norms","normalization","predictions","loss","uncertainty","entropy","jacobian","fisher","gradient_variance","multichannel","gradient_conflict","information","temporal","bayesian_head","representation_anchor","replay_diagnostics","fisher_full","parameter_jacobian","head_hessian","conditional_moments"],default="histogram")
     p.add_argument("--sync-histogram-distance",choices=["tv","js","hellinger"],default="tv")
     p.add_argument("--sync-sketch-dim",type=int,default=128)
     p.add_argument("--sync-byte-cap",type=int,default=0,help="Hard logical bytes per round including bootstrap")
@@ -114,10 +114,10 @@ def validate(a):
         raise ValueError("hard caps currently require reliable pre-training delivery")
     if a.memory_size<0 or a.batch_size<1 or a.memory_batch_size<1 or a.local_epochs<1:
         raise ValueError("invalid local workload")
-    if a.sync_v_normalized_lr and (a.V<=0 or a.sync_er):
-        raise ValueError("V-normalized LR requires positive V and FEDQCL objective")
-    if a.sync_er and (a.sync_reference_recovery or a.sync_queue_mode!="native"):
-        raise ValueError("ER has no FEDQCL queue/reference correction")
+    if not a.sync_er or a.sync_reference_recovery or a.sync_v_normalized_lr or a.sync_queue_mode!="native" or a.sync_balanced_sampler:
+        raise ValueError("research permits only vanilla SGD + ER, without FEDQCL queues, reference models or weighted sampling")
+    if a.sync_weighting!="current" or a.sync_aggregation!="complete" or a.sync_memory_profile!="uniform" or not a.sync_local_capture or a.sync_policy=="mass_stratified" or a.sync_signal=="replay_queue":
+        raise ValueError("research requires current-shard-weighted full-state FedAvg and uniform task-balanced replay")
     if a.sync_sketch_dim<1:
         raise ValueError("invalid sketch dimension")
     if a.sync_fallback and (a.sync_policy!="peer" or a.sync_peer_transport!="relay" or a.sync_posttrain or a.sync_counterfactual or a.sync_byte_cap or a.sync_campaign_byte_cap):

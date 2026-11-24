@@ -20,7 +20,7 @@ def continue_branch(server,originals,candidates,datasets,controller,subset,r,tas
     last={i:controller.local[i].last_sync for i in range(len(clients))}
     for i in subset:download(clients[i],model,complete);held[i]=version;last[i]=r
     rpt=(args.global_rounds+1)//args.tasks
-    if args.sync_local_capture and (r+1)%rpt==0:
+    if (r+1)%rpt==0:
         for i in set(range(len(clients)))-selected:clients[i].capture(task,r,datasets[i])
     data_root=Path("../dataset")/args.dataset
     validation={}
@@ -51,7 +51,7 @@ def continue_branch(server,originals,candidates,datasets,controller,subset,r,tas
         weights=aggregation_weights(args,clients,available,roster,complete)
         model=aggregate(model,[clients[i] for i in roster],weights,complete);version+=bool(roster)
         for i in roster:download(clients[i],model,complete);held[i]=version;last[i]=rr
-        if args.sync_local_capture and (rr+1)%rpt==0:
+        if (rr+1)%rpt==0:
             for i in set(ids)-set(roster):clients[i].capture(tt,rr,available[i])
         evaluate_at(rr,tt)
     final={x["task"]:x["accuracy"] for x in trace if x["round"]==end}

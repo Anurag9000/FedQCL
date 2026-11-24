@@ -53,7 +53,7 @@ class SignalExtractor:
         if kind in ("multichannel","gradient_conflict"):
             from .multichannel import extract
             return extract(self,c,data,hist,t,r,version,kind)
-        if kind in ("replay","replay_histogram","replay_queue"):
+        if kind in ("replay","replay_histogram"):
             # Current histogram and raw per-task memory counts are separate
             # studies; replay profile explicitly encodes missing memory as zero.
             vals=tuple(len(c.task_memories.get(k,[])) for k in range(c.num_tasks))
@@ -63,9 +63,6 @@ class SignalExtractor:
                 m=np.array(vals,dtype=float);m=m/m.sum() if m.sum() else m
                 vector=np.r_[h,m,float(m.sum()==0)]
                 return self._vector(c,t,r,version,kind,"task_labels_replay_tasks",vector,sum(hist.counts),"bounded_l2"),cost
-            if kind=="replay_queue":
-                vector=[*vals,*[float(v) for v in c.Q],*[float(k in c.task_memories) for k in range(c.num_tasks)]]
-                return self._vector(c,t,r,version,kind,"replay_queue_tasks",np.log1p(vector),max(1,len(data)),"bounded_l2"),cost
             report=Report(c.id,t,r,tuple(range(len(vals))),vals,kind="replay",
                           space=f"replay_tasks:{c.num_tasks}",model_version=version)
             cost["seconds"]=time.monotonic()-start

@@ -332,9 +332,12 @@ def run_research(args):
         for r in range(start,a.global_rounds+1):
             t=r//rpt
             tick=time.monotonic()
-            datasets={c.id:c.reveal(t,r) for c in clients}
+            available=tuple(c.id for c in clients if not fails(r,"unavailable",c.id))
+            if r==0 and len(available)!=a.num_clients:raise RuntimeError("bootstrap availability incomplete")
+            datasets={i:clients[i].reveal(t,r) for i in available}
             reports={}; population={}; probe_cost={}; update_starts={}
-            for c in clients:
+            for i in available:
+                c=clients[i]
                 histogram,population[c.id]=ctl.observe(c.id,t,r,datasets[c.id])
                 if histogram is not None and a.sync_windowed:
                     histogram=replace(histogram,window=f"task{t}:window{r%rpt}")
@@ -352,7 +355,7 @@ def run_research(args):
                 before_bytes=spent
                 selected,budget_record=choose_budgeted(ctl,r,reports,payload,limit)
             else:
-                selected=ctl.decide(r,reports) if not a.sync_posttrain else ()
+                selected=ctl.decide(r,reports,available) if not a.sync_posttrain else ()
             if a.sync_counterfactual and r in {0, rpt//2, rpt-1, rpt, 2*rpt-1, a.global_rounds}:
                 for u in range(t+1):
                     if u not in validation_loaders:
@@ -366,8 +369,9 @@ def run_research(args):
                 counterfactual_rows.extend(analyze(model,clients,datasets,t,r,ctl,selected,validation_loaders,
                                                    complete_state,device,a.num_classes))
             starts={i:ctl.local[i].model_version for i in selected}
-            trained=[]; outcomes=[]; uploaded=[]; accepted=[]
-            for i in (range(a.num_clients) if a.sync_posttrain else selected):
+            trained=[]; outcomes=[]; uploaded=[]; accepted=[]; fallback_ids=[]
+            training_roster=list(available if a.sync_posttrain else selected)
+            for i in training_roster:
                 c=clients[i]
                 starts[i]=ctl.local[i].model_version
                 if a.sync_refresh and ctl.local[i].model_version!=ctl.model_version:
@@ -386,7 +390,7 @@ def run_research(args):
                     reports[i],probe_cost[i]=extractor.after(c,update_starts.pop(i),t,r,starts[i])
                     if a.sync_windowed:
                         reports[i]=replace(reports[i],window=f"task{t}:window{r%rpt}")
-                if not a.sync_posttrain and i in selected:
+                if not a.sync_posttrain:
                     delivered=not fails(r,"upload",i)
                     admitted=delivered and not fails(r,"reject",i)
                     ctl.transport.send(r,"upload",i,"server","MODEL_UPLOAD",
@@ -396,8 +400,29 @@ def run_research(args):
                 outcomes.append({"client":i,"optimizer_steps":c.optimizer_steps,
                                  "samples":c.current_samples,"replay_samples":c.replay_samples,"training_class_counts":c.training_counts.copy(),
                                  "seconds":time.monotonic()-begin})
+                if a.sync_fallback and i==training_roster[-1] and len(accepted)<len(selected):
+                    # Reliable relay has delivered current reports to the server.
+                    # Recruit an untrained client maximizing DIRECT coverage of
+                    # the currently uncovered clients. All additional work is charged.
+                    from .policies import coverage,priority
+                    from .advanced import select_cached
+                    from .policies import threshold_value
+                    tau=threshold_value(a.sync_threshold)
+                    candidates=[j for j in available if j not in training_roster]
+                    if candidates:
+                        view=ctl.relay_view
+                        last={j:ctl.local[j].last_sync for j in available}
+                        def rank(j):
+                            assignment=coverage(available,tuple(accepted)+(j,),view,tau)
+                            uncovered=sum(not x["covered"] for x in assignment.values())
+                            unknown=view.get(j) is None
+                            due=r-last[j]>a.sync_max_skip
+                            return (not due,not unknown,uncovered,priority(j,last))
+                        recruit=min(candidates,key=rank)
+                        ctl.transport.send(r,"fallback","server",recruit,"FALLBACK_ADMISSION",{"failed_slots":len(selected)-len(accepted)})
+                        training_roster.append(recruit);fallback_ids.append(recruit)
             if a.sync_posttrain:
-                selected=ctl.decide(r,reports)
+                selected=ctl.decide(r,reports,available)
                 for i in selected:
                     delivered=not fails(r,"upload",i)
                     admitted=delivered and not fails(r,"reject",i)
@@ -428,7 +453,7 @@ def run_research(args):
                 raise RuntimeError("bootstrap download incomplete")
             boundary=(r+1)%rpt==0
             if boundary and a.sync_local_capture:
-                for i in set(range(a.num_clients))-set(trained):
+                for i in set(available)-set(trained):
                     clients[i].capture(t,r,datasets[i])
             for u in range(t+1):
                 if u not in loaders:
@@ -442,7 +467,7 @@ def run_research(args):
                         loaders[u]=[DataLoader(read_client_data(os.path.join(a.dataset,f"task_{u}"),i,False),
                                                batch_size=a.batch_size,shuffle=False) for i in range(a.num_clients)]
             metrics.extend(evaluate(model,loaders,t,r,ctl.model_version,device,a.num_classes))
-            rounds.append({"round":r,"task":t,"selected":list(selected),"trained":trained,
+            rounds.append({"round":r,"task":t,"available":list(available),"selected":list(selected),"trained":trained,"fallback":fallback_ids,
                            "uploaded":uploaded,"accepted":list(accepted),"downloaded":downloaded,
                            "start_versions":starts,"version":ctl.model_version,"outcomes":outcomes,
                            "no_aggregation":not accepted,"population_histograms":population,"probe_cost":probe_cost,"budget":budget_record,

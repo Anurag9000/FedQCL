@@ -15,6 +15,7 @@ def add_arguments(parser):
     p.add_argument("--sync-include-self",action="store_true")
     p.add_argument("--sync-delivery",choices=["piggyback","broadcast","telemetry"],default="piggyback")
     p.add_argument("--sync-peer-transport",choices=["direct","relay","sparse"],default="direct")
+    p.add_argument("--sync-fallback",action="store_true",help="Charged replacement after failed model upload; peer relay only")
     p.add_argument("--sync-peer-degree",type=int,default=1)
     p.add_argument("--sync-peer-loss",type=float,default=0.)
     p.add_argument("--sync-peer-solver",choices=["exact","greedy"],default="exact")
@@ -78,6 +79,8 @@ def validate(a):
         raise ValueError("invalid local workload")
     if a.sync_sketch_dim<1:
         raise ValueError("invalid sketch dimension")
+    if a.sync_fallback and (a.sync_policy!="peer" or a.sync_peer_transport!="relay" or a.sync_posttrain or a.sync_counterfactual or a.sync_byte_cap or a.sync_campaign_byte_cap):
+        raise ValueError("fallback requires reliable peer relay, pre-training, and no hard cap/counterfactual")
     if a.sync_peer_degree<1 or not 0<=a.sync_peer_loss<=1:
         raise ValueError("invalid peer topology/loss")
     if a.sync_peer_transport=="sparse" and a.sync_policy!="peer":

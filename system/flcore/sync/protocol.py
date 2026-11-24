@@ -194,6 +194,7 @@ class Controller:
                     msg = self.transport.send(r,"observe",i,"server","PEER_STAT_REPORT",
                                               asdict(reports[i]) if reports[i] else None)
                     arrived[i] = msg
+                self.relay_view={i:Report(**{**x,"labels":tuple(x["labels"]),"counts":tuple(x["counts"])}) if x else None for i,x in arrived.items()}
                 for j in ids:
                     payload = self.transport.send(r,"observe","server",j,"PEER_ROSTER",arrived)
                     views[j] = {i:Report(**{**x,"labels":tuple(x["labels"]),"counts":tuple(x["counts"])})

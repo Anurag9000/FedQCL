@@ -123,6 +123,13 @@ def build(output):
     for regime,seed in itertools.product(regimes,(42,43,44)):
         for horizon in (3,12):
             run("continuation","cached",regime,seed,flags=("--sync-counterfactual","--sync-counterfactual-horizon",str(horizon),"--sync-verify-branches"))
+    failures=ROOT/"configs/sync/robustness_failures.json"
+    for policy,regime,seed in itertools.product(("full","random","own","server","peer"),regimes,(42,43,44)):
+        flags=("--sync-failures",str(failures))
+        if policy=="peer":flags+=("--sync-peer-transport","relay")
+        run("robustness",policy,regime,seed,flags=flags)
+        if policy=="peer":
+            run("robustness",policy,regime,seed,flags=flags+("--sync-fallback",))
     output.parent.mkdir(parents=True,exist_ok=True)
     output.write_text("".join(json.dumps(job,sort_keys=True)+"\n" for job in jobs))
     counts={}

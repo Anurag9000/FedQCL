@@ -237,6 +237,9 @@ def build(output,tiny_root=None):
     for size in (80,1024,65536,45000000):
         out=ROOT/"research_results"/"network_benchmarks"/f"{size}-{commit[:12]}.json"
         add("transport_benchmark","benchmark",{"size":size},[sys.executable,"scripts/benchmark_transport.py","--size",str(size),"--output",str(out)],artifacts=[str(out)])
+    byte_dependencies=[j["id"] for j in jobs if j["kind"]=="train" and j["stage"] in ("byte_matched","threshold")]
+    byte_report=ROOT/"research_results"/("matched_bytes-"+commit[:12]+".json")
+    add("postprocess","analysis",{"scope":"achieved_byte_matching"},[sys.executable,"scripts/compare_matched_bytes.py","--ledger",str(output.resolve()),"--output",str(byte_report)],byte_dependencies,[str(byte_report)])
     # Full postprocessing is dependency-gated; standalone scripts can still
     # analyze partial completed results without claiming campaign completion.
     training=[j["id"] for j in jobs if j["kind"]=="train"]

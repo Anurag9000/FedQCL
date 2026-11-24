@@ -67,16 +67,17 @@ class Training(unittest.TestCase):
         model=ResNet18_dpp(num_tasks=2,num_classes_per_task=2)
         c=SimpleNamespace(id=0,device=torch.device("cpu"),model=model,classes_per_task=2,
                           num_tasks=2,task_memories={0:[(torch.zeros(3,8,8),torch.tensor(0))]},
-                          Q=[.2,0.],batch_size=2,current_samples=4)
+                          Q=[.2,0.],batch_size=2,current_samples=4,memory_size=4,signal_history={},memory_rounds={0:0})
         data=[(torch.randn(3,8,8),torch.tensor(i%2)) for i in range(4)]
         hist=Report(0,0,0,(0,1),(2,2))
         state={k:v.clone() for k,v in model.state_dict().items()}
         for signal in ("replay_histogram","replay_queue","feature","prototypes","feature_covariance","spectral",
-                       "parameter_norms","normalization","predictions","loss","uncertainty","entropy","jacobian","fisher","gradient","gradient_variance"):
+                       "parameter_norms","normalization","predictions","loss","uncertainty","entropy","jacobian","fisher","gradient","gradient_variance","multichannel","gradient_conflict","information","temporal","bayesian_head","representation_anchor","replay_diagnostics","fisher_full","parameter_jacobian","head_hessian","conditional_moments"):
             args=SimpleNamespace(sync_signal=signal,sync_sketch_dim=8,seed=7,device="cpu",
-                                 sync_observation_size=4,sync_min_observation=1,sync_native_space=True)
-            extractor=SignalExtractor(args,model.__class__(num_tasks=2,num_classes_per_task=2) if signal in ("feature","prototypes","feature_covariance","spectral") else None)
-            report,cost=extractor.before(c,data,hist,0,0,0)
+                                 sync_observation_size=4,sync_min_observation=1,sync_native_space=True,sync_history=5)
+            extractor=SignalExtractor(args,model.__class__(num_tasks=2,num_classes_per_task=2) if signal in ("feature","prototypes","feature_covariance","spectral","multichannel","representation_anchor","conditional_moments") else None)
+            for rr in range(5 if signal=="temporal" else 1):
+                report,cost=extractor.before(c,data,Report(0,1,rr,(0,1),(2,2)),1,rr,0)
             self.assertIsNotNone(report,signal)
             self.assertTrue(report.valid(),signal)
             self.assertTrue(all(torch.equal(v,model.state_dict()[k]) for k,v in state.items()),signal)

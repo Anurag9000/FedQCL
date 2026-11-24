@@ -10,6 +10,21 @@ from .policies import Report
 def layout(space):
     return json.loads(space.split(":",1)[1])["blocks"]
 
+def valid_layout(report):
+    try:
+        blocks=layout(report.space);offset=0;names=set()
+        if not blocks:return False
+        for name,n,w,metric in blocks:
+            if name in names or type(n) is not int or n<=0 or not math.isfinite(w) or w<=0 or metric not in ("tv","cosine","l2"):return False
+            names.add(name)
+            mask=report.counts[offset];values=report.counts[offset+1:offset+1+n]
+            if len(values)!=n or mask not in (0,1):return False
+            if not mask and any(values):return False
+            if mask and metric=="tv" and (min(values)<0 or sum(values)<=0):return False
+            offset+=n+1
+        return offset==len(report.counts)
+    except (ValueError,TypeError,KeyError,IndexError):return False
+
 def channel_distance(a,b):
     start=0;total=0.;weight=0.;shared=0
     for name,n,w,metric in layout(a.space):

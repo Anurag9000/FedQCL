@@ -51,7 +51,8 @@ def measures(a,b,rank=16):
     tri=np.triu_indices(n,1);rsa=_corr(d1[tri],d2[tri])
     # Orthogonal Procrustes score for unequal feature counts: nuclear norm
     # of cross-covariance normalized by Frobenius energy.
-    proc=float(np.linalg.svd(a.T@b,compute_uv=False).sum()/(np.linalg.norm(a)*np.linalg.norm(b)))
+    _,ra=np.linalg.qr(a.T,mode="reduced");_,rb=np.linalg.qr(b.T,mode="reduced")
+    proc=float(np.linalg.svd(ra@rb.T,compute_uv=False).sum()/(np.linalg.norm(a)*np.linalg.norm(b)))
     k=min(5,n-1)
     np.fill_diagonal(d1,np.inf);np.fill_diagonal(d2,np.inf)
     nn1=np.argsort(d1,axis=1,kind="stable")[:,:k];nn2=np.argsort(d2,axis=1,kind="stable")[:,:k]

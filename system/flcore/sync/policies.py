@@ -33,13 +33,17 @@ class Report:
                and bool(self.labels) and len(set(self.labels)) == len(self.labels)
                and math.isfinite(self.importance) and self.importance>0
                and math.isfinite(self.aggregation_weight) and self.aggregation_weight>0)
-        if not basic:
+        if not basic or not math.isfinite(self.quant_scale) or self.quant_scale<0 or self.histogram_distance not in ("tv","js","hellinger"):
             return False
         if self.metric=="tv":
             return (all(type(x) is int and x>=0 for x in self.counts)
                     and sum(self.counts)>=minimum)
-        return (self.metric in ("cosine","bounded_l2","channels") and self.sample_count>=minimum
+        valid=(self.metric in ("cosine","bounded_l2","channels") and self.sample_count>=minimum
                 and all(isinstance(x,(float,int)) and math.isfinite(x) for x in self.counts))
+        if valid and self.metric=="channels":
+            from .multichannel import valid_layout
+            return valid_layout(self)
+        return valid
 
 def distance(a, b):
     if (a is None or b is None or not a.valid() or not b.valid()

@@ -9,7 +9,7 @@ sys.path.insert(0,str(Path(__file__).resolve().parents[1]/"system"))
 from flcore.sync.impact import FEATURES,feature_map
 
 def fit(train,cal,alpha,coverage,mode="linear",ood_guard=False):
-    result={}
+    result={};joint={}
     for kind in ("current","past"):
         target=kind+"_harm"
         rows=[x for _,x in train if x[target] is not None]
@@ -22,6 +22,7 @@ def fit(train,cal,alpha,coverage,mode="linear",ood_guard=False):
             if x[target] is not None:
                 residual=x[target]-float(np.dot(coef,feature_map(x["features"],mode)))
                 by_group[group]=max(by_group.get(group,-math.inf),residual)
+                joint[group]=max(joint.get(group,-math.inf),residual)
         residuals=sorted(by_group.values())
         if not residuals:raise ValueError("missing calibration targets")
         # Finite-sample conformal bound may be infinite at requested coverage.
@@ -30,8 +31,11 @@ def fit(train,cal,alpha,coverage,mode="linear",ood_guard=False):
             raise ValueError(f"insufficient independent calibration groups for coverage {coverage}")
         result[kind]={"coef":coef.tolist(),"upper_residual":max(0.,residuals[rank-1]),
                       "calibration_groups":len(residuals),"fit_rows":len(rows)}
+    ordered=sorted(joint.values());rank=math.ceil((len(ordered)+1)*coverage)
+    if rank>len(ordered):raise ValueError("insufficient joint calibration groups")
+    for entry in result.values():entry["upper_residual"]=max(0.,ordered[rank-1])
     values=np.asarray([x["features"] for _,x in train])
-    return {"schema":2,"features":list(FEATURES),"coverage":coverage,"targets":result,"feature_map":mode,
+    return {"schema":2,"features":list(FEATURES),"coverage":coverage,"calibration_unit":"seed_group_joint_max","targets":result,"feature_map":mode,
             "fit_bounds":np.stack((values.min(0),values.max(0)),1).tolist() if ood_guard else None}
 
 def main():

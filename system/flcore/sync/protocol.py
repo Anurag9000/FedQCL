@@ -134,7 +134,9 @@ class Controller:
         server=policy in ("server","combined12","combined23","combined123")
         peer=policy in ("peer","combined13","combined23","combined123")
         ids = self.ids if available is None else tuple(sorted(available))
-        reports={i:(x if x is not None and x.client==i and x.round==r and x.valid() else None) for i in ids for x in [reports.get(i)]}
+        expected_task=r//((a.global_rounds+1)//a.tasks) if hasattr(a,"global_rounds") else None
+        reports={i:(x if x is not None and x.client==i and x.round==r and x.valid()
+                    and (expected_task is None or x.task==expected_task) else None) for i in ids for x in [reports.get(i)]}
         last = {i:self.local[i].last_sync for i in ids}
         due = due_clients(ids,last,r,a.sync_max_skip)
         threshold = threshold_value(a.sync_threshold)

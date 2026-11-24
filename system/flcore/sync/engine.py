@@ -37,6 +37,7 @@ class ResearchClient(clientAVG):
         self.replay_samples=0
         self.optimizer_steps=0
         self.current_samples=0
+        self.training_counts=[]
         super().__init__(args,**kwargs)
 
     def load_train_data(self,batch_size=None,round=0):
@@ -110,6 +111,7 @@ class ResearchClient(clientAVG):
         self.replay_samples=0
         self.optimizer_steps=len(loader)*self.epochs
         self.current_samples=self.optimizer_steps*self.batch_size
+        self.training_counts=[0]*self.classes_per_task
         if not self.research_args.sync_er:
             self.train(r)
         else:
@@ -118,6 +120,7 @@ class ResearchClient(clientAVG):
             for _ in range(self.epochs):
                 for x,y in loader:
                     x,y=x.to(self.device),y.to(self.device)%self.classes_per_task
+                    self.record_training_labels(y)
                     self.optimizer.zero_grad()
                     loss=self.loss(self.model(x,task),y)
                     for k in range(task):
@@ -131,6 +134,10 @@ class ResearchClient(clientAVG):
         # Static raw shard stays resident; windowed runs re-read raw task data
         # at next reveal rather than interpreting a previous window as the shard.
         self.task_trainloaders[task]=None if self.research_args.sync_windowed else loader
+
+    def record_training_labels(self,y):
+        counts=torch.bincount(y.detach().cpu(),minlength=self.classes_per_task).tolist()
+        self.training_counts=[a+b for a,b in zip(self.training_counts,counts)]
 
     def capture(self,task,r,dataset):
         seed_all(seed_for(self.research_seed,"capture",self.id,r))
@@ -236,7 +243,7 @@ def run_research(args):
     a=args
     out=Path(a.sync_output).resolve()
     out.mkdir(parents=True,exist_ok=True)
-    config={k:v for k,v in vars(a).items() if k not in ("sync_resume",)}
+    config={k:v for k,v in vars(a).items() if k not in ("sync_resume","sync_stop_after_round")}
     dataset_root=Path(a.dataset).resolve() if Path(a.dataset).is_absolute() else (Path('../dataset')/a.dataset).resolve()
     manifest_path=dataset_root/'manifest.json'
     manifest=json.loads(manifest_path.read_text()) if manifest_path.exists() else None
@@ -265,7 +272,7 @@ def run_research(args):
     device=torch.device(a.device)
     model=copy.deepcopy(a.model).to(device)
     from .signals import SignalExtractor
-    extractor=SignalExtractor(a,copy.deepcopy(a.model) if a.sync_signal=="feature" else None)
+    extractor=SignalExtractor(a,copy.deepcopy(a.model) if a.sync_signal in ("feature","prototypes","feature_covariance") else None)
     clients=[]
     for i in range(a.num_clients):
         task0=os.path.join(a.dataset,"task_0")
@@ -367,7 +374,7 @@ def run_research(args):
                     if delivered: uploaded.append(i)
                     if admitted: accepted.append(i)
                 outcomes.append({"client":i,"optimizer_steps":c.optimizer_steps,
-                                 "samples":c.current_samples,"replay_samples":c.replay_samples,
+                                 "samples":c.current_samples,"replay_samples":c.replay_samples,"training_class_counts":c.training_counts.copy(),
                                  "seconds":time.monotonic()-begin})
             if a.sync_posttrain:
                 selected=ctl.decide(r,reports)
@@ -431,6 +438,9 @@ def run_research(args):
                 write_jsonl(out/'counterfactuals.jsonl',counterfactual_rows)
             if a.sync_checkpoint:
                 save_checkpoint(ckpt,r,model,clients,ctl,metrics,rounds,signature,counterfactual_rows)
+            if a.sync_stop_after_round is not None and r==a.sync_stop_after_round and r<a.global_rounds:
+                atomic_json(out/"status.json",{"status":"paused","last_committed_round":r})
+                return None
         final=[x for x in metrics if x["round"]==a.global_rounds]
         forgetting=[max(x["accuracy"] for x in metrics if x["task"]==t)-
                     next(x["accuracy"] for x in final if x["task"]==t) for t in range(a.tasks-1)]
@@ -443,7 +453,7 @@ def run_research(args):
                  "total_bytes":sum(by_kind.values()),"bytes_by_kind":by_kind,
                  "delivered_bytes":sum(x["delivered_bytes"] for x in ctl.transport.events),
                  "complete_syncs":sum(len(x["complete"]) for x in ctl.decisions),
-                 "rounds":len(rounds),"accounting":"logical tensor payload plus canonical JSON envelope; common clock/availability free"}
+                 "rounds":len(rounds),"accounting":f"logical tensor payload plus {a.sync_wire_format} envelope; common clock/availability free"}
         atomic_json(out/"final_summary.json",summary)
         torch.save(model.state_dict(),out/"server.pt")
         atomic_json(out/"status.json",{"status":"completed"})

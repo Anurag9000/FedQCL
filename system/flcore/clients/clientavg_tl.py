@@ -92,8 +92,9 @@ class clientAVG(Client):
             cleanup()
             sys.exit(0)
 
-        signal.signal(signal.SIGINT, handle_signal)
-        signal.signal(signal.SIGTERM, handle_signal)
+        if not getattr(self,"research_mode",False):
+            signal.signal(signal.SIGINT, handle_signal)
+            signal.signal(signal.SIGTERM, handle_signal)
         # path to client state file
         # --------------------------
         self._seed = 42 + int(self.id)
@@ -326,6 +327,7 @@ class clientAVG(Client):
                 old_model.eval()
                 print(f"[Client {self.id}] old_model prepared from theta_prev for task {task_id}")
             except Exception as e:
+                if getattr(self,"research_mode",False): raise
                 print(f"[Client {self.id}] Warning: couldn't prepare old_model: {e}")
                 old_model = None
 
@@ -353,6 +355,8 @@ class clientAVG(Client):
 
                 # Current task loss
                 y %= self.classes_per_task
+                if getattr(self,"research_mode",False):
+                    self.record_training_labels(y)
                 features =  x
                 features = self.encoder(x)[0] if self.encoder else x
                 outputs = self.model(features, task_id=task_id)
@@ -380,6 +384,7 @@ class clientAVG(Client):
                                 continue
 
                         except Exception as e:
+                            if getattr(self,"research_mode",False): raise
                             #print(f"[Client {self.id}] Warning: couldn't fetch batch from mem_loader for task {k}: {e}")
                             continue
 
@@ -424,7 +429,7 @@ class clientAVG(Client):
         # ---------------------------
         # If it's the last round of this task, save memory and update Q-values
         #self.model2 = copy.deepcopy(self.model)
-        if (round > 0) and (((round + 1) % self.round_per_task) == 0):
+        if (round > 0 or getattr(self,"research_mode",False)) and (((round + 1) % self.round_per_task) == 0):
             print(f"[Client {self.id}] Detected end of task {task_id} at round {round}; saving memory ")
             #Save current task memory (from trainloader)
             #fresh_loader = self.load_train_data(round=math.floor(round/self.round_per_task ))

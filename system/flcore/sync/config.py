@@ -23,6 +23,7 @@ def add_arguments(parser):
     p.add_argument("--sync-balanced-sampler",action="store_true")
     p.add_argument("--sync-aggregation",choices=["legacy","complete"],default="legacy")
     p.add_argument("--sync-resume",action="store_true")
+    p.add_argument("--sync-stop-after-round",type=int,help="Pause at committed round for restart verification")
     p.add_argument("--sync-checkpoint",action="store_true")
     p.add_argument("--sync-counterfactual",action="store_true")
     p.add_argument("--sync-er",action="store_true")
@@ -86,5 +87,7 @@ def validate(a):
         raise ValueError("post-training admission cannot be combined with refresh or pre-training counterfactual")
     if a.sync_windowed and a.few_shot:
         raise ValueError("windowed few-shot indexing is unsupported")
+    if a.sync_stop_after_round is not None and (not a.sync_checkpoint or not 0<=a.sync_stop_after_round<=a.global_rounds):
+        raise ValueError("pause requires valid round and checkpoints")
     if a.sync_resume and not a.sync_checkpoint:
         raise ValueError("resume requires checkpoints")

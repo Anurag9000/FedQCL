@@ -34,13 +34,7 @@ from torchvision.models import resnet18, resnet50
 # ------------------------------
 # 3️⃣ Custom imports
 # ------------------------------
-from flcore.servers.serveravg import FedAvg
-from flcore.trainmodel.models import *
-from flcore.trainmodel.whisper import *
-from flcore.trainmodel.resnet import *
-from flcore.trainmodel.alexnet import *
-from utils.result_utils import average_data
-from utils.mem_utils import MemReporter
+from flcore.trainmodel.resnet import ResNet18_dpp
 
 # ------------------------------
 # 4️⃣ Logger & warnings
@@ -90,6 +84,9 @@ def run(args):
         from flcore.sync.engine import run_research
         return run_research(args)
 
+    from flcore.servers.serveravg import FedAvg
+    from utils.result_utils import average_data
+    from utils.mem_utils import MemReporter
     time_list = []
     reporter = MemReporter()
     model_str = args.model

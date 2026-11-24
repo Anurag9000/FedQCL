@@ -10,7 +10,7 @@ import itertools
 import subprocess
 ROOT=Path(__file__).resolve().parents[1]
 
-def build(output):
+def build(output,tiny_root=None):
     jobs=[]; seen=set()
     commit=subprocess.check_output(["git","rev-parse","HEAD"],cwd=ROOT,text=True).strip()
     generator_digest=hashlib.sha256((ROOT/"scripts/generate_streams.py").read_bytes()).hexdigest()[:12]
@@ -23,6 +23,17 @@ def build(output):
                      "dependencies":list(deps),"artifacts":list(artifacts)})
         return key
     data={}
+    dimensions={}
+    def register(tag,regime,seed,n=5,dataset="cifar100",gen_flags=(),stage="data_extended"):
+        tasks,classes=(10,20) if dataset=="tinyimagenet" else (5,2) if dataset=="cifar10" else (5,20)
+        folder=ROOT/"research_data"/f"{tag}-{seed}-n{n}-{generator_digest}"
+        cfg={"regime":regime,"tag":tag,"partition_seed":seed,"clients":n,"dataset":dataset,"generation_flags":list(gen_flags)}
+        command=[sys.executable,"scripts/generate_streams.py","--regime",regime,"--dataset",dataset,"--seed",str(seed),"--clients",str(n),"--output",str(folder),*gen_flags]
+        if dataset!="tinyimagenet":command.append("--download")
+        d=add(stage,"generate",cfg,command,artifacts=[str(folder/"manifest.json")])
+        receipt=folder/"validation_receipt.json"
+        v=add(stage,"validate",cfg,[sys.executable,"scripts/validate_streams.py",str(folder),"--receipt",str(receipt)],deps=[d],artifacts=[str(receipt)])
+        data[tag,seed,n]=(folder,v);dimensions[tag,seed,n]=(dataset,tasks,classes)
     for n in (5,10,20,50):
         regimes_for_n=("near","separated","changing","clustered","dirichlet","conditional","drift") if n==5 else ("near","clustered","separated")
         for regime,seed in itertools.product(regimes_for_n,(42,43,44)):
@@ -32,18 +43,22 @@ def build(output):
             d=add(stage,"generate",config,[sys.executable,"scripts/generate_streams.py","--regime",regime,
                  "--seed",str(seed),"--clients",str(n),"--output",str(folder),"--download"],
                  artifacts=[str(folder/"manifest.json")])
-            v=add(stage,"validate",config,[sys.executable,"scripts/validate_streams.py",str(folder)],deps=[d])
+            receipt=folder/"validation_receipt.json"
+            v=add(stage,"validate",config,[sys.executable,"scripts/validate_streams.py",str(folder),"--receipt",str(receipt)],deps=[d],artifacts=[str(receipt)])
             data[regime,seed,n]=(folder,v)
-    def run(stage,policy,regime,seed,k=3,flags=(),n=5,extra_deps=()):
+    def run(stage,policy,regime,seed,k=3,flags=(),n=5,extra_deps=(),eval_split=None,training_seed=None):
         folder,dep=data[regime,seed,n]
-        split="test" if seed in (45,46,47) else "validation"
-        cfg={"policy":policy,"regime":regime,"partition_seed":seed,"training_seed":seed,"evaluation_split":split,
+        split=eval_split or ("test" if seed in (45,46,47) else "validation")
+        training_seed=seed if training_seed is None else training_seed
+        dataset,tasks,classes=dimensions.get((regime,seed,n),("cifar100",5,20))
+        total_rounds=tasks*10
+        cfg={"policy":policy,"regime":regime,"partition_seed":seed,"training_seed":training_seed,"evaluation_split":split,"dataset":dataset,"tasks":tasks,"rounds":total_rounds,
              "k":n if policy=="full" else k,"flags":list(flags),"clients":n}
         key=hashlib.sha256(json.dumps([cfg,commit],sort_keys=True).encode()).hexdigest()[:16]
         out=ROOT/"research_results"/key
         command=[sys.executable,"main.py","-data",str(folder),"-m","resnet18","-algo","FedAvg",
-                 "-tasks","5","-nb","20","-nc",str(n),"-gr","49","-lbs","13","-lr","0.005","-ls","5",
-                 "-V","200","-delta","1","-memory_size","500","-memory_batch_size","13","-seed",str(seed),
+                 "-tasks",str(tasks),"-nb",str(classes),"-nc",str(n),"-gr",str(total_rounds-1),"-lbs","13","-lr","0.005","-ls","5",
+                 "-V",str(20 if dataset=="cifar10" else 220 if dataset=="tinyimagenet" else 200),"-delta","1","-memory_size","500","-memory_batch_size","13","-seed",str(training_seed),
                  "--sync-policy",policy,"--sync-k",str(cfg["k"]),"--sync-output",str(out),"--sync-checkpoint","--sync-eval-split",split,*flags]
         return add(stage,"train",cfg,command,[dep,*extra_deps],[str(out/"final_summary.json"),str(out/"status.json"),
             str(out/"communication_events.jsonl"),str(out/"server_metrics.jsonl"),str(out/"server.pt"),str(out/"provenance.json"),str(out/"rounds.jsonl")]+([str(out/"counterfactuals.jsonl")] if "--sync-counterfactual" in flags else []))
@@ -91,7 +106,8 @@ def build(output):
         folder=ROOT/"research_data"/f"{regime}-{seed}-n5-{generator_digest}"
         cfg={"regime":regime,"partition_seed":seed,"clients":5}
         d=add("adaptive", "generate",cfg,[sys.executable,"scripts/generate_streams.py","--regime",regime,"--seed",str(seed),"--clients","5","--output",str(folder),"--download"],artifacts=[str(folder/"manifest.json")])
-        v=add("adaptive","validate",cfg,[sys.executable,"scripts/validate_streams.py",str(folder)],deps=[d]);data[regime,seed,5]=(folder,v)
+        receipt=folder/"validation_receipt.json"
+        v=add("adaptive","validate",cfg,[sys.executable,"scripts/validate_streams.py",str(folder),"--receipt",str(receipt)],deps=[d],artifacts=[str(receipt)]);data[regime,seed,5]=(folder,v)
         for policy in ("full","random","oldest","cached","peer"):
             run("adaptive",policy,regime,seed)
         for extra in ((),("--sync-soft-budget",)):
@@ -130,6 +146,94 @@ def build(output):
         run("robustness",policy,regime,seed,flags=flags)
         if policy=="peer":
             run("robustness",policy,regime,seed,flags=flags+("--sync-fallback",))
+    # Focused implementation-extension matrices; no automatic training invocation.
+    new_signals=("multichannel","gradient_conflict","information","temporal","bayesian_head",
+                 "representation_anchor","replay_diagnostics","fisher_full","parameter_jacobian","head_hessian","conditional_moments")
+    for policy,regime,seed,signal in itertools.product(("own","server","peer"),regimes,(42,43,44),new_signals):
+        run("math_signals",policy,regime,seed,flags=("--sync-signal",signal,"--sync-native-space"))
+    for regime,seed in itertools.product(regimes,(42,43,44)):
+        for policy in ("cached","peer"):
+            for weight in ("samples","replay","aggregation"):
+                run("weighted",policy,regime,seed,flags=("--sync-coverage-weight",weight))
+            run("weighted",policy,regime,seed,flags=("--sync-signal","multichannel","--sync-native-space","--sync-coverage-weight","replay"))
+        run("weighted","update_match",regime,seed,flags=("--sync-signal","update","--sync-native-space","--sync-update-weighted"))
+        run("weighted","cached",regime,seed,flags=("--sync-staleness-predict",))
+        for policy in ("combined13","combined23","combined123"):
+            run("weighted",policy,regime,seed,flags=("--sync-joint-hybrid",))
+        for policy in ("own","server","combined12"):
+            run("dynamic_threshold",policy,regime,seed,flags=("--sync-mode","threshold","--sync-dynamic-threshold"))
+        for policy,tau in itertools.product(("combined12","combined13","combined23","combined123"),(.05,.1,.2,.35)):
+            run("combined_threshold",policy,regime,seed,flags=("--sync-mode","threshold","--sync-threshold",str(tau)))
+        for policy in ("full","random","own","server","peer"):
+            for variant in (("--sync-queue-mode","sample_mean"),("--sync-reference-recovery",),("--sync-v-normalized-lr",),
+                            ("--sync-weighting","equal"),("--sync-weighting","current"),("--sync-weighting","processed")):
+                run("correctness",policy,regime,seed,flags=variant)
+        for policy in ("random","own","server","peer","cached"):
+            for cap in (190000000,280000000,370000000):
+                run("hard_bytes",policy,regime,seed,k=5,flags=("--sync-byte-cap",str(cap),"--sync-bootstrap-byte-cap","500000000"))
+            run("hard_bytes",policy,regime,seed,k=3,flags=("--sync-campaign-byte-cap","14000000000","--sync-budget-reserve"))
+        for policy in ("own","server","peer"):
+            for fmt in ("json","fp16","int8"):
+                run("encoding",policy,regime,seed,flags=("--sync-signal","feature","--sync-wire-format",fmt))
+            for epsilon in (.5,2.):
+                run("privacy",policy,regime,seed,flags=("--sync-histogram-rr-epsilon",str(epsilon)))
+            run("encoding",policy,regime,seed,flags=("--sync-charge-control",))
+        for fault in ("none","delay","duplicate","reorder","corrupt"):
+            run("distributed", "peer",regime,seed,flags=("--sync-peer-transport","distributed_sparse","--sync-dynamic-topology","--sync-peer-loss",".1","--sync-gossip-fault",fault))
+        for length in (2,4):
+            run("comparators","block_random",regime,seed,flags=("--sync-block-length",str(length)))
+        run("comparators","mass_stratified",regime,seed)
+        run("comparators","divfl_sketch",regime,seed,flags=("--sync-signal","gradient","--sync-native-space"))
+        for policy in ("oldest","random"):
+            run("continuation_extended","cached",regime,seed,flags=("--sync-counterfactual","--sync-counterfactual-horizon","12","--sync-continuation-policy",policy,"--sync-oracle-past-weight","1"))
+    # Controlled unequal workloads, asynchronous/recurring drift and conditional domains.
+    for seed in (42,43,44):
+        for tag,regime,gflags in (("unequal","separated",("--workload-skew","1.5")),
+                 ("abrupt","drift",("--drift-pattern","abrupt")),("recurring","drift",("--drift-pattern","recurring")),
+                 ("asynchronous","drift",("--drift-pattern","asynchronous")),
+                 ("color","conditional",("--conditional-domain","color")),("contrast","conditional",("--conditional-domain","contrast"))):
+            register(tag,regime,seed,gen_flags=gflags)
+            for policy in policies:
+                run("data_extended",policy,tag,seed,flags=("--sync-windowed",) if regime=="drift" else ())
+        register("cifar10_near","near",seed,dataset="cifar10",stage="dataset_transfer")
+        for policy in policies:run("dataset_transfer",policy,"cifar10_near",seed)
+        if tiny_root is not None:
+            register("tiny_near","near",seed,dataset="tinyimagenet",gen_flags=("--tiny-root",str(tiny_root)),stage="dataset_transfer")
+            for policy in policies:run("dataset_transfer",policy,"tiny_near",seed)
+    # Independent partition seeds and a common seed-level calibration unit.
+    # Twenty calibration groups support a finite 95% marginal bound under exchangeability.
+    fit_seeds=tuple(range(60,65));cal_seeds=tuple(range(65,85));test_seeds=tuple(range(85,90))
+    strict_jobs=[]
+    for seed in fit_seeds+cal_seeds:
+        for regime in regimes:
+            register("strict_"+regime,regime,seed,stage="impact_data_strict")
+            strict_jobs.append(run("impact_data_strict","cached","strict_"+regime,seed,flags=("--sync-signal","multichannel","--sync-native-space","--sync-counterfactual","--sync-all-subsets")))
+    strict_model=ROOT/"research_results"/("impact_strict-"+commit[:12]+".json")
+    strict_fit=add("impact_fit_strict","fit",{"fit_seeds":list(fit_seeds),"cal_seeds":list(cal_seeds),"coverage":.95},
+        [sys.executable,"scripts/fit_impact.py","--ledger",str(output.resolve()),"--output",str(strict_model),
+         "--data-stage","impact_data_strict","--fit-seeds",*map(str,fit_seeds),"--cal-seeds",*map(str,cal_seeds),
+         "--coverage",".95","--feature-map","quadratic","--ood-guard"],strict_jobs,[str(strict_model)])
+    for seed,regime in itertools.product(test_seeds,regimes):
+        tag="strict_"+regime
+        register(tag,regime,seed,stage="confirmatory")
+        for policy in ("full","random","oldest","cached","peer","own","server"):
+            run("confirmatory",policy,tag,seed,eval_split="test")
+        for extra in ((),("--sync-soft-budget",),("--sync-byte-cap","280000000","--sync-bootstrap-byte-cap","500000000")):
+            run("confirmatory","adaptive",tag,seed,flags=("--sync-signal","multichannel","--sync-native-space","--sync-impact-model",str(strict_model),*extra),extra_deps=[strict_fit],eval_split="test")
+        # Dedicated independent training seeds, not coupled to the partition seed.
+        run("confirmatory","cached",tag,seed,eval_split="test",training_seed=seed+1000)
+    # Byte-capped source-matched comparator: do not claim exact equality unless
+    # actual serialized costs subsequently meet the declared tolerance.
+    sources=[j for j in jobs if j["kind"]=="train" and j["stage"]=="threshold"]
+    for job in sources:
+        cfg=job["config"];out=Path(job["artifacts"][0]).parent
+        schedule=ROOT/"research_results"/"byte_schedules"/(job["id"]+".json")
+        dep=add("byte_matched","schedule",{"source":job["id"],"unit":"bytes"},[sys.executable,"scripts/extract_byte_schedule.py",str(out/"communication_events.jsonl"),"--output",str(schedule)],[job["id"]],[str(schedule)])
+        run("byte_matched","random",cfg["regime"],cfg["partition_seed"],k=5,flags=("--sync-byte-schedule",str(schedule)),extra_deps=[dep])
+    # Actual TCP loopback payload benchmark, no neural training.
+    for size in (80,1024,65536,45000000):
+        out=ROOT/"research_results"/"network_benchmarks"/f"{size}-{commit[:12]}.json"
+        add("transport_benchmark","benchmark",{"size":size},[sys.executable,"scripts/benchmark_transport.py","--size",str(size),"--output",str(out)],artifacts=[str(out)])
     # Verify unique IDs and topological dependency order before writing.
     ordered=set()
     for job in jobs:
@@ -146,4 +250,5 @@ def build(output):
 
 if __name__=="__main__":
     p=argparse.ArgumentParser();p.add_argument("--output",type=Path,default=ROOT/"experiments"/"job_ledger.jsonl")
-    build(p.parse_args().output)
+    p.add_argument("--tiny-root",type=Path,help="Opt in to extracted TinyImageNet transfer runs")
+    a=p.parse_args();build(a.output,a.tiny_root.resolve() if a.tiny_root else None)

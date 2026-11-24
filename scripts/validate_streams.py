@@ -37,5 +37,8 @@ def validate(root):
     if manifest.get("schema",1)>=2:require(set(manifest["shards"])==expected,"unexpected manifest shard list")
     return {"manifest_id":manifest["manifest_id"],"train_and_validation":len(train_seen),"test":len(test_seen),"valid":True}
 if __name__=="__main__":
-    p=argparse.ArgumentParser();p.add_argument("root",type=Path);a=p.parse_args()
-    print(json.dumps(validate(a.root),indent=2))
+    p=argparse.ArgumentParser();p.add_argument("root",type=Path);p.add_argument("--receipt",type=Path);a=p.parse_args()
+    result=validate(a.root)
+    if a.receipt:
+        tmp=a.receipt.with_suffix(".tmp");tmp.write_text(json.dumps(result,indent=2));tmp.replace(a.receipt)
+    print(json.dumps(result,indent=2))

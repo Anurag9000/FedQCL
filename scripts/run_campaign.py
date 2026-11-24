@@ -15,7 +15,7 @@ def valid(job):
             events=[json.loads(l) for l in (out/"communication_events.jsonl").read_text().splitlines()]
             metrics=[json.loads(l) for l in (out/"server_metrics.jsonl").read_text().splitlines()]
             provenance=json.loads((out/"provenance.json").read_text())
-            return (provenance["commit"]==job["source_commit"] and status["status"]=="completed" and summary["rounds"]==50 and len(metrics)==150
+            return (provenance["commit"]==job["source_commit"] and status["status"]=="completed" and summary["rounds"]==job["config"].get("rounds",50) and len(metrics)==(job["config"].get("rounds",50)//job["config"].get("tasks",5))*job["config"].get("tasks",5)*(job["config"].get("tasks",5)+1)//2
                     and sum(x["serialized_bytes"] for x in events)==summary["total_bytes"]
                     and (out/"rounds.jsonl").is_file())
         except (OSError,ValueError,KeyError):

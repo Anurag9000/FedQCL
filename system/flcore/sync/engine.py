@@ -274,6 +274,9 @@ def run_research(args):
     dataset_root=Path(a.dataset).resolve() if Path(a.dataset).is_absolute() else (Path('../dataset')/a.dataset).resolve()
     manifest_path=dataset_root/'manifest.json'
     manifest=json.loads(manifest_path.read_text()) if manifest_path.exists() else None
+    if manifest and manifest.get("schema",1)>=2:
+        fingerprint=hashlib.sha256(json.dumps({k:v for k,v in manifest.items() if k!="manifest_id"},sort_keys=True).encode()).hexdigest()
+        if fingerprint!=manifest["manifest_id"]:raise ValueError("dataset manifest fingerprint mismatch")
     if manifest and (manifest['clients']!=a.num_clients or manifest['tasks']!=a.tasks or manifest.get('classes_per_task',a.num_classes)!=a.num_classes or (a.sync_windowed and manifest['windows']!=(a.global_rounds+1)//a.tasks)):
         raise ValueError('dataset manifest does not match workload')
     if a.sync_windowed and not manifest:
@@ -366,6 +369,9 @@ def run_research(args):
                 if histogram is not None and a.sync_windowed:
                     histogram=replace(histogram,window=f"task{t}:window{r%rpt}")
                 reports[c.id],probe_cost[c.id]=extractor.before(c,datasets[c.id],histogram,t,r,ctl.local[c.id].model_version)
+                if a.sync_policy=="mass_stratified":
+                    from .policies import Report
+                    reports[c.id]=Report(c.id,t,r,(0,),(1,),kind="mass",space="public_sample_mass",aggregation_weight=float(len(datasets[c.id])))
                 if reports[c.id] is not None:
                     mode=a.sync_coverage_weight
                     importance=(len(datasets[c.id]) if mode=="samples" else

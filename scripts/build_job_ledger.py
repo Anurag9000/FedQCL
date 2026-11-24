@@ -39,7 +39,7 @@ def build(output):
         command=[sys.executable,"main.py","-data",str(folder),"-m","resnet18","-algo","FedAvg",
                  "-tasks","5","-nb","20","-nc",str(n),"-gr","49","-lbs","13","-lr","0.005","-ls","5",
                  "-V","200","-delta","1","-memory_size","500","-memory_batch_size","13","-seed",str(seed),
-                 "--sync-policy",policy,"--sync-k",str(cfg["k"]),"--sync-output",str(out),*flags]
+                 "--sync-policy",policy,"--sync-k",str(cfg["k"]),"--sync-output",str(out),"--sync-checkpoint",*flags]
         return add(stage,"train",cfg,command,[dep],[str(out/"final_summary.json"),str(out/"status.json"),
             str(out/"communication_events.jsonl"),str(out/"server_metrics.jsonl"),str(out/"server.pt")]+([str(out/"counterfactuals.jsonl")] if "--sync-counterfactual" in flags else []))
     policies=("full","random","oldest","own","server","peer")

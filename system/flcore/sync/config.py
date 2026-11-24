@@ -59,6 +59,8 @@ def validate(a):
         raise ValueError("invalid byte cap")
     if (a.sync_byte_cap or a.sync_campaign_byte_cap) and (a.sync_posttrain or a.sync_failures):
         raise ValueError("hard caps currently require reliable pre-training delivery")
+    if a.memory_size<0 or a.batch_size<1 or a.memory_batch_size<1 or a.local_epochs<1:
+        raise ValueError("invalid local workload")
     if a.sync_sketch_dim<1:
         raise ValueError("invalid sketch dimension")
     if a.sync_signal=="update" and not a.sync_posttrain:

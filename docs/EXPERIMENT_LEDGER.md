@@ -22,7 +22,7 @@ The final command executes the documented 54 pilot training runs and their gener
 dependencies. With no arguments run_all_sync.sh defaults to pilot, not the entire campaign.
 To execute all currently enumerated jobs explicitly:
 
-    bash run_all_sync.sh --resume
+    bash run_all_sync.sh --all
     python scripts/aggregate_results.py
 
 ## Enumerated matrix
@@ -39,7 +39,7 @@ To execute all currently enumerated jobs explicitly:
 | signals: replay counts, feature moments, gradient and update sketches | 108 |
 | Total nominal training jobs | 1089 |
 
-21 dataset-generation and 21 validation jobs are additional. The builder is authoritative:
+21 dataset-generation and 21 validation jobs are additional (1,131 jobs total). The builder is authoritative:
 it deduplicates exact configuration keys. It writes every command, its dependencies, expected
 artifacts and deterministic job ID to experiments/job_ledger.jsonl. Paths are resolved for
 the current checkout; do not copy a generated ledger between machines.
@@ -84,8 +84,8 @@ runs are marked, not presented as equal-budget comparisons.
 
 Research outputs include configuration, provenance, round/decision records, logical
 communication events, report arrivals, frozen-server metrics, final summary and server
-checkpoint. Optional --sync-checkpoint saves a complete round checkpoint, and --sync-resume
-restores it. Logical tensor bytes plus canonical JSON message envelopes are counted;
+checkpoint. The campaign ledger enables --sync-checkpoint for round-end recovery; --sync-resume
+restores the most recent committed checkpoint. Logical tensor bytes plus canonical JSON message envelopes are counted;
 the common clock and availability are declared free control. These are not physical
 network bytes and the current histogram encoding is JSON rather than the proposed uint32 wire format.
 
@@ -104,3 +104,13 @@ necessary before drawing causal conclusions. The pilot is not a publication-leve
 confirmation. Confirmatory tolerances and sample sizes must be frozen using development data.
 
 No GPU experiment results are included in these commits.
+
+## Verification performed
+
+The pure Python policy and transport sources and test file were copied to an isolated
+CPU environment, verified against GitHub blob SHA values, and all 11 tests passed.
+The ledger generator was likewise hash-verified and executed: 1,131 unique job IDs,
+including 1,089 training configurations, with all dependencies topologically ordered.
+This is not an end-to-end test of the neural training, dataset download, checkpoint
+restoration, or full campaign. GitHub Actions had no reported workflow run at the time
+of this check.

@@ -2,6 +2,7 @@
 Sequential local workers deliberately avoid the legacy shared-RNG thread race.
 """
 import copy
+from dataclasses import replace
 import hashlib
 import json
 import os
@@ -308,7 +309,11 @@ def run_research(args):
             reports={}; population={}; probe_cost={}; update_starts={}
             for c in clients:
                 histogram,population[c.id]=ctl.observe(c.id,t,r,datasets[c.id])
+                if histogram is not None and a.sync_windowed:
+                    histogram=replace(histogram,window=f"task{t}:window{r%rpt}")
                 reports[c.id],probe_cost[c.id]=extractor.before(c,datasets[c.id],histogram,t,r,ctl.local[c.id].model_version)
+                if reports[c.id] is not None and a.sync_windowed:
+                    reports[c.id]=replace(reports[c.id],window=f"task{t}:window{r%rpt}")
             budget_record=None
             if a.sync_byte_cap or a.sync_campaign_byte_cap:
                 from .budgets import choose_budgeted
@@ -352,6 +357,8 @@ def run_research(args):
                 trained.append(i)
                 if a.sync_signal=="update":
                     reports[i],probe_cost[i]=extractor.after(c,update_starts.pop(i),t,r,starts[i])
+                    if a.sync_windowed:
+                        reports[i]=replace(reports[i],window=f"task{t}:window{r%rpt}")
                 if not a.sync_posttrain and i in selected:
                     delivered=not fails(r,"upload",i)
                     admitted=delivered and not fails(r,"reject",i)
@@ -406,6 +413,9 @@ def run_research(args):
                            "uploaded":uploaded,"accepted":list(accepted),"downloaded":downloaded,
                            "start_versions":starts,"version":ctl.model_version,"outcomes":outcomes,
                            "no_aggregation":not accepted,"population_histograms":population,"probe_cost":probe_cost,"budget":budget_record,
+                           "sampled_reports":{i:None if report is None else {"id":report.id,"values":report.counts,"space":report.space,"window":report.window} for i,report in reports.items()},
+                           "last_complete_sync":{i:s.last_sync for i,s in ctl.local.items()},
+                           "local_revisions":{i:s.local_revision for i,s in ctl.local.items()},
                            "memory_missed":[i for i in range(a.num_clients) if boundary and t not in clients[i].task_memories],
                            "reference_missed":[i for i in range(a.num_clients) if r>0 and r%rpt==0 and i not in trained],
                            "queues":{c.id:c.Q.copy() for c in clients},
@@ -439,5 +449,8 @@ def run_research(args):
         atomic_json(out/"status.json",{"status":"completed"})
         return summary
     except BaseException as error:
+        write_jsonl(out/"communication_events.jsonl",ctl.transport.events)
+        write_jsonl(out/"decisions.jsonl",ctl.decisions)
+        write_jsonl(out/"report_arrivals.jsonl",ctl.arrivals)
         atomic_json(out/"status.json",{"status":"failed","error":repr(error)})
         raise

@@ -147,3 +147,28 @@ builds on [PFLlib](https://github.com/TsingZ0/PFLlib) (GPL-2.0).
   year      = {2026}
 }
 ```
+
+## Selective synchronization research
+
+The original launchers still use the legacy simulator. The research path adds
+own-history, server-history and peer-representative policies, controlled CIFAR-100
+streams, communication accounting, global-model evaluation, and a staged campaign.
+
+Start with [the experiment ledger and runbook](docs/EXPERIMENT_LEDGER.md)
+and [the implementation traceability/status matrix](docs/IMPLEMENTATION_TRACEABILITY.md).
+
+From the repository root:
+
+```bash
+python -m unittest discover -s tests -v
+python scripts/build_job_ledger.py
+bash run_all_sync.sh --dry-run
+bash run_all_sync.sh --stage pilot --resume
+# Explicitly execute every currently enumerated job (very expensive):
+bash run_all_sync.sh --all
+python scripts/aggregate_results.py
+python scripts/match_budgets.py
+```
+
+The campaign is not empirically validated yet. Run a small end-to-end smoke
+test on the target environment before launching all training jobs.

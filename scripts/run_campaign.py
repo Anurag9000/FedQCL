@@ -29,7 +29,30 @@ def valid(job):
         rounds=[json.loads(l) for l in (out/"rounds.jsonl").read_text().splitlines()]
         provenance=json.loads((out/"provenance.json").read_text())
         n=job["config"].get("rounds",50);tasks=job["config"].get("tasks",5)
-        expected={(r,t) for r in range(n) for t in range(r//(n//tasks)+1)}
+        if job["config"].get("campaign")=="task_il_48":
+            from hashlib import sha256
+            schedule=json.loads(Path(job["config"]["schedule"]).read_text())
+            fingerprint=sha256(json.dumps(schedule,sort_keys=True,separators=(",",":")).encode()).hexdigest()
+            if fingerprint!=job["config"]["schedule_sha256"] or json.loads((out/"schedule.json").read_text())!=schedule:
+                return False
+            expected={tuple(x) for x in schedule["expected"]}
+            if summary["evaluation_split"]!=job["config"]["evaluation_split"] or summary["terminal_flush"]:
+                return False
+            if len(rounds)!=n or any(x["round"]!=i or x["selected"]!=schedule["selected"][i] or
+                       x["trained"]!=sorted(map(int,schedule["active"][i])) for i,x in enumerate(rounds)):
+                return False
+            expected_uploads={(i,c) for i,ids in enumerate(schedule["selected"]) for c in ids}
+            uploads=[(e["round"],e["sender"]) for e in events if e["kind"]=="MODEL_UPLOAD"]
+            downloads=[(e["round"],e["receiver"]) for e in events if e["kind"]=="MODEL_DOWNLOAD"]
+            initial=[e["receiver"] for e in events if e["kind"]=="MODEL_INITIAL" and e["round"]==-1]
+            if set(uploads)!=expected_uploads or len(uploads)!=len(expected_uploads) or set(downloads)!=expected_uploads or len(downloads)!=len(expected_uploads) or sorted(initial)!=list(range(job["config"]["clients"])):
+                return False
+            if any(e["kind"] not in ("MODEL_UPLOAD","MODEL_DOWNLOAD","MODEL_INITIAL","SYNC_REQUEST") for e in events):
+                return False
+            if any(x.get("evaluation_split")!=summary["evaluation_split"] for x in metrics):
+                return False
+        else:
+            expected={(r,t) for r in range(n) for t in range(r//(n//tasks)+1)}
         return (provenance["commit"]==job["source_commit"] and status["status"]=="completed"
                 and summary["rounds"]==n and len(metrics)==len(expected)
                 and {(x["round"],x["task"]) for x in metrics}==expected
@@ -57,9 +80,12 @@ def select_jobs(jobs,stages,job_id):
 def estimate(jobs):
     training=[j for j in jobs if j["kind"]=="train"]
     # Architecture-scale approximations, not measured memory or wall time.
-    draws=sum(j["config"]["clients"]+(j["config"]["rounds"]-1)*j["config"]["k"] for j in training)
+    draws=sum(j["config"].get("selected_draws",j["config"]["clients"]+(j["config"]["rounds"]-1)*j["config"]["k"]) for j in training)
+    initial=sum(j["config"]["clients"] for j in training if j["config"].get("campaign")=="task_il_48")
     return {"jobs":len(jobs),"training_jobs":len(training),"nominal_client_draws":draws,
-            "nominal_model_transfer_bytes_at_45MB":2*45000000*draws,
+            "nominal_model_transfer_bytes_at_45MB":45000000*(2*draws+initial),
+            "initial_task_il_downloads":initial,
+            "task_il_local_training_rounds":sum(j["config"].get("local_training_rounds",0) for j in training),
             "note":"Adaptive, threshold, failures, duplicate draws and counterfactual continuation alter actual costs. No runtime or peak memory guarantee."}
 
 def execute(job,command,logs):

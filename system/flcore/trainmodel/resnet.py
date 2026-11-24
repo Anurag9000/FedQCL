@@ -35,7 +35,7 @@ class BasicBlock(nn.Module):
 # ResNet18 for Multi-Task Learning
 # -------------------------
 class ResNet18_dpp(nn.Module):
-    def __init__(self, num_tasks, num_classes_per_task):
+    def __init__(self, num_tasks, num_classes_per_task, task_widths=None):
         super(ResNet18_dpp, self).__init__()
         self.in_channels = 64
         self.num_tasks = num_tasks
@@ -46,9 +46,11 @@ class ResNet18_dpp(nn.Module):
         self.layer3 = self._make_layer(BasicBlock, 256, 2, stride=2)
         self.layer4 = self._make_layer(BasicBlock, 512, 2, stride=2)
         self.avgpool = nn.AdaptiveAvgPool2d((1, 1))
+        widths = [num_classes_per_task] * num_tasks if task_widths is None else list(task_widths)
+        if len(widths) != num_tasks or any(type(w) is not int or w < 1 for w in widths):
+            raise ValueError('invalid task head widths')
         self.heads = nn.ModuleList([
-            nn.Linear(512 * BasicBlock.expansion, num_classes_per_task)
-            for _ in range(num_tasks)
+            nn.Linear(512 * BasicBlock.expansion, width) for width in widths
         ])
 
     def _make_layer(self, block, out_channels, blocks, stride=1):

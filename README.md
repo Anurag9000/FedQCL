@@ -179,3 +179,17 @@ rate matching and scaling to 10/20/50 clients. The default ledger now contains 4
 limitations are documented in the runbook above. Parallel execution: bash run_all_sync.sh --stage pilot --resume --workers 2 --gpu-ids 0,1. Use --estimate-only to inspect the scope without training. Development uses validation;
 held-out adaptive jobs use separate partition seeds. Do not use --all before
 validating the full-data pilot.
+
+## Task-IL analysis campaign (48 runs)
+
+The separate conventional Task-IL suite uses private experience replay, explicit
+client curricula and communication-only participation/outage schedules. It does
+not launch the FEDQCL selective-synchronization campaign.
+
+    bash run_all_task_il.sh --dry-run
+    bash run_all_task_il.sh --stage experiment_01
+    bash run_all_task_il.sh
+
+See [the exact Task-IL specification](docs/TASK_IL_EXPERIMENT_SPEC.md) and the
+[committed portable job ledger](configs/task_il/job_ledger.jsonl). Training results
+are not bundled with the implementation.

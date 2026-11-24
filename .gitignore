@@ -6,3 +6,5 @@ data/raw/
 experiments/job_ledger.jsonl
 experiments/job_ledger.status.json
 experiments/logs/
+
+experiments/task_il_48/

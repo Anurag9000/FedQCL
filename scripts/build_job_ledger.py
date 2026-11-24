@@ -72,6 +72,11 @@ def build(output):
         if signal=="update":flags+=("--sync-posttrain","--sync-native-space")
         if signal=="gradient":flags+=("--sync-native-space",)
         run("signals",policy,regime,seed,flags=flags)
+    for policy,regime,seed in itertools.product(("cached","update_match","combined12","combined13","combined23","combined123"),regimes,(42,43,44)):
+        flags=("--sync-signal","update","--sync-native-space") if policy=="update_match" else ()
+        run("advanced",policy,regime,seed,flags=flags)
+    for policy,regime,seed in itertools.product(("combined12","combined123"),regimes,(42,43,44)):
+        run("advanced",policy,regime,seed,flags=("--sync-combine-rule","intersection"))
     output.parent.mkdir(parents=True,exist_ok=True)
     output.write_text("".join(json.dumps(job,sort_keys=True)+"\n" for job in jobs))
     counts={}

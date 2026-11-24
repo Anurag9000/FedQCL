@@ -2,6 +2,7 @@
 from dataclasses import dataclass, asdict, field
 import json
 import random
+from .advanced import cached_views, select_cached, update_match, combine_scores, peer_filter
 from .policies import (Report, distance, threshold_value, due_clients,
                        local_reference, bank_score, novelty_admit, peer_select,
                        baseline_select, coverage)
@@ -115,6 +116,10 @@ class Controller:
 
     def decide(self,r,reports,available=None):
         a = self.args
+        policy=a.sync_policy
+        own=policy in ("own","combined12","combined13","combined123")
+        server=policy in ("server","combined12","combined23","combined123")
+        peer=policy in ("peer","combined13","combined23","combined123")
         ids = self.ids if available is None else tuple(sorted(available))
         last = {i:self.local[i].last_sync for i in ids}
         due = due_clients(ids,last,r,a.sync_max_skip)
@@ -124,7 +129,7 @@ class Controller:
         versions = {i:self.local[i].bank_version for i in ids}
         # Every available client sees the common clock and roster under a declared
         # free common-control convention; all additional messages below are charged.
-        if a.sync_policy=="server" and a.sync_delivery=="telemetry":
+        if server and a.sync_delivery=="telemetry":
             delivered = {}
             for i in ids:
                 if reports[i] is not None:
@@ -133,19 +138,30 @@ class Controller:
             self.ingest(delivered,r,(),observed=True)
             self.deliver_bank(r,ids,"observe")
             versions = {i:self.local[i].bank_version for i in ids}
-        if a.sync_policy=="own":
+        if own:
             for i in ids:
                 cur = reports[i]
                 ref = local_reference(cur,self.local[i].last_report,self.local[i].history,
                                       a.sync_local_reference,a.sync_history) if cur is not None else None
                 scores[i] = distance(cur,ref)
                 refs[i] = ref.id if ref else None
-        elif a.sync_policy=="server":
+        if server:
             for i in ids:
                 cur = reports[i]
-                scores[i],refs[i] = bank_score(cur,self.local[i].bank,r,a.sync_bank_age,
+                score,ref = bank_score(cur,self.local[i].bank,r,a.sync_bank_age,
                     a.sync_include_self,a.sync_bank_reference) if cur is not None else (None,None)
-        elif a.sync_policy=="peer":
+                if own:
+                    scores[i]=combine_scores(scores[i],score,getattr(a,"sync_combine_rule","union"))
+                    refs[i]={"local":refs[i],"server":ref}
+                else:
+                    scores[i],refs[i]=score,ref
+        if peer and policy!="peer":
+            # Hybrid peer election is a charged centralized relay variant:
+            # clients transmit scalar novelty, never their private history.
+            for i in ids:
+                self.transport.send(r,"observe",i,"server","HYBRID_SCORE",
+                    {"score":None if scores[i] is None else float(scores[i])})
+        if peer:
             views = {i:{i:reports[i]} for i in ids}
             if a.sync_peer_transport=="relay":
                 arrived = {}
@@ -166,8 +182,16 @@ class Controller:
                                                   asdict(reports[i]) if reports[i] else None)
                         views[j][i] = Report(**{**msg,"labels":tuple(msg["labels"]),
                                                 "counts":tuple(msg["counts"])}) if msg else None
-            elections = [tuple(ids) if r==0 else peer_select(ids,last,due,views[i],threshold,k,
-                           a.sync_peer_solver,a.sync_peer_objective) for i in ids]
+            if policy=="peer":
+                elections = [tuple(ids) if r==0 else peer_select(ids,last,due,views[i],threshold,k,
+                               a.sync_peer_solver,a.sync_peer_objective) for i in ids]
+            else:
+                # Deliver common scalar scores before deterministic hybrid election.
+                for i in ids:
+                    self.transport.send(r,"observe","server",i,"HYBRID_SCORE_ROSTER",
+                        {j:None if scores[j] is None else float(scores[j]) for j in ids})
+                elections=[tuple(ids) if r==0 else peer_filter(ids,last,due,views[i],scores,threshold,k,
+                            a.sync_peer_solver,a.sync_peer_objective) for i in ids]
             for i,election in zip(ids,elections):
                 self.transport.send(r,'admission',i,'server','ELECTION_RESULT',{'selected':election})
             if elections and any(x!=elections[0] for x in elections):
@@ -178,9 +202,20 @@ class Controller:
             selected = ids
         elif a.sync_policy in ("full","random","oldest"):
             selected = baseline_select(a.sync_policy,ids,due,last,len(ids) if k is None else k,a.seed,r)
-        elif a.sync_policy in ("own","server"):
+        elif policy in ("cached","update_match"):
+            task=r//((a.global_rounds+1)//a.tasks)
+            cached=cached_views(self.bank.values(),ids,task,r,a.sync_bank_age)
+            if policy=="cached":
+                selected=select_cached(ids,last,due,cached,k,r,a.sync_bank_age,a.sync_peer_solver)
+            else:
+                selected=update_match(ids,last,due,cached,k,r,a.sync_bank_age,a.sync_peer_solver)
+            refs={i:None if x is None else x.id for i,x in cached.items()}
+            assignments=coverage(ids,selected,cached,threshold)
+            for i in selected:
+                self.transport.send(r,"admission","server",i,"ADMISSION_RESPONSE",{"admitted":True})
+        elif (own or server) and not peer:
             selected = novelty_admit(ids,last,due,scores,threshold,k)
-        if a.sync_policy in ("own","server") and r!=0:
+        if (own or server) and not peer and r!=0:
             for i in ids:
                 score = scores.get(i)
                 requested = i in due or score is None or score>threshold
@@ -208,22 +243,26 @@ class Controller:
     def complete(self,r,reports,accepted,downloaded,uploaded=None):
         uploaded=accepted if uploaded is None else uploaded
         complete = set(accepted)&set(downloaded)
-        if self.args.sync_policy=="server" and self.args.sync_delivery!="telemetry":
+        policy=self.args.sync_policy
+        uses_bank=policy in ("server","combined12","combined23","combined123")
+        if (uses_bank and self.args.sync_delivery!="telemetry") or policy in ("cached","update_match"):
+
             arrived = {}
             for i in uploaded:
                 if reports.get(i) is not None:
                     msg = self.transport.send(r,"upload",i,"server","STAT_REPORT",asdict(reports[i]))
                     arrived[i] = Report(**{**msg,"labels":tuple(msg["labels"]),"counts":tuple(msg["counts"])})
             self.ingest(arrived,r,accepted)
-            recipients = self.ids if self.args.sync_delivery=="broadcast" else downloaded
-            self.deliver_bank(r,recipients,"download")
+            if uses_bank:
+                recipients = self.ids if self.args.sync_delivery=="broadcast" else downloaded
+                self.deliver_bank(r,recipients,"download")
         for i in downloaded:
             self.local[i].model_version = self.model_version
             self.local[i].local_revision = 0
         for i in complete:
             self.local[i].last_sync = r
             self.local[i].last_report = reports.get(i)
-        if self.args.sync_policy=="peer":
+        if policy in ("peer","combined13","combined23","combined123"):
             self.decisions[-1]["accepted_coverage"] = coverage(self.ids,accepted,reports,
                                                                threshold_value(self.args.sync_threshold))
         self.decisions[-1].update(accepted=list(accepted),downloaded=list(downloaded),

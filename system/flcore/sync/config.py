@@ -1,7 +1,7 @@
 """Research flags; no effect on legacy execution."""
 def add_arguments(parser):
     p=parser
-    p.add_argument("--sync-policy", choices=["legacy","full","random","oldest","own","server","peer"], default="legacy")
+    p.add_argument("--sync-policy", choices=["legacy","full","random","oldest","own","server","peer","cached","update_match","combined12","combined13","combined23","combined123"], default="legacy")
     p.add_argument("--sync-mode",choices=["threshold","fixed"],default="fixed")
     p.add_argument("--sync-k",type=int,default=3)
     p.add_argument("--sync-threshold",type=float,default=.1)
@@ -34,6 +34,7 @@ def add_arguments(parser):
     p.add_argument("--sync-sketch-dim",type=int,default=128)
     p.add_argument("--sync-byte-cap",type=int,default=0,help="Hard logical bytes per round including bootstrap")
     p.add_argument("--sync-campaign-byte-cap",type=int,default=0,help="Hard total logical bytes; exhausted budget is reported infeasible")
+    p.add_argument("--sync-combine-rule",choices=["union","intersection"],default="union")
     p.add_argument("--sync-native-space",action="store_true",help="Allow comparison across model versions for native gradient/update sketches; explicit ablation")
 
 def validate(a):
@@ -63,7 +64,11 @@ def validate(a):
         raise ValueError("invalid local workload")
     if a.sync_sketch_dim<1:
         raise ValueError("invalid sketch dimension")
-    if a.sync_signal=="update" and not a.sync_posttrain:
+    if a.sync_policy in ("cached","update_match") and a.sync_mode!="fixed":
+        raise ValueError("cached selectors require fixed count")
+    if a.sync_policy=="update_match" and (a.sync_signal!="update" or a.sync_posttrain or not a.sync_native_space):
+        raise ValueError("cached update matching requires update signal, native coordinates, and pre-training selection")
+    if a.sync_signal=="update" and not a.sync_posttrain and a.sync_policy!="update_match":
         raise ValueError("update statistic requires post-training selection")
     if a.sync_signal not in ("histogram","replay") and a.sync_bank_reference=="envelope":
         raise ValueError("coordinate envelope only supported for histogram/replay")

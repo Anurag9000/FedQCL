@@ -155,7 +155,7 @@ def peer_select(ids, last, due, reports, threshold, k=None, solver="exact", obje
         for i in ids:
             if i in s:
                 continue
-            if reports.get(i) is None:
+            if reports.get(i) is None or not reports[i].valid():
                 total += len(ids)+1
                 continue
             d,_ = nearest(i,s,reports)

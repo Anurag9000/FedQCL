@@ -86,6 +86,10 @@ def run(args):
     # First prepare the dataset
     #prepare_dataset(args)
 
+    if args.sync_policy != 'legacy':
+        from flcore.sync.engine import run_research
+        return run_research(args)
+
     time_list = []
     reporter = MemReporter()
     model_str = args.model
@@ -215,7 +219,10 @@ if __name__ == "__main__":
 
     parser.add_argument('-alpha', "--alpha", type=float, default=0.1)
 
+    from flcore.sync.config import add_arguments, validate
+    add_arguments(parser)
     args = parser.parse_args()
+    validate(args)
 
     os.environ["CUDA_VISIBLE_DEVICES"] = args.device_id
 

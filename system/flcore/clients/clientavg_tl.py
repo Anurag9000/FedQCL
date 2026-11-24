@@ -130,7 +130,7 @@ class clientAVG(Client):
         self.task_memoryloaders = {t: None for t in range(self.num_tasks)}
 
         print(f"Loading data from client base for client{self.id}")
-        for task in range(self.num_tasks):
+        for task in range(0 if getattr(args, 'sync_policy', 'legacy') != 'legacy' else self.num_tasks):
             labels = []
             trainloader = self.task_trainloaders[task]
             for _, y in trainloader:
@@ -281,7 +281,7 @@ class clientAVG(Client):
         # Deterministic per-client, per-round seeding
         # --------------------------------------------------
 
-        seed = 42 + self.id * 1000 + int(round)
+        seed = getattr(self, 'research_seed', 42) + self.id * 1000 + int(round)
         random.seed(seed)
         np.random.seed(seed)
         torch.manual_seed(seed)
@@ -308,7 +308,7 @@ class clientAVG(Client):
         # We detect the first round of a task as: round % round_per_task == 0
         if ((round % self.round_per_task) == 0)  and round > 0:
             # Save current model as theta_prev (store CPU copy) this the model from server
-            theta_prev_to_save = {k: v.cpu() for k, v in self.model.state_dict().items()}
+            theta_prev_to_save = {k: (v.detach().cpu().clone() if getattr(self, 'research_mode', False) else v.cpu()) for k, v in self.model.state_dict().items()}
             print("saving the weights in theta_prev for task{task_id} ")
             # Keep Q and Q_history as they are (no change here)
             #self.save_client_state(Q, Q_history, theta_prev_to_save)
@@ -428,7 +428,7 @@ class clientAVG(Client):
             print(f"[Client {self.id}] Detected end of task {task_id} at round {round}; saving memory ")
             #Save current task memory (from trainloader)
             #fresh_loader = self.load_train_data(round=math.floor(round/self.round_per_task ))
-            seed_mem = 50000 + self.id * 100 + task_id
+            seed_mem = 50000 + getattr(self, 'research_seed', 42) - 42 + self.id * 100 + task_id
             random.seed(seed_mem)
             np.random.seed(seed_mem)
             torch.manual_seed(seed_mem)

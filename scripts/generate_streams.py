@@ -7,27 +7,45 @@ from pathlib import Path
 import numpy as np
 
 def allocate(rows, cols, target, floor=0):
-    """Integer transportation with fixed row/column totals. Greedy residual
-    allocation minimizes local deviation, not a claim of global optimality."""
-    rows=np.asarray(rows,dtype=int); cols=np.asarray(cols,dtype=int)
-    n,c=len(rows),len(cols)
-    if rows.sum()!=cols.sum() or np.any(rows<c*floor) or np.any(cols<n*floor):
+    """Exact integer transportation for minimum absolute count error.
+
+    Each cell has three integral-capacity cost segments for the discrete absolute
+    deviation objective. The transportation constraint matrix is totally unimodular;
+    solve the continuous min-cost flow and verify integrality and inventory explicitly.
+    """
+    from scipy.optimize import linprog
+    from scipy.sparse import coo_matrix
+    rows=np.asarray(rows,dtype=int);cols=np.asarray(cols,dtype=int)
+    n,c=len(rows),len(cols);target=np.asarray(target,dtype=float)
+    if floor<0 or rows.sum()!=cols.sum() or np.any(rows<c*floor) or np.any(cols<n*floor):
         raise ValueError("infeasible inventory or coverage floor")
+    if target.shape!=(n,c) or not np.all(np.isfinite(target)) or np.any(target<0) or not np.allclose(target.sum(1),1):
+        raise ValueError("invalid target profiles")
+    rr=rows-c*floor;cc=cols-n*floor
+    ideal=target*rows[:,None]-floor
+    cells=[];costs=[];bounds=[]
+    for i,j in np.ndindex((n,c)):
+        cap=int(min(rr[i],cc[j]))
+        desired=max(0.,ideal[i,j]);low=min(cap,int(np.floor(desired)))
+        middle=int(low<cap and desired>low)
+        for capacity,cost in ((low,-1.),(middle,1.-2*(desired-low)),(cap-low-middle,1.)):
+            if capacity:
+                cells.append((i,j));costs.append(cost);bounds.append((0,capacity))
     x=np.full((n,c),floor,dtype=int)
-    rr=rows-x.sum(1); cc=cols-x.sum(0)
-    ideal=np.asarray(target)*rows[:,None]
-    if ideal.shape!=x.shape or not np.all(np.isfinite(ideal)) or np.any(ideal<0):
-        raise ValueError("invalid profiles")
-    # Allocate large feasible chunks toward the ideal first, then exact residuals.
-    for i,j in sorted(np.ndindex(x.shape),key=lambda ij:ideal[ij]-x[ij],reverse=True):
-        q=min(rr[i],cc[j],max(0,int(ideal[i,j])-x[i,j]))
-        x[i,j]+=q; rr[i]-=q; cc[j]-=q
-    while rr.sum():
-        i,j=max(((i,j) for i in range(n) for j in range(c) if rr[i] and cc[j]),
-                key=lambda ij:(ideal[ij]-x[ij],-ij[0],-ij[1]))
-        q=min(rr[i],cc[j])
-        x[i,j]+=q; rr[i]-=q; cc[j]-=q
-    assert np.array_equal(x.sum(0),cols) and np.array_equal(x.sum(1),rows)
+    if not cells:
+        if rr.sum():raise ValueError("no feasible residual flow")
+        return x
+    ri=[];ci=[]
+    for k,(i,j) in enumerate(cells):
+        ri.extend((i,n+j));ci.extend((k,k))
+    matrix=coo_matrix((np.ones(len(ri)),(ri,ci)),shape=(n+c,len(cells))).tocsr()
+    solution=linprog(costs,A_eq=matrix,b_eq=np.r_[rr,cc],bounds=bounds,method="highs")
+    if not solution.success:raise RuntimeError("allocation solver failed: "+solution.message)
+    rounded=np.rint(solution.x)
+    if np.max(np.abs(solution.x-rounded))>1e-6:raise RuntimeError("nonintegral flow solution")
+    for (i,j),value in zip(cells,rounded.astype(int)):x[i,j]+=value
+    if not np.array_equal(x.sum(0),cols) or not np.array_equal(x.sum(1),rows) or np.any(x<floor):
+        raise RuntimeError("allocation violated inventory")
     return x
 
 def profiles(regime,n,c,t,rng):
@@ -116,6 +134,9 @@ def generate(args):
         cols=np.array([len(x) for x in train_ids])
         rows=np.full(n,cols.sum()//n); rows[:cols.sum()%n]+=1
         target=profiles(args.regime,n,c,t,rng)
+        if args.profiles:
+            requested=np.asarray(json.loads(Path(args.profiles).read_text()),dtype=float)
+            target=requested[t] if requested.ndim==3 else requested
         requested_similarity=similarity(target)
         if args.similarity:
             requested_similarity=np.asarray(json.loads(Path(args.similarity).read_text()))
@@ -164,6 +185,9 @@ def generate(args):
                     seen.update(items)
                 write_shard(root,t,split,i,images(source,ids),yarray[ids],ids,np.zeros(len(ids),dtype=int))
         realized=counts/rows[:,None]
+        residual=float(np.max(np.abs(similarity(realized)-requested_similarity)))
+        if args.similarity_tolerance is not None and residual>args.similarity_tolerance:
+            raise RuntimeError(f"task {t}: realized similarity residual {residual} exceeds tolerance; infeasibility not established")
         manifest["tasks_data"].append({"task":t,"counts":counts.tolist(),"requested_profiles":target.tolist(),
             "realized_profiles":realized.tolist(),"requested_similarity":requested_similarity.tolist(),
             "realized_similarity":similarity(realized).tolist(),
@@ -185,6 +209,8 @@ if __name__=="__main__":
     p.add_argument("--floor",type=int,default=1)
     p.add_argument("--validation-per-class",type=int,default=50)
     p.add_argument("--regime",choices=["near","clustered","separated","changing","dirichlet","equal","conditional","drift"],default="near")
+    p.add_argument("--profiles",help="JSON target profile matrix or per-task matrices")
+    p.add_argument("--similarity-tolerance",type=float)
     p.add_argument("--similarity")
     p.add_argument("--counts")
     generate(p.parse_args())

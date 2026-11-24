@@ -19,6 +19,7 @@ def add_arguments(parser):
     p.add_argument("--sync-peer-loss",type=float,default=0.)
     p.add_argument("--sync-peer-solver",choices=["exact","greedy"],default="exact")
     p.add_argument("--sync-peer-objective",choices=["distance","coverage"],default="distance")
+    p.add_argument("--sync-eval-split",choices=["validation","test"],default="test")
     p.add_argument("--sync-output",default="research_results")
     p.add_argument("--sync-refresh",action="store_true")
     p.add_argument("--sync-local-capture",action="store_true")

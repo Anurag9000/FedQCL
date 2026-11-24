@@ -7,23 +7,26 @@ from pathlib import Path
 import shlex
 import sys
 import itertools
+import subprocess
 ROOT=Path(__file__).resolve().parents[1]
 
 def build(output):
     jobs=[]; seen=set()
+    commit=subprocess.check_output(["git","rev-parse","HEAD"],cwd=ROOT,text=True).strip()
+    generator_digest=hashlib.sha256((ROOT/"scripts/generate_streams.py").read_bytes()).hexdigest()[:12]
     def add(stage,kind,config,command,deps=(),artifacts=()):
-        key=hashlib.sha256(json.dumps([kind,config],sort_keys=True).encode()).hexdigest()[:16]
+        key=hashlib.sha256(json.dumps([kind,config,commit],sort_keys=True).encode()).hexdigest()[:16]
         if key in seen:
             return key
         seen.add(key)
-        jobs.append({"id":key,"stage":stage,"kind":kind,"config":config,"command":command,
+        jobs.append({"id":key,"stage":stage,"kind":kind,"config":config,"command":command,"source_commit":commit,"schema":2,
                      "dependencies":list(deps),"artifacts":list(artifacts)})
         return key
     data={}
     for n in (5,10,20,50):
         regimes_for_n=("near","separated","changing","clustered","dirichlet","conditional","drift") if n==5 else ("near","clustered","separated")
         for regime,seed in itertools.product(regimes_for_n,(42,43,44)):
-            folder=ROOT/"research_data"/f"{regime}-{seed}-n{n}"
+            folder=ROOT/"research_data"/f"{regime}-{seed}-n{n}-{generator_digest}"
             config={"regime":regime,"partition_seed":seed,"clients":n}
             stage=("pilot" if regime in ("near","separated","changing") else "ablation") if n==5 else "scale"
             d=add(stage,"generate",config,[sys.executable,"scripts/generate_streams.py","--regime",regime,
@@ -33,16 +36,17 @@ def build(output):
             data[regime,seed,n]=(folder,v)
     def run(stage,policy,regime,seed,k=3,flags=(),n=5,extra_deps=()):
         folder,dep=data[regime,seed,n]
-        cfg={"policy":policy,"regime":regime,"partition_seed":seed,"training_seed":seed,
+        split="test" if seed in (45,46,47) else "validation"
+        cfg={"policy":policy,"regime":regime,"partition_seed":seed,"training_seed":seed,"evaluation_split":split,
              "k":n if policy=="full" else k,"flags":list(flags),"clients":n}
-        key=hashlib.sha256(json.dumps(cfg,sort_keys=True).encode()).hexdigest()[:16]
+        key=hashlib.sha256(json.dumps([cfg,commit],sort_keys=True).encode()).hexdigest()[:16]
         out=ROOT/"research_results"/key
         command=[sys.executable,"main.py","-data",str(folder),"-m","resnet18","-algo","FedAvg",
                  "-tasks","5","-nb","20","-nc",str(n),"-gr","49","-lbs","13","-lr","0.005","-ls","5",
                  "-V","200","-delta","1","-memory_size","500","-memory_batch_size","13","-seed",str(seed),
-                 "--sync-policy",policy,"--sync-k",str(cfg["k"]),"--sync-output",str(out),"--sync-checkpoint",*flags]
+                 "--sync-policy",policy,"--sync-k",str(cfg["k"]),"--sync-output",str(out),"--sync-checkpoint","--sync-eval-split",split,*flags]
         return add(stage,"train",cfg,command,[dep,*extra_deps],[str(out/"final_summary.json"),str(out/"status.json"),
-            str(out/"communication_events.jsonl"),str(out/"server_metrics.jsonl"),str(out/"server.pt")]+([str(out/"counterfactuals.jsonl")] if "--sync-counterfactual" in flags else []))
+            str(out/"communication_events.jsonl"),str(out/"server_metrics.jsonl"),str(out/"server.pt"),str(out/"provenance.json"),str(out/"rounds.jsonl")]+([str(out/"counterfactuals.jsonl")] if "--sync-counterfactual" in flags else []))
     policies=("full","random","oldest","own","server","peer")
     regimes=("near","separated","changing")
     for policy,regime,seed in itertools.product(policies,regimes,(42,43,44)):
@@ -81,10 +85,10 @@ def build(output):
     impact_jobs=[]
     for regime,seed in itertools.product(regimes,(42,43,44)):
         impact_jobs.append(run("impact_data","cached",regime,seed,flags=("--sync-counterfactual","--sync-all-subsets")))
-    model=ROOT/"research_results"/"impact_model.json"
+    model=ROOT/"research_results"/("impact_model-"+commit[:12]+".json")
     fit=add("impact_fit","fit",{"fit_seeds":[42],"cal_seeds":[43,44],"coverage":.5},[sys.executable,"scripts/fit_impact.py","--ledger",str(output.resolve()),"--output",str(model),"--fit-seeds","42","--cal-seeds","43","44","--coverage",".5"],impact_jobs,[str(model)])
     for regime,seed in itertools.product(regimes,(45,46,47)):
-        folder=ROOT/"research_data"/f"{regime}-{seed}-n5"
+        folder=ROOT/"research_data"/f"{regime}-{seed}-n5-{generator_digest}"
         cfg={"regime":regime,"partition_seed":seed,"clients":5}
         d=add("adaptive", "generate",cfg,[sys.executable,"scripts/generate_streams.py","--regime",regime,"--seed",str(seed),"--clients","5","--output",str(folder),"--download"],artifacts=[str(folder/"manifest.json")])
         v=add("adaptive","validate",cfg,[sys.executable,"scripts/validate_streams.py",str(folder)],deps=[d]);data[regime,seed,5]=(folder,v)

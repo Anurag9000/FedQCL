@@ -262,6 +262,13 @@ def run_research(args):
     if a.sync_counterfactual and not manifest:
         raise ValueError('counterfactual validation requires controlled dataset manifest')
     config['dataset_manifest_id']=manifest['manifest_id'] if manifest else None
+    for field in ('sync_impact_model','sync_count_schedule','sync_failures'):
+        path=getattr(a,field,None)
+        if path:config[field+'_sha256']=hashlib.sha256(Path(path).read_bytes()).hexdigest()
+    try:
+        config['source_commit']=subprocess.check_output(['git','rev-parse','HEAD'],text=True).strip()
+    except (OSError,subprocess.CalledProcessError):config['source_commit']='unknown'
+    if a.sync_eval_split=='validation' and not manifest:raise ValueError('validation evaluation requires controlled dataset')
     signature=hashlib.sha256(json.dumps(config,sort_keys=True).encode()).hexdigest()
     if not a.sync_resume and (out/"status.json").exists():
         raise FileExistsError("research output already exists; use --sync-resume or a fresh directory")
@@ -425,9 +432,15 @@ def run_research(args):
                     clients[i].capture(t,r,datasets[i])
             for u in range(t+1):
                 if u not in loaders:
-                    loaders[u]=[DataLoader(read_client_data(os.path.join(a.dataset,f"task_{u}"),i,False),
-                                           batch_size=a.batch_size,shuffle=False)
-                                for i in range(a.num_clients)]
+                    if a.sync_eval_split=="validation":
+                        loaders[u]=[]
+                        for i in range(a.num_clients):
+                            with np.load(dataset_root/f"task_{u}"/"validation"/f"{i}.npz",allow_pickle=True) as z:
+                                v=z["data"].item()
+                            loaders[u].append(DataLoader(list(zip(torch.from_numpy(v["x"]),torch.from_numpy(v["y"]))),batch_size=a.batch_size,shuffle=False))
+                    else:
+                        loaders[u]=[DataLoader(read_client_data(os.path.join(a.dataset,f"task_{u}"),i,False),
+                                               batch_size=a.batch_size,shuffle=False) for i in range(a.num_clients)]
             metrics.extend(evaluate(model,loaders,t,r,ctl.model_version,device,a.num_classes))
             rounds.append({"round":r,"task":t,"selected":list(selected),"trained":trained,
                            "uploaded":uploaded,"accepted":list(accepted),"downloaded":downloaded,
@@ -466,7 +479,7 @@ def run_research(args):
                  "total_bytes":sum(by_kind.values()),"bytes_by_kind":by_kind,
                  "delivered_bytes":sum(x["delivered_bytes"] for x in ctl.transport.events),
                  "complete_syncs":sum(len(x["complete"]) for x in ctl.decisions),
-                 "rounds":len(rounds),"accounting":f"logical tensor payload plus {a.sync_wire_format} envelope; common clock/availability free"}
+                 "rounds":len(rounds),"evaluation_split":a.sync_eval_split,"accounting":f"logical tensor payload plus {a.sync_wire_format} envelope; common clock/availability free"}
         from .metrics import summarize
         summary.update(summarize(metrics,rounds,ctl.decisions,ctl.transport.events,a.tasks,rpt,a.num_clients))
         atomic_json(out/"final_summary.json",summary)

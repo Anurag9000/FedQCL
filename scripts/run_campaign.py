@@ -14,7 +14,8 @@ def valid(job):
             status=json.loads((out/"status.json").read_text())
             events=[json.loads(l) for l in (out/"communication_events.jsonl").read_text().splitlines()]
             metrics=[json.loads(l) for l in (out/"server_metrics.jsonl").read_text().splitlines()]
-            return (status["status"]=="completed" and summary["rounds"]==50 and len(metrics)==150
+            provenance=json.loads((out/"provenance.json").read_text())
+            return (provenance["commit"]==job["source_commit"] and status["status"]=="completed" and summary["rounds"]==50 and len(metrics)==150
                     and sum(x["serialized_bytes"] for x in events)==summary["total_bytes"]
                     and (out/"rounds.jsonl").is_file())
         except (OSError,ValueError,KeyError):
@@ -33,6 +34,9 @@ def main():
     p.add_argument("--gpu-id",default="0")
     a=p.parse_args()
     jobs=[json.loads(x) for x in a.ledger.read_text().splitlines()]
+    commit=subprocess.check_output(["git","rev-parse","HEAD"],cwd=ROOT,text=True).strip()
+    if any(j.get("source_commit")!=commit for j in jobs):
+        raise ValueError("ledger source commit differs; rebuild ledger for this checkout")
     by_id={j["id"]:j for j in jobs}
     wanted=set(j["id"] for j in jobs if (not a.stage or j["stage"] in a.stage) and (not a.job_id or j["id"]==a.job_id))
     def include(j):

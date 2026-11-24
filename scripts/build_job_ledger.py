@@ -20,17 +20,18 @@ def build(output):
                      "dependencies":list(deps),"artifacts":list(artifacts)})
         return key
     data={}
-    for n in [5]:
-        for regime,seed in itertools.product(("near","separated","changing","clustered","dirichlet","conditional","drift"),(42,43,44)):
+    for n in (5,10,20,50):
+        regimes_for_n=("near","separated","changing","clustered","dirichlet","conditional","drift") if n==5 else ("near","clustered","separated")
+        for regime,seed in itertools.product(regimes_for_n,(42,43,44)):
             folder=ROOT/"research_data"/f"{regime}-{seed}-n{n}"
             config={"regime":regime,"partition_seed":seed,"clients":n}
-            stage="pilot" if regime in ("near","separated","changing") else "ablation"
+            stage=("pilot" if regime in ("near","separated","changing") else "ablation") if n==5 else "scale"
             d=add(stage,"generate",config,[sys.executable,"scripts/generate_streams.py","--regime",regime,
                  "--seed",str(seed),"--clients",str(n),"--output",str(folder),"--download"],
                  artifacts=[str(folder/"manifest.json")])
             v=add(stage,"validate",config,[sys.executable,"scripts/validate_streams.py",str(folder)],deps=[d])
             data[regime,seed,n]=(folder,v)
-    def run(stage,policy,regime,seed,k=3,flags=(),n=5):
+    def run(stage,policy,regime,seed,k=3,flags=(),n=5,extra_deps=()):
         folder,dep=data[regime,seed,n]
         cfg={"policy":policy,"regime":regime,"partition_seed":seed,"training_seed":seed,
              "k":n if policy=="full" else k,"flags":list(flags),"clients":n}
@@ -40,7 +41,7 @@ def build(output):
                  "-tasks","5","-nb","20","-nc",str(n),"-gr","49","-lbs","13","-lr","0.005","-ls","5",
                  "-V","200","-delta","1","-memory_size","500","-memory_batch_size","13","-seed",str(seed),
                  "--sync-policy",policy,"--sync-k",str(cfg["k"]),"--sync-output",str(out),"--sync-checkpoint",*flags]
-        return add(stage,"train",cfg,command,[dep],[str(out/"final_summary.json"),str(out/"status.json"),
+        return add(stage,"train",cfg,command,[dep,*extra_deps],[str(out/"final_summary.json"),str(out/"status.json"),
             str(out/"communication_events.jsonl"),str(out/"server_metrics.jsonl"),str(out/"server.pt")]+([str(out/"counterfactuals.jsonl")] if "--sync-counterfactual" in flags else []))
     policies=("full","random","oldest","own","server","peer")
     regimes=("near","separated","changing")
@@ -77,8 +78,22 @@ def build(output):
         run("advanced",policy,regime,seed,flags=flags)
     for policy,regime,seed in itertools.product(("combined12","combined123"),regimes,(42,43,44)):
         run("advanced",policy,regime,seed,flags=("--sync-combine-rule","intersection"))
+    impact_jobs=[]
     for regime,seed in itertools.product(regimes,(42,43,44)):
-        run("impact_data","cached",regime,seed,flags=("--sync-counterfactual","--sync-all-subsets"))
+        impact_jobs.append(run("impact_data","cached",regime,seed,flags=("--sync-counterfactual","--sync-all-subsets")))
+    model=ROOT/"research_results"/"impact_model.json"
+    fit=add("impact_fit","fit",{"fit_seeds":[42],"cal_seeds":[43,44],"coverage":.5},[sys.executable,"scripts/fit_impact.py","--ledger",str(output.resolve()),"--output",str(model),"--fit-seeds","42","--cal-seeds","43","44","--coverage",".5"],impact_jobs,[str(model)])
+    for regime,seed in itertools.product(regimes,(45,46,47)):
+        folder=ROOT/"research_data"/f"{regime}-{seed}-n5"
+        cfg={"regime":regime,"partition_seed":seed,"clients":5}
+        d=add("adaptive", "generate",cfg,[sys.executable,"scripts/generate_streams.py","--regime",regime,"--seed",str(seed),"--clients","5","--output",str(folder),"--download"],artifacts=[str(folder/"manifest.json")])
+        v=add("adaptive","validate",cfg,[sys.executable,"scripts/validate_streams.py",str(folder)],deps=[d]);data[regime,seed,5]=(folder,v)
+        for policy in ("full","random","oldest","cached","peer"):
+            run("adaptive",policy,regime,seed)
+        for extra in ((),("--sync-soft-budget",)):
+            run("adaptive","adaptive",regime,seed,flags=("--sync-impact-model",str(model),*extra),extra_deps=[fit])
+    for n,policy,regime,seed in itertools.product((10,20,50),("full","random","oldest","cached","peer"),("near","clustered","separated"),(42,43,44)):
+        run("scale",policy,regime,seed,k=max(1,int(.6*n)),n=n,flags=("--sync-peer-solver","greedy") if policy in ("cached","peer") else ())
     output.parent.mkdir(parents=True,exist_ok=True)
     output.write_text("".join(json.dumps(job,sort_keys=True)+"\n" for job in jobs))
     counts={}

@@ -36,11 +36,11 @@ def profiles(regime,n,c,t,rng):
         p+=rng.uniform(0,.15,p.shape)
     elif regime in ("clustered","changing"):
         for i in range(n):
-            group=(i+(t if regime=="changing" else 0))%2
+            group=(i%2 if regime=="clustered" else (i%2)^int((i+t)%max(2,n)==0))
             p[i,np.arange(c)%2==group]=8
     elif regime=="separated":
         for i in range(n):
-            p[i,np.arange(c)%n==i]=15
+            p[i,np.arange(c)%min(c,n)==i%min(c,n)]=15
     elif regime=="dirichlet":
         return rng.dirichlet(np.ones(c)*10,n)
     elif regime not in ("equal","conditional","drift"):

@@ -23,26 +23,35 @@ class LocalState:
 
 class Transport:
     """In-process reliable logical deliveries, per-recipient accounting."""
-    def __init__(self):
+    def __init__(self,wire_format="json"):
         self.events = []
+        self.wire_format=wire_format
     def send(self, r, phase, sender, receiver, kind, payload, tensor_bytes=0, delivered=True):
         envelope = {"round":r,"phase":phase,"sender":sender,"receiver":receiver,
                     "kind":kind,"payload":payload}
-        wire = encoded(envelope)
+        if self.wire_format=="binary":
+            from .wire import pack,unpack
+            wire=pack(envelope)
+            decoded=unpack(wire)
+            payload_size=len(pack(payload))
+        else:
+            wire=encoded(envelope)
+            decoded=json.loads(wire)
+            payload_size=len(encoded(payload))
         n = len(wire)+tensor_bytes
         self.events.append({"event_id":len(self.events),"round":r,"phase":phase,
                             "sender":sender,"receiver":receiver,"kind":kind,
-                            "payload_bytes":tensor_bytes+len(encoded(payload)),
+                            "payload_bytes":tensor_bytes+payload_size,"wire_format":self.wire_format,
                             "serialized_bytes":n,"delivered":delivered,
                             "delivered_bytes":n if delivered else 0})
-        return json.loads(wire)["payload"] if delivered else None
+        return decoded["payload"] if delivered else None
 
 class Controller:
     def __init__(self, args, ids):
         self.args = args
         self.ids = tuple(sorted(ids))
         self.local = {i:LocalState() for i in self.ids}
-        self.transport = Transport()
+        self.transport = Transport(getattr(args,"sync_wire_format","json"))
         self.bank = {}
         self.bank_version = 0
         self.bank_snapshots = {0:()}
@@ -76,7 +85,7 @@ class Controller:
     def ingest(self, reports, r, accepted, observed=False):
         changed = False
         for i,report in sorted(reports.items()):
-            if report is None:
+            if report is None or not report.valid() or report.client!=i or report.round!=r:
                 continue
             self.arrivals.append({"round":r,"report":asdict(report),
                                   "accepted":i in accepted,"observed_only":observed})
@@ -125,6 +134,7 @@ class Controller:
         server=policy in ("server","combined12","combined23","combined123")
         peer=policy in ("peer","combined13","combined23","combined123")
         ids = self.ids if available is None else tuple(sorted(available))
+        reports={i:(x if x is not None and x.client==i and x.round==r and x.valid() else None) for i in ids for x in [reports.get(i)]}
         last = {i:self.local[i].last_sync for i in ids}
         due = due_clients(ids,last,r,a.sync_max_skip)
         threshold = threshold_value(a.sync_threshold)

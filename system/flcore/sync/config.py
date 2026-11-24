@@ -34,6 +34,7 @@ def add_arguments(parser):
     p.add_argument("--sync-sketch-dim",type=int,default=128)
     p.add_argument("--sync-byte-cap",type=int,default=0,help="Hard logical bytes per round including bootstrap")
     p.add_argument("--sync-campaign-byte-cap",type=int,default=0,help="Hard total logical bytes; exhausted budget is reported infeasible")
+    p.add_argument("--sync-wire-format",choices=["binary","json"],default="binary")
     p.add_argument("--sync-all-subsets",action="store_true")
     p.add_argument("--sync-impact-model")
     p.add_argument("--sync-current-tolerance",type=float,default=.02)

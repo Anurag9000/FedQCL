@@ -47,7 +47,7 @@ def main():
         if dest is None:continue
         out=Path(j["artifacts"][0]).parent
         if json.loads((out/"status.json").read_text())["status"]!="completed":raise ValueError("incomplete development run")
-        dest.extend((j["id"],json.loads(line)) for line in (out/"counterfactuals.jsonl").read_text().splitlines())
+        dest.extend((seed,json.loads(line)) for line in (out/"counterfactuals.jsonl").read_text().splitlines())
     model=fit(train,cal,a.alpha,a.coverage)
     model.update(fit_seeds=a.fit_seeds,cal_seeds=a.cal_seeds,alpha=a.alpha)
     a.output.parent.mkdir(parents=True,exist_ok=True);a.output.write_text(json.dumps(model,indent=2))

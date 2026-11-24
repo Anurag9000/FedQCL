@@ -17,11 +17,12 @@ def predicted(controller,r,reports,payload,k):
             starts[i]=c.model_version
         c.transport.send(r,"upload",i,"server","MODEL_UPLOAD",
                          {"start_version":starts[i],"accepted":True},payload)
+    c.ingest_uploads(r,reports,roster,roster)
     if roster:
         c.model_version+=1
     for i in roster:
         c.transport.send(r,"download","server",i,"MODEL_DOWNLOAD",{"version":c.model_version},payload)
-    c.complete(r,reports,roster,roster,roster)
+    c.complete(r,reports,roster,roster,roster,ingested=True)
     return roster,sum(x["serialized_bytes"] for x in c.transport.events[offset:])
 
 def choose_budgeted(controller,r,reports,payload,limit):

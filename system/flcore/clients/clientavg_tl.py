@@ -307,7 +307,13 @@ class clientAVG(Client):
 
         # === If this is the FIRST round for this task, store theta_prev BEFORE training ===
         # We detect the first round of a task as: round % round_per_task == 0
-        if ((round % self.round_per_task) == 0)  and round > 0:
+        research = getattr(self,"research_args",None)
+        recover = bool(research and research.sync_reference_recovery)
+        corrected = bool(research and research.sync_queue_mode=="sample_mean")
+        reference_due = ((round % self.round_per_task) == 0) and round > 0
+        if recover and task_id>0 and getattr(self,"reference_task",-1)!=task_id:
+            reference_due=True
+        if reference_due:
             # Save current model as theta_prev (store CPU copy) this the model from server
             theta_prev_to_save = {k: (v.detach().cpu().clone() if getattr(self, 'research_mode', False) else v.cpu()) for k, v in self.model.state_dict().items()}
             print("saving the weights in theta_prev for task{task_id} ")
@@ -315,6 +321,8 @@ class clientAVG(Client):
             #self.save_client_state(Q, Q_history, theta_prev_to_save)
             # Make sure theta_prev variable in memory is the one we saved
             theta_prev = theta_prev_to_save
+            if research is not None:
+                self.reference_task=task_id
             print(f"[Client {self.id}] Saved theta_prev BEFORE training for task {task_id}")
             
                 
@@ -457,7 +465,12 @@ class clientAVG(Client):
                 loss_current = 0.0
                 loss_prev = 0.0
 
-                # Sum losses over the entire stored memory for task k
+                # Sample-normalized matched eval-mode measurement is a separate research profile.
+                # Native queue semantics are preserved by default.
+                n_queue=0
+                previous_mode=self.model.training
+                if corrected:
+                    self.model.eval()
                 with torch.no_grad():
                     for x_mem, y_mem in mem_loader_k:
                         x_mem = x_mem.to(self.device)
@@ -468,10 +481,18 @@ class clientAVG(Client):
                         features = self.encoder(x)[0] if self.encoder else x
                         pred_cur = self.model(features, k)
                         
-                        loss_current += self.loss(pred_cur, y_mem).item()
+                        factor=y_mem.numel() if corrected else 1
+                        n_queue+=factor
+                        loss_current += factor*self.loss(pred_cur, y_mem).item()
                         if old_model is not None:
                             pred_prev = old_model(features, k)
-                            loss_prev += self.loss(pred_prev, y_mem).item()
+                            loss_prev += factor*self.loss(pred_prev, y_mem).item()
+                if corrected:
+                    self.model.train(previous_mode)
+                    if old_model is None or not n_queue:
+                        continue
+                    loss_current/=n_queue
+                    loss_prev/=n_queue
 
 
                 # Update Q[k]

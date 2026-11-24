@@ -286,22 +286,28 @@ class Controller:
         self.decisions.append(d)
         return selected
 
-    def complete(self,r,reports,accepted,downloaded,uploaded=None):
-        uploaded=accepted if uploaded is None else uploaded
-        complete = set(accepted)&set(downloaded)
+    def ingest_uploads(self,r,reports,accepted,uploaded):
         policy=self.args.sync_policy
         uses_bank=policy in ("server","combined12","combined23","combined123")
         if (uses_bank and self.args.sync_delivery!="telemetry") or policy in ("cached","update_match","adaptive"):
-
-            arrived = {}
+            arrived={}
             for i in uploaded:
-                if reports.get(i) is not None:
-                    msg = self.transport.send(r,"upload",i,"server","STAT_REPORT",asdict(reports[i]))
-                    arrived[i] = Report(**{**msg,"labels":tuple(msg["labels"]),"counts":tuple(msg["counts"])})
+                report=reports.get(i)
+                if report is not None:
+                    msg=self.transport.send(r,"upload",i,"server","STAT_REPORT",asdict(report))
+                    arrived[i]=Report(**{**msg,"labels":tuple(msg["labels"]),"counts":tuple(msg["counts"])})
             self.ingest(arrived,r,accepted)
-            if uses_bank:
-                recipients = self.decisions[-1]["available"] if self.args.sync_delivery=="broadcast" else downloaded
-                self.deliver_bank(r,recipients,"download")
+
+    def complete(self,r,reports,accepted,downloaded,uploaded=None,ingested=False):
+        uploaded=accepted if uploaded is None else uploaded
+        complete=set(accepted)&set(downloaded)
+        policy=self.args.sync_policy
+        uses_bank=policy in ("server","combined12","combined23","combined123")
+        if not ingested:
+            self.ingest_uploads(r,reports,accepted,uploaded)
+        if uses_bank and self.args.sync_delivery!="telemetry":
+            recipients=self.decisions[-1]["available"] if self.args.sync_delivery=="broadcast" else downloaded
+            self.deliver_bank(r,recipients,"download")
         for i in downloaded:
             self.local[i].model_version = self.model_version
             self.local[i].local_revision = 0

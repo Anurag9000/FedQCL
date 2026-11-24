@@ -38,7 +38,11 @@ class ResearchClient(clientAVG):
         self.optimizer_steps=0
         self.current_samples=0
         self.training_counts=[]
+        self.reference_task=-1
         super().__init__(args,**kwargs)
+        if args.sync_v_normalized_lr:
+            for group in self.optimizer.param_groups:
+                group["lr"]/=self.V
 
     def load_train_data(self,batch_size=None,round=0):
         # Client base initializes a list of handles. The actual shard is loaded
@@ -144,6 +148,12 @@ class ResearchClient(clientAVG):
         loader=DataLoader(dataset,batch_size=self.batch_size)
         self.save_task_memory_from_loader(self.id,task,loader,self.memory_size)
 
+def aggregation_weights(args,clients,datasets,ids,complete):
+    mode=getattr(args,"sync_weighting","profile")
+    if mode=="profile":mode="current" if complete else "first_task"
+    return [1 if mode=="equal" else clients[i].train_samples if mode=="first_task" else
+            clients[i].current_samples if mode=="processed" else len(datasets[i]) for i in ids]
+
 def model_bytes(model,complete):
     tensors=model.state_dict().values() if complete else model.parameters()
     return sum(t.numel()*t.element_size() for t in tensors)
@@ -226,13 +236,14 @@ def write_jsonl(path,rows):
 
 def checkpoint_client(c):
     return {"model":c.model.state_dict(),"optimizer":c.optimizer.state_dict(),
-            "Q":c.Q,"Q_history":c.Q_history,"theta_prev":c.theta_prev,
+            "Q":c.Q,"Q_history":c.Q_history,"theta_prev":c.theta_prev,"reference_task":c.reference_task,
             "memories":c.task_memories,"replay_state":c.replay_state}
 
 def restore_client(c,state):
     c.model.load_state_dict(state["model"])
     c.optimizer.load_state_dict(state["optimizer"])
     c.Q=state["Q"]; c.Q_history=state["Q_history"]; c.theta_prev=state["theta_prev"]
+    c.reference_task=state.get("reference_task",-1)
     c.task_memories=state["memories"]; c.replay_state=state["replay_state"]
     c.task_memoryloaders={t:DataLoader(c.task_memories[t],batch_size=c.memory_batch_size,shuffle=True)
                           if c.task_memories.get(t) else None for t in range(c.num_tasks)}
@@ -432,7 +443,8 @@ def run_research(args):
             accepted=tuple(accepted)
             if r==0 and len(accepted)!=a.num_clients:
                 raise RuntimeError("bootstrap incomplete")
-            weights=[clients[i].train_samples if not complete_state else len(datasets[i]) for i in accepted]
+            ctl.ingest_uploads(r,reports,accepted,uploaded)
+            weights=aggregation_weights(a,clients,datasets,accepted,complete_state)
             if accepted:
                 model=aggregate(model,[clients[i] for i in accepted],weights,complete_state)
                 ctl.model_version+=1
@@ -443,7 +455,7 @@ def run_research(args):
                 if delivered:
                     download(clients[i],model,complete_state)
                     downloaded.append(i)
-            ctl.complete(r,reports,accepted,downloaded,uploaded)
+            ctl.complete(r,reports,accepted,downloaded,uploaded,ingested=True)
             if budget_record is not None:
                 actual_bytes=sum(x["serialized_bytes"] for x in ctl.transport.events)-before_bytes
                 budget_record["actual_bytes"]=actual_bytes
@@ -469,7 +481,7 @@ def run_research(args):
             metrics.extend(evaluate(model,loaders,t,r,ctl.model_version,device,a.num_classes))
             rounds.append({"round":r,"task":t,"available":list(available),"selected":list(selected),"trained":trained,"fallback":fallback_ids,
                            "uploaded":uploaded,"accepted":list(accepted),"downloaded":downloaded,
-                           "start_versions":starts,"version":ctl.model_version,"outcomes":outcomes,
+                           "start_versions":starts,"aggregation_weights":dict(zip(accepted,weights)),"version":ctl.model_version,"outcomes":outcomes,
                            "no_aggregation":not accepted,"population_histograms":population,"probe_cost":probe_cost,"budget":budget_record,
                            "sampled_reports":{i:None if report is None else {"id":report.id,"values":report.counts,"space":report.space,"window":report.window} for i,report in reports.items()},
                            "last_complete_sync":{i:s.last_sync for i,s in ctl.local.items()},

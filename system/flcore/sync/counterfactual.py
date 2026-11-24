@@ -6,7 +6,7 @@ import numpy as np
 import torch
 
 def analyze(server,clients,datasets,task,r,ctl,actual,loaders,complete,device,classes):
-    from .engine import aggregate,evaluate,download
+    from .engine import aggregate,evaluate,download,aggregation_weights
     from .advanced import cached_views
     from .impact import subset_features
     # Candidate training is isolated and reused only within this single round.
@@ -42,7 +42,7 @@ def analyze(server,clients,datasets,task,r,ctl,actual,loaders,complete,device,cl
         subsets.update(tuple(j for j in ids if j not in pair) for pair in combinations(ids,2))
         outcomes=[]
         for s in sorted(subsets,key=lambda x:(len(x),x)):
-            weights=[len(datasets[i]) if complete else candidates[i].train_samples for i in s]
+            weights=aggregation_weights(ctl.args,candidates,datasets,s,complete)
             m=aggregate(server,[candidates[i] for i in s],weights,complete) if s else copy.deepcopy(server)
             if getattr(ctl.args,"sync_verify_branches",False) and s in (ids,tuple(sorted(actual))):
                 explicit=[]

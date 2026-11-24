@@ -9,11 +9,11 @@ import torch
 from torch.utils.data import DataLoader
 
 def continue_branch(server,originals,candidates,datasets,controller,subset,r,task,horizon,complete,device,classes):
-    from .engine import aggregate,download,evaluate
+    from .engine import aggregate,download,evaluate,aggregation_weights
     args=controller.args
     selected=set(subset)
     clients=[copy.deepcopy(candidates[i] if i in selected else c) for i,c in enumerate(originals)]
-    weights=[len(datasets[i]) if complete else clients[i].train_samples for i in subset]
+    weights=aggregation_weights(args,clients,datasets,subset,complete)
     model=aggregate(server,[clients[i] for i in subset],weights,complete) if subset else copy.deepcopy(server)
     version=controller.model_version+bool(subset)
     held={i:controller.local[i].model_version for i in range(len(clients))}
@@ -42,7 +42,7 @@ def continue_branch(server,originals,candidates,datasets,controller,subset,r,tas
             if args.sync_refresh and held[c.id]!=version:
                 download(c,model,complete);held[c.id]=version
             c.train_round(rr,tt,available[c.id])
-        weights=[len(available[c.id]) if complete else c.train_samples for c in clients]
+        weights=aggregation_weights(args,clients,available,tuple(c.id for c in clients),complete)
         model=aggregate(model,clients,weights,complete);version+=1
         for c in clients:download(c,model,complete);held[c.id]=version
         evaluate_at(rr,tt)

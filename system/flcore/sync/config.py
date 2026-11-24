@@ -25,6 +25,10 @@ def add_arguments(parser):
     p.add_argument("--sync-refresh",action="store_true")
     p.add_argument("--sync-local-capture",action="store_true")
     p.add_argument("--sync-balanced-sampler",action="store_true")
+    p.add_argument("--sync-queue-mode",choices=["native","sample_mean"],default="native")
+    p.add_argument("--sync-reference-recovery",action="store_true")
+    p.add_argument("--sync-v-normalized-lr",action="store_true",help="Divide local LR by V for a controlled penalty-weight ablation")
+    p.add_argument("--sync-weighting",choices=["profile","first_task","current","processed","equal"],default="profile")
     p.add_argument("--sync-aggregation",choices=["legacy","complete"],default="legacy")
     p.add_argument("--sync-resume",action="store_true")
     p.add_argument("--sync-stop-after-round",type=int,help="Pause at committed round for restart verification")
@@ -77,6 +81,10 @@ def validate(a):
         raise ValueError("hard caps currently require reliable pre-training delivery")
     if a.memory_size<0 or a.batch_size<1 or a.memory_batch_size<1 or a.local_epochs<1:
         raise ValueError("invalid local workload")
+    if a.sync_v_normalized_lr and (a.V<=0 or a.sync_er):
+        raise ValueError("V-normalized LR requires positive V and FEDQCL objective")
+    if a.sync_er and (a.sync_reference_recovery or a.sync_queue_mode!="native"):
+        raise ValueError("ER has no FEDQCL queue/reference correction")
     if a.sync_sketch_dim<1:
         raise ValueError("invalid sketch dimension")
     if a.sync_fallback and (a.sync_policy!="peer" or a.sync_peer_transport!="relay" or a.sync_posttrain or a.sync_counterfactual or a.sync_byte_cap or a.sync_campaign_byte_cap):

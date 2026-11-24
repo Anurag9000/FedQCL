@@ -76,10 +76,17 @@ class Controller:
                 raise ValueError("observation label outside task")
             population[y]+=1
         rng = random.Random(f"{a.seed}:observation:{i}:{task}:{r}")
+        epsilon=getattr(a,"sync_histogram_rr_epsilon",0.)
+        from math import exp
+        rr=random.Random(f"{a.seed}:rr:{i}:{task}:{r}")
         for idx in rng.sample(range(len(dataset)),n):
-            counts[int(dataset[idx][1])]+=1
+            y=int(dataset[idx][1])
+            if epsilon and len(labels)>1 and rr.random()>=exp(epsilon)/(exp(epsilon)+len(labels)-1):
+                y=rr.choice([label for label in labels if label!=y])
+            counts[y]+=1
         report = Report(i,task,r,labels,tuple(counts.values()),
-                        model_version=self.local[i].model_version,histogram_distance=getattr(a,"sync_histogram_distance","tv"))
+                        model_version=self.local[i].model_version,histogram_distance=getattr(a,"sync_histogram_distance","tv"),
+                        space=f"task_labels_rr:{epsilon}" if epsilon else "task_labels")
         return (report if report.valid(a.sync_min_observation) else None,
                 tuple(population.values()))
 
@@ -138,6 +145,11 @@ class Controller:
         expected_task=r//((a.global_rounds+1)//a.tasks) if hasattr(a,"global_rounds") else None
         reports={i:(x if x is not None and x.client==i and x.round==r and x.valid()
                     and (expected_task is None or x.task==expected_task) else None) for i in ids for x in [reports.get(i)]}
+        if getattr(a,"sync_charge_control",False):
+            for i in self.ids:
+                self.transport.send(r,"observe","server",i,"ROUND_CLOCK",{"task":expected_task,"version":self.model_version})
+                if i in ids:self.transport.send(r,"observe",i,"server","AVAILABILITY",{"available":True})
+            for i in ids:self.transport.send(r,"observe","server",i,"AVAILABLE_ROSTER",{"clients":ids})
         last = {i:self.local[i].last_sync for i in ids}
         due = due_clients(ids,last,r,a.sync_max_skip)
         threshold = threshold_value(a.sync_threshold)
@@ -181,7 +193,11 @@ class Controller:
             for i in ids:
                 self.transport.send(r,"observe",i,"server","HYBRID_SCORE",
                     {"score":None if scores[i] is None else float(scores[i])})
-        if peer and a.sync_peer_transport=="sparse":
+        if peer and a.sync_peer_transport=="distributed_sparse":
+            from .distributed_peer import distributed_election
+            selected,assignments=distributed_election(self.transport,ids,last,due,reports,r,threshold,k,
+                a.sync_peer_degree,a.sync_peer_solver,a.sync_peer_objective,a.seed,a.sync_dynamic_topology,a.sync_peer_loss,a.sync_gossip_fault)
+        elif peer and a.sync_peer_transport=="sparse":
             from .peer_network import sparse_election
             selected,assignments=sparse_election(self.transport,ids,last,due,reports,r,threshold,k,
                 getattr(a,"sync_peer_degree",2),a.sync_peer_solver,a.sync_peer_objective)
@@ -316,7 +332,7 @@ class Controller:
             self.local[i].last_sync = r
             self.local[i].last_report = reports.get(i)
         if policy in ("peer","combined13","combined23","combined123"):
-            if self.args.sync_peer_transport=="sparse":
+            if self.args.sync_peer_transport in ("sparse","distributed_sparse"):
                 # Sparse graph must not retroactively infer unobserved edges.
                 original=self.decisions[-1]["coverage"]
                 self.decisions[-1]["accepted_coverage"]={i:{**x,"covered":x["covered"] and x["representative"] in accepted} for i,x in original.items()}

@@ -295,6 +295,9 @@ def run_research(args):
     rpt=(a.global_rounds+1)//a.tasks
     complete_state=a.sync_aggregation=="complete"
     payload=model_bytes(model,complete_state)
+    failures=json.loads(Path(a.sync_failures).read_text()) if a.sync_failures else {}
+    def fails(r,kind,i):
+        return i in failures.get(str(r),{}).get(kind,[])
     try:
         for r in range(start,a.global_rounds+1):
             t=r//rpt
@@ -317,7 +320,7 @@ def run_research(args):
                 counterfactual_rows.extend(analyze(model,clients,datasets,t,r,ctl,selected,validation_loaders,
                                                    complete_state,device,a.num_classes))
             starts={i:ctl.local[i].model_version for i in selected}
-            trained=[]; outcomes=[]
+            trained=[]; outcomes=[]; uploaded=[]; accepted=[]
             for i in (range(a.num_clients) if a.sync_posttrain else selected):
                 c=clients[i]
                 starts[i]=ctl.local[i].model_version
@@ -332,16 +335,24 @@ def run_research(args):
                 ctl.local[i].local_revision+=1
                 trained.append(i)
                 if not a.sync_posttrain and i in selected:
+                    delivered=not fails(r,"upload",i)
+                    admitted=delivered and not fails(r,"reject",i)
                     ctl.transport.send(r,"upload",i,"server","MODEL_UPLOAD",
-                                       {"start_version":starts[i],"accepted":True},payload)
+                                       {"start_version":starts[i],"accepted":admitted},payload,delivered)
+                    if delivered: uploaded.append(i)
+                    if admitted: accepted.append(i)
                 outcomes.append({"client":i,"optimizer_steps":c.optimizer_steps,
                                  "samples":c.current_samples,"replay_samples":c.replay_samples,
                                  "seconds":time.monotonic()-begin})
             if a.sync_posttrain:
                 selected=ctl.decide(r,reports)
                 for i in selected:
-                    ctl.transport.send(r,'upload',i,'server','MODEL_UPLOAD',{'start_version':starts[i],'accepted':True},payload)
-            accepted=tuple(i for i in trained if i in selected)
+                    delivered=not fails(r,"upload",i)
+                    admitted=delivered and not fails(r,"reject",i)
+                    ctl.transport.send(r,'upload',i,'server','MODEL_UPLOAD',{'start_version':starts[i],'accepted':admitted},payload,delivered)
+                    if delivered: uploaded.append(i)
+                    if admitted: accepted.append(i)
+            accepted=tuple(accepted)
             if r==0 and len(accepted)!=a.num_clients:
                 raise RuntimeError("bootstrap incomplete")
             weights=[clients[i].train_samples if not complete_state else len(datasets[i]) for i in accepted]
@@ -350,10 +361,14 @@ def run_research(args):
                 ctl.model_version+=1
             downloaded=[]
             for i in accepted:
-                ctl.transport.send(r,"download","server",i,"MODEL_DOWNLOAD",{"version":ctl.model_version},payload)
-                download(clients[i],model,complete_state)
-                downloaded.append(i)
-            ctl.complete(r,reports,accepted,downloaded)
+                delivered=not fails(r,"download",i)
+                ctl.transport.send(r,"download","server",i,"MODEL_DOWNLOAD",{"version":ctl.model_version},payload,delivered)
+                if delivered:
+                    download(clients[i],model,complete_state)
+                    downloaded.append(i)
+            ctl.complete(r,reports,accepted,downloaded,uploaded)
+            if r==0 and len(downloaded)!=a.num_clients:
+                raise RuntimeError("bootstrap download incomplete")
             boundary=(r+1)%rpt==0
             if boundary and a.sync_local_capture:
                 for i in set(range(a.num_clients))-set(trained):
@@ -365,7 +380,7 @@ def run_research(args):
                                 for i in range(a.num_clients)]
             metrics.extend(evaluate(model,loaders,t,r,ctl.model_version,device,a.num_classes))
             rounds.append({"round":r,"task":t,"selected":list(selected),"trained":trained,
-                           "accepted":list(accepted),"downloaded":downloaded,
+                           "uploaded":uploaded,"accepted":list(accepted),"downloaded":downloaded,
                            "start_versions":starts,"version":ctl.model_version,"outcomes":outcomes,
                            "no_aggregation":not accepted,"population_histograms":population,
                            "memory_missed":[i for i in range(a.num_clients) if boundary and t not in clients[i].task_memories],
@@ -393,6 +408,7 @@ def run_research(args):
                  "forgetting":sum(forgetting)/len(forgetting) if forgetting else 0.,
                  "worst_task_accuracy":min(x["accuracy"] for x in final),
                  "total_bytes":sum(by_kind.values()),"bytes_by_kind":by_kind,
+                 "delivered_bytes":sum(x["delivered_bytes"] for x in ctl.transport.events),
                  "complete_syncs":sum(len(x["complete"]) for x in ctl.decisions),
                  "rounds":len(rounds),"accounting":"logical tensor payload plus canonical JSON envelope; common clock/availability free"}
         atomic_json(out/"final_summary.json",summary)

@@ -61,16 +61,19 @@ def main():
         old=state.get(key,{}).get("status")
         if old=="completed" and valid(job):
             continue
-        if old in ("failed","running") and not a.retry_failed:
+        if old in ("failed","running") and not (a.retry_failed or a.resume):
             failed=True;continue
         if job["kind"]=="generate" and valid(job):
             state[key]={"status":"completed"};save();continue
-        if job["kind"]=="train" and a.retry_failed:
+        if job["kind"]=="train" and (a.retry_failed or a.resume):
             out=Path(job["artifacts"][0]).parent
             if (out/"status.json").exists() and not valid(job):
-                # Never overwrite failed evidence; move it to a unique archive.
-                import time
-                out.rename(out.with_name(out.name+".failed-"+str(time.time_ns())))
+                if a.resume and "--sync-checkpoint" in command and (out/"checkpoint.pt").exists():
+                    command.append("--sync-resume")
+                else:
+                    # Preserve failed evidence before a fresh retry.
+                    import time
+                    out.rename(out.with_name(out.name+".failed-"+str(time.time_ns())))
         state[key]={"status":"running","command":command};save()
         with (logs/f"{key}.log").open("a") as log:
             rc=subprocess.run(command,cwd=cwd,stdout=log,stderr=subprocess.STDOUT).returncode

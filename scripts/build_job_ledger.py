@@ -41,7 +41,7 @@ def build(output):
                  "-V","200","-delta","1","-memory_size","500","-memory_batch_size","13","-seed",str(seed),
                  "--sync-policy",policy,"--sync-k",str(cfg["k"]),"--sync-output",str(out),*flags]
         return add(stage,"train",cfg,command,[dep],[str(out/"final_summary.json"),str(out/"status.json"),
-            str(out/"communication_events.jsonl"),str(out/"server_metrics.jsonl")])
+            str(out/"communication_events.jsonl"),str(out/"server_metrics.jsonl"),str(out/"server.pt")]+([str(out/"counterfactuals.jsonl")] if "--sync-counterfactual" in flags else []))
     policies=("full","random","oldest","own","server","peer")
     regimes=("near","separated","changing")
     for policy,regime,seed in itertools.product(policies,regimes,(42,43,44)):

@@ -205,11 +205,12 @@ class Controller:
         self.decisions.append(d)
         return selected
 
-    def complete(self,r,reports,accepted,downloaded):
+    def complete(self,r,reports,accepted,downloaded,uploaded=None):
+        uploaded=accepted if uploaded is None else uploaded
         complete = set(accepted)&set(downloaded)
         if self.args.sync_policy=="server" and self.args.sync_delivery!="telemetry":
             arrived = {}
-            for i in accepted:
+            for i in uploaded:
                 if reports.get(i) is not None:
                     msg = self.transport.send(r,"upload",i,"server","STAT_REPORT",asdict(reports[i]))
                     arrived[i] = Report(**{**msg,"labels":tuple(msg["labels"]),"counts":tuple(msg["counts"])})

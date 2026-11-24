@@ -29,6 +29,7 @@ def add_arguments(parser):
     p.add_argument("--sync-windowed",action="store_true")
     p.add_argument("--sync-posttrain",action="store_true")
     p.add_argument("--sync-bank-transfer",choices=["snapshot","delta"],default="snapshot")
+    p.add_argument("--sync-failures",help="JSON mapping round to upload/reject/download client IDs")
 
 def validate(a):
     if a.sync_policy=="legacy":

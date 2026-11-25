@@ -1,4 +1,4 @@
-# Active eight-signal research goal
+# Active comprehensive synchronization campaign\n\nThe default ledger now covers 24 independent distribution settings × three paired seeds × all nontrivial participation budgets, with full, random and oldest-first references: **7,560 training trajectories, 7,705 jobs**. See [the comprehensive campaign specification](docs/CONTROLLED_CAMPAIGN.md). The former 24-run design below is a historical pilot (`SYNC_SUITE=pilot`).\n\n# Active eight-signal research goal
 
 **24 training runs, 27 total jobs** on a shared controlled dynamic stream.
 Five regimes recur within every task; exact researcher-only ground truth and ten

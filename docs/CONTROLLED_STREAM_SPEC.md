@@ -1,4 +1,4 @@
-# Controlled-stream experiment contract
+> The default campaign has been expanded. See [CONTROLLED_CAMPAIGN.md](CONTROLLED_CAMPAIGN.md). This document describes the original single-stream pilot and shared ground-truth infrastructure.\n\n# Controlled-stream experiment contract
 
 The 24 matched trajectories use the same immutable generated CIFAR-100 stream.
 The design is configs/sync/controlled_stream.json. Five regimes recur once

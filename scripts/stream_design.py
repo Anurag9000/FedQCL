@@ -14,7 +14,7 @@ def validate_spec(s,n,tasks,windows):
     if s["mode"]=="balanced_dynamic" and (n!=5 or windows!=10 or s["domain_bins"]!=5 or s["regimes"]!=["similar","clustered","separated","reassigned","conditional"]):
         raise ValueError("balanced schedule contract")
     if "alpha_schedule" in s and (len(s["alpha_schedule"]) not in (windows,tasks*windows) or any(not np.isfinite(x) or x<=0 for x in s["alpha_schedule"])):raise ValueError("alpha schedule")
-    if s["mode"]=="named" and (n,w,s["domain_bins"])!=(5,10,5):raise ValueError("named settings require five clients, ten windows, five domains")
+    if s["mode"]=="named" and (n,windows,s["domain_bins"])!=(5,10,5):raise ValueError("named settings require five clients, ten windows, five domains")
     weights=np.asarray(s.get("workload_weights",[1]*n),float)
     if weights.shape!=(n,) or not np.isfinite(weights).all() or np.any(weights<=0):raise ValueError("workload weights")
     if len(set(s["counterfactual_rounds"]))!=len(s["counterfactual_rounds"]) or any(not 0<=r<tasks*windows for r in s["counterfactual_rounds"]):

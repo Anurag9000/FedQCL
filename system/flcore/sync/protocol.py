@@ -21,6 +21,7 @@ class LocalState:
     history: list = field(default_factory=list)
     bank_version: int = 0
     bank: tuple = ()
+    audit_bank_sources: dict = field(default_factory=dict)
 
 class Transport:
     """In-process reliable logical deliveries, per-recipient accounting."""
@@ -47,6 +48,32 @@ class Transport:
                             "delivered_bytes":n if delivered else 0})
         return decoded["payload"] if delivered else None
 
+def observe_local(a,i,task,r,dataset,model_version):
+    n = min(a.sync_observation_size,len(dataset))
+    labels = tuple(range(task*a.num_classes,(task+1)*a.num_classes))
+    counts = dict.fromkeys(labels,0)
+    population = dict.fromkeys(labels,0)
+    for _,y in dataset:
+        y = int(y)
+        if y not in population:
+            raise ValueError("observation label outside task")
+        population[y]+=1
+    rng = random.Random(f"{a.seed}:observation:{i}:{task}:{r}")
+    epsilon=getattr(a,"sync_histogram_rr_epsilon",0.)
+    from math import exp
+    rr=random.Random(f"{a.seed}:rr:{i}:{task}:{r}")
+    for idx in rng.sample(range(len(dataset)),n):
+        y=int(dataset[idx][1])
+        if epsilon and len(labels)>1 and rr.random()>=exp(epsilon)/(exp(epsilon)+len(labels)-1):
+            y=rr.choice([label for label in labels if label!=y])
+        counts[y]+=1
+    report = Report(i,task,r,labels,tuple(counts.values()),
+                    model_version=model_version,histogram_distance=getattr(a,"sync_histogram_distance","tv"),
+                    space=f"task_labels_rr:{epsilon}" if epsilon else "task_labels")
+    return (report if report.valid(a.sync_min_observation) else None,
+            tuple(population.values()))
+
+
 class Controller:
     def __init__(self, args, ids):
         self.args = args
@@ -66,31 +93,8 @@ class Controller:
             from pathlib import Path
             self.impact_model=json.loads(Path(args.sync_impact_model).read_text())
 
-    def observe(self, i, task, r, dataset):
-        a = self.args
-        n = min(a.sync_observation_size,len(dataset))
-        labels = tuple(range(task*a.num_classes,(task+1)*a.num_classes))
-        counts = dict.fromkeys(labels,0)
-        population = dict.fromkeys(labels,0)
-        for _,y in dataset:
-            y = int(y)
-            if y not in population:
-                raise ValueError("observation label outside task")
-            population[y]+=1
-        rng = random.Random(f"{a.seed}:observation:{i}:{task}:{r}")
-        epsilon=getattr(a,"sync_histogram_rr_epsilon",0.)
-        from math import exp
-        rr=random.Random(f"{a.seed}:rr:{i}:{task}:{r}")
-        for idx in rng.sample(range(len(dataset)),n):
-            y=int(dataset[idx][1])
-            if epsilon and len(labels)>1 and rr.random()>=exp(epsilon)/(exp(epsilon)+len(labels)-1):
-                y=rr.choice([label for label in labels if label!=y])
-            counts[y]+=1
-        report = Report(i,task,r,labels,tuple(counts.values()),
-                        model_version=self.local[i].model_version,histogram_distance=getattr(a,"sync_histogram_distance","tv"),
-                        space=f"task_labels_rr:{epsilon}" if epsilon else "task_labels")
-        return (report if report.valid(a.sync_min_observation) else None,
-                tuple(population.values()))
+    def observe(self,i,task,r,dataset):
+        return observe_local(self.args,i,task,r,dataset,self.local[i].model_version)
 
     def ingest(self, reports, r, accepted, observed=False):
         changed = False
@@ -125,15 +129,19 @@ class Controller:
                     key=(x.task,x.labels,x.schema,x.kind,x.space,x.metric,x.histogram_distance)
                     group=groups.setdefault(key,{})
                     if x.client not in group or group[x.client].round<x.round:group[x.client]=x
-                aggregates=[]
+                aggregates=[];audit_sources={}
                 for group in groups.values():
                     members=list(group.values())
                     aggregate=pooled(members,members[0],weighted=True)
-                    aggregates.append(replace(aggregate,round=min(evidence_round(x) for x in members)))
+                    aggregate=replace(aggregate,round=min(evidence_round(x) for x in members))
+                    aggregates.append(aggregate)
+                    if getattr(self.args,"sync_audit_references",False):
+                        audit_sources[aggregate.id]=[{"id":x.id,"client":x.client,"round":x.round,"source_round":evidence_round(x),"sample_count":x.sample_count} for x in members]
                 payload=self.transport.send(r,phase,"server",i,"BANK_AGGREGATE",
                     {"version":self.bank_version,"records":[asdict(x) for x in aggregates]})
                 local.bank=tuple(Report(**{**x,"labels":tuple(x["labels"]),"counts":tuple(x["counts"])}) for x in payload["records"])
                 local.bank_version=payload["version"]
+                local.audit_bank_sources=audit_sources
                 continue
             if self.args.sync_bank_transfer=="delta" and local.bank_version in self.bank_snapshots:
                 old={x.id:x for x in self.bank_snapshots[local.bank_version]}
@@ -357,6 +365,10 @@ class Controller:
                            else "deadline_cap" if i in due else "unknown" if i in scores and scores[i] is None
                            else "fixed_count_fill" if i in selected and i in scores and scores[i]<=threshold
                            else "selected" if i in selected else "deferred") for i in ids}}
+        if getattr(a,"sync_audit_references",False):
+            d["reference_sources"]={i:self.local[i].audit_bank_sources.get(refs.get(i),[]) if server and isinstance(refs.get(i),str) else [] for i in ids}
+            if peer:
+                d["peer_distances"]=[{"clients":[i,j],"distance":None if (v:=distance(reports[i],reports[j])) is None else float(v)} for i in ids for j in ids if i<j]
         self.decisions.append(d)
         return selected
 

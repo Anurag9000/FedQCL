@@ -31,15 +31,16 @@ def analyze(server,clients,datasets,task,r,ctl,actual,loaders,complete,device,cl
             c.train_round(r,task,datasets[i])
             candidates.append(c)
         ids=tuple(range(len(clients)))
-        k=min(3,len(ids))
+        k=min(ctl.args.sync_k,len(ids)) if getattr(ctl.args,"sync_controlled_stream",False) else min(3,len(ids))
         subsets=set(combinations(ids,k))
         if getattr(ctl.args,"sync_all_subsets",False):
             if len(ids)>10:raise ValueError("exhaustive counterfactual limit is 10 clients")
             subsets.update(s for k in range(len(ids)+1) for s in combinations(ids,k))
         subsets.add(ids)
         subsets.add(tuple(sorted(actual)))
-        subsets.update(tuple(j for j in ids if j!=i) for i in ids)
-        subsets.update(tuple(j for j in ids if j not in pair) for pair in combinations(ids,2))
+        if not getattr(ctl.args,"sync_controlled_stream",False):
+            subsets.update(tuple(j for j in ids if j!=i) for i in ids)
+            subsets.update(tuple(j for j in ids if j not in pair) for pair in combinations(ids,2))
         outcomes=[]
         for s in sorted(subsets,key=lambda x:(len(x),x)):
             weights=aggregation_weights(ctl.args,candidates,datasets,s,complete)
@@ -60,7 +61,8 @@ def analyze(server,clients,datasets,task,r,ctl,actual,loaders,complete,device,cl
             outcomes.append({"round":r,"task":task,"subset":list(s),"size":len(s),
                              "actual":s==tuple(sorted(actual)),"current_loss":cur,"past_loss":past,
                              "features":subset_features(ids,s,cached,last,r,task,rpt,ctl.args.sync_bank_age),
-                             "accuracy":sum(x["accuracy"] for x in rows)/len(rows)})
+                             "accuracy":sum(x["accuracy"] for x in rows)/len(rows),
+                             "task_metrics":[{"task":x["task"],"loss":x["loss"],"accuracy":x["accuracy"]} for x in rows]})
             del m
         full=next(x for x in outcomes if x["subset"]==list(ids))
         for row in outcomes:

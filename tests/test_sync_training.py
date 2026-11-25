@@ -18,7 +18,7 @@ class Training(unittest.TestCase):
                         folder=data/f"task_{t}"/split;folder.mkdir(parents=True,exist_ok=True)
                         x=rng.normal(0,.1,size=(4,3,8,8)).astype("float32")
                         y=np.array([2*t,2*t+1,2*t,2*t+1],dtype=np.int64)
-                        np.savez_compressed(folder/f"{i}.npz",data={"x":x,"y":y,"window":np.zeros(4,dtype=int)})
+                        np.savez_compressed(folder/f"{i}.npz",data={"x":x,"y":y,"window":np.array([0,0,1,1],dtype=int)})
             import hashlib
             shards={}
             for t in range(2):
@@ -57,7 +57,7 @@ class Training(unittest.TestCase):
             # Execute each active entry on the tiny two-task dataset.
             sys.path.insert(0,str(root/"scripts"))
             from core_suite import read_core_signal_entries
-            cases.extend((entry["id"],entry["policy"],entry["flags"]) for entry in read_core_signal_entries())
+            cases.extend((entry["id"],entry["policy"],[*entry["flags"],"--sync-windowed","--sync-audit-references"]) for entry in read_core_signal_entries())
             for name,policy,extra in cases:
                 out=run(name,policy,extra)
                 if name=="aggregate_cka":
@@ -76,6 +76,9 @@ class Training(unittest.TestCase):
                                     source=row["probe_cost"][i]["cached_update_source_round"]
                                     self.assertLess(source,row["round"]);self.assertEqual(rounds[source]["task"],row["task"])
                                     self.assertIn(int(i),rounds[source]["trained"])
+                                    self.assertEqual(report["window"],f"cached_update:{source}")
+                    if name.startswith("A0"):
+                        self.assertTrue(all(sum(hist)==2 for row in rounds for hist in row["population_histograms"].values()))
                 for row in rounds:
                     self.assertEqual(row["selected"],row["trained"])
                     self.assertEqual(row["accepted"],row["downloaded"])

@@ -2,7 +2,7 @@
 Sequential local workers deliberately avoid the legacy shared-RNG thread race.
 """
 import copy
-from dataclasses import replace
+from dataclasses import replace,asdict
 import hashlib
 import json
 import os
@@ -16,7 +16,7 @@ from torch.utils.data import DataLoader, default_collate
 from .backbone import BACKBONE, fedavg, sample_replay, replay_ce
 from flcore.trainmodel.resnet import ResNet18_dpp
 from utils.data_utils import read_client_data
-from .protocol import Controller
+from .protocol import Controller,observe_local
 
 def seed_for(seed,*keys):
     return int.from_bytes(hashlib.sha256(repr((seed,keys)).encode()).digest()[:4],"little")
@@ -226,6 +226,7 @@ def save_checkpoint(path,r,model,clients,controller,metrics,rounds,signature,cou
                 "python_rng":random.getstate(),"numpy_rng":np.random.get_state(),
                 "torch_rng":torch.get_rng_state(),
                 "cuda_rng":torch.cuda.get_rng_state_all() if torch.cuda.is_available() else []},tmp)
+    os.chmod(tmp,0o600)
     os.replace(tmp,path)
 
 def run_research(args):
@@ -250,6 +251,13 @@ def run_research(args):
     if a.sync_counterfactual and not manifest:
         raise ValueError('counterfactual validation requires controlled dataset manifest')
     config['dataset_manifest_id']=manifest['manifest_id'] if manifest else None
+    counterfactual_schedule=None
+    if a.sync_controlled_stream:
+        from .ground_truth import install_bundle
+        receipt=install_bundle(dataset_root,out,manifest)
+        config["ground_truth_hash"]=receipt["ground_truth_hash"]
+        counterfactual_schedule=set(manifest["controlled_stream"]["counterfactual_rounds"])
+    integrity_manifest={k:manifest[k] for k in ("schema","manifest_id","public_probe_per_class","shards") if k in manifest} if manifest else None
     for field in ('sync_impact_model','sync_count_schedule','sync_failures','sync_byte_schedule'):
         path=getattr(a,field,None)
         if path:config[field+'_sha256']=hashlib.sha256(Path(path).read_bytes()).hexdigest()
@@ -267,7 +275,7 @@ def run_research(args):
         commit="unknown"
     atomic_json(out/"provenance.json",{"commit":commit,"torch":torch.__version__,"signature":signature,"backbone":BACKBONE})
     atomic_json(out/"status.json",{"status":"running"})
-    a.dataset_manifest=manifest
+    a.dataset_manifest=integrity_manifest
     a._verified_shards={}
     seed_all(a.seed)
     torch.backends.cudnn.deterministic=True
@@ -277,13 +285,20 @@ def run_research(args):
     device=torch.device(a.device)
     model=copy.deepcopy(a.model).to(device)
     from .signals import SignalExtractor
-    extractor=SignalExtractor(a,copy.deepcopy(a.model) if a.sync_signal in ("feature","prototypes","feature_covariance","spectral","multichannel","representation_anchor","conditional_moments","tier_a_features","tier_a_prototypes") else None)
+    observation_args=copy.copy(a)
+    if integrity_manifest:
+        observation_args.dataset_manifest={**integrity_manifest,"shards":{k:v for k,v in integrity_manifest.get("shards",{}).items() if "/public_probe/" in k}}
+    extractor=SignalExtractor(observation_args,copy.deepcopy(a.model) if a.sync_signal in ("feature","prototypes","feature_covariance","spectral","multichannel","representation_anchor","conditional_moments","tier_a_features","tier_a_prototypes") else None)
     clients=[]
     for i in range(a.num_clients):
         task0=os.path.join(a.dataset,"task_0")
         verify_shard(a,0,"train",i)
         n=len(read_client_data(task0,i,True))
-        clients.append(ResearchClient(a,id=i,train_samples=n,test_samples=0,train_slow=False,send_slow=False))
+        client_args=copy.copy(a)
+        if integrity_manifest:
+            client_args.dataset_manifest={**integrity_manifest,"shards":{k:v for k,v in integrity_manifest.get("shards",{}).items() if k.endswith(f"/train/{i}.npz") or "/public_probe/" in k}}
+            client_args._verified_shards={}
+        clients.append(ResearchClient(client_args,id=i,train_samples=n,test_samples=0,train_slow=False,send_slow=False))
     ctl=Controller(a,range(a.num_clients))
     byte_schedule=None
     if a.sync_byte_schedule:
@@ -298,6 +313,9 @@ def run_research(args):
     ctl.args=copy.copy(a)
     ctl.args.model=None
     ctl.args.encoder=None
+    ctl.args.dataset_manifest=None
+    ctl.args._verified_shards={}
+    # Research-only allocations, manifest and oracle outputs are excluded.
     metrics=[]; rounds=[]; start=0
     ckpt=out/"checkpoint.pt"
     if a.sync_resume:
@@ -337,7 +355,7 @@ def run_research(args):
             reports={}; population={}; probe_cost={}; update_starts={}
             for i in available:
                 c=clients[i]
-                histogram,population[c.id]=ctl.observe(c.id,t,r,datasets[c.id])
+                histogram,population[c.id]=observe_local(c.research_args,c.id,t,r,datasets[c.id],ctl.local[c.id].model_version)
                 if histogram is not None and a.sync_windowed:
                     histogram=replace(histogram,window=f"task{t}:window{r%rpt}")
                 reports[c.id],probe_cost[c.id]=extractor.before(c,datasets[c.id],histogram,t,r,ctl.local[c.id].model_version)
@@ -349,8 +367,9 @@ def run_research(args):
                     reports[c.id]=replace(reports[c.id],importance=max(1.,float(importance)))
                 from .wire import quantize_report
                 reports[c.id],probe_cost[c.id]["quantization_l2"]=quantize_report(reports[c.id],a.sync_wire_format)
-                if reports[c.id] is not None and a.sync_windowed:
+                if reports[c.id] is not None and a.sync_windowed and reports[c.id].kind!="tier_a_cached_update":
                     reports[c.id]=replace(reports[c.id],window=f"task{t}:window{r%rpt}")
+            counterfactual_seconds=0.
             budget_record=None
             if a.sync_byte_cap or a.sync_campaign_byte_cap or byte_schedule is not None:
                 from .budgets import choose_budgeted
@@ -364,7 +383,8 @@ def run_research(args):
                 selected,budget_record=choose_budgeted(ctl,r,reports,payload,limit,remaining if a.sync_budget_reserve else None)
             else:
                 selected=ctl.decide(r,reports,available) if not a.sync_posttrain else ()
-            if a.sync_counterfactual and r in {0, rpt//2, rpt-1, rpt, 2*rpt-1, a.global_rounds}:
+            if a.sync_counterfactual and r in (counterfactual_schedule if counterfactual_schedule is not None else {0, rpt//2, rpt-1, rpt, 2*rpt-1, a.global_rounds}):
+                cf_started=time.monotonic()
                 for u in range(t+1):
                     if u not in validation_loaders:
                         validation_loaders[u]=[]
@@ -377,6 +397,7 @@ def run_research(args):
                 from .counterfactual import analyze
                 counterfactual_rows.extend(analyze(model,clients,datasets,t,r,ctl,selected,validation_loaders,
                                                    complete_state,device,a.num_classes))
+                counterfactual_seconds=time.monotonic()-cf_started
             starts={i:ctl.local[i].model_version for i in selected}
             trained=[]; outcomes=[]; uploaded=[]; accepted=[]; fallback_ids=[]
             training_roster=list(available if a.sync_posttrain else selected)
@@ -495,7 +516,9 @@ def run_research(args):
                            "uploaded":uploaded,"accepted":list(accepted),"downloaded":downloaded,
                            "start_versions":starts,"aggregation_weights":dict(zip(accepted,weights)),"version":ctl.model_version,"outcomes":outcomes,
                            "no_aggregation":not accepted,"population_histograms":population,"probe_cost":probe_cost,"budget":budget_record,
-                           "sampled_reports":{i:None if report is None else {"id":report.id,"values":report.counts,"space":report.space,"window":report.window} for i,report in reports.items()},
+                           "sampled_reports":{i:None if report is None else {"id":report.id,"values":report.counts,"space":report.space,"window":report.window,**(asdict(report) if a.sync_audit_references else {})} for i,report in reports.items()},
+                           "observation_window":r%rpt if a.sync_windowed else None,
+                           "counterfactual_seconds":counterfactual_seconds,
                            "last_complete_sync":{i:s.last_sync for i,s in ctl.local.items()},
                            "local_revisions":{i:s.local_revision for i,s in ctl.local.items()},
                            "memory_missed":[i for i in range(a.num_clients) if boundary and t not in clients[i].task_memories],
@@ -530,6 +553,9 @@ def run_research(args):
                  "rounds":len(rounds),"evaluation_split":a.sync_eval_split,"accounting":f"logical tensor payload plus {a.sync_wire_format} envelope; common clock/availability free"}
         from .metrics import summarize
         summary.update(summarize(metrics,rounds,ctl.decisions,ctl.transport.events,a.tasks,rpt,a.num_clients))
+        if a.sync_controlled_stream:
+            from .ground_truth import analyze_run
+            summary.update(analyze_run(out,rounds,ctl.decisions,metrics,counterfactual_rows))
         atomic_json(out/"final_summary.json",summary)
         torch.save(model.state_dict(),out/"server.pt")
         atomic_json(out/"status.json",{"status":"completed"})

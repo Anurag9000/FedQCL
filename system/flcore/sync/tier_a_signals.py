@@ -31,8 +31,15 @@ def replay_diagnostic(ex,c,model,groups,cost,t):
             loss=sum(torch.nn.functional.cross_entropy(model(xx,k),yy,reduction="sum").item()
                      for xx,yy in zip(x.split(c.batch_size),y.split(c.batch_size)))/len(x)
         key=f"tier_a_retention:{t}:{k}"
-        baseline=c.signal_history.setdefault(key,loss)
-        values[k]=loss;changes[k]=loss-baseline
+        fingerprint=hashlib.sha256()
+        for xx,yy in chosen:
+            fingerprint.update(xx.detach().cpu().contiguous().numpy().tobytes());fingerprint.update(torch.as_tensor(yy).cpu().numpy().tobytes())
+        identity=fingerprint.hexdigest()
+        ref=c.signal_history.get(key)
+        if not isinstance(ref,dict) or ref.get("probe")!=identity:
+            ref={"probe":identity,"loss":loss,"reference_round":cost.get("observation_round")};c.signal_history[key]=ref
+        values[k]=loss;changes[k]=loss-ref["loss"]
+        cost.setdefault("replay_reference_round_by_task",{})[k]=ref["reference_round"]
         cost["forward_examples"]+=len(x)
     cost["replay_loss_by_task"]=values;cost["replay_loss_change_by_task"]=changes
 
@@ -56,7 +63,7 @@ def public_inputs(ex,c,k):
 def extract(ex,c,data,t,r,version,kind):
     from .extra_signals import features
     start=time.monotonic()
-    cost={"forward_examples":0,"backward_examples":0,"seconds":0.,"replay_loss_by_task":{},"replay_loss_change_by_task":{}}
+    cost={"observation_round":r,"forward_examples":0,"backward_examples":0,"seconds":0.,"replay_loss_by_task":{},"replay_loss_change_by_task":{}}
     model=copy.deepcopy(c.model).eval()
     groups=replay_groups(ex,c,t,r)
     # diagnostics use all nonempty past memories, regardless of sampled gradient groups

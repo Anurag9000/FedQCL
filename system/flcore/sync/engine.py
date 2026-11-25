@@ -596,7 +596,7 @@ def run_research(args):
             summary.update(analyze_run(out,rounds,ctl.decisions,metrics,counterfactual_rows,ctl.transport.events))
         if a.sync_bandwidth_audit:
             from .bandwidth import audit,write_artifacts
-            comm,by_round,by_client=audit(ctl.transport.events,rounds,schema,a.num_clients)
+            comm,by_round,by_client=audit(ctl.transport.events,rounds,schema,a.num_clients,a.sync_policy)
             write_artifacts(out,comm,by_round,by_client)
             summary.update({k:comm[k] for k in ("model_bytes","statistics_bytes","control_bytes","upload_bytes","download_bytes","peer_bytes","model_tensor_bytes","statistic_vector_bytes","full_model_payload_bytes","model_uploads","model_downloads","initial_downloads","model_refreshes","skipped_client_rounds","no_aggregation_rounds","mean_participants","participation_fraction")})
             summary["accounting"]="audited dense native tensor bytes plus serialized envelopes; initialization, controls and per-recipient deliveries included; no physical network"

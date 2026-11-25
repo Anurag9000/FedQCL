@@ -99,7 +99,7 @@ def valid(job):
             expected.update({flag[2:].replace("-","_"):True for flag in CORE_RUNTIME_FLAGS})
             if any(resolved_config.get(k)!=v for k,v in expected.items()):return False
             from flcore.sync.bandwidth import verify_artifacts
-            verify_artifacts(out,events,rounds,cfg["clients"],summary)
+            verify_artifacts(out,events,rounds,cfg["clients"],summary,cfg["policy"])
             from flcore.sync.ground_truth import verify
             truth=out/"ground_truth";receipt=json.loads((truth/"validation_receipt.json").read_text());verify(truth,receipt)
             manifest=json.loads((truth/"dataset_manifest.json").read_text())
@@ -221,7 +221,7 @@ def estimate(jobs):
     cf_aggregates=sum(len(j["config"].get("counterfactual_rounds",[]))*(comb(j["config"]["clients"],j["config"]["k"])+int(j["config"]["k"]!=j["config"]["clients"])) for j in fixed)
     cf_max=cf_aggregates+sum(len(j["config"]["counterfactual_rounds"])*(comb(j["config"]["clients"],j["config"]["clients"]//2)+1) for j in adaptive)
     return {"jobs":len(jobs),"training_jobs":len(training),"threshold_jobs":len(adaptive),"nominal_client_draws":draws,"threshold_draw_upper_bound":adaptive_max,"counterfactual_aggregate_upper_bound":cf_max,"counterfactual_checkpoints":cf_rounds,"counterfactual_candidate_local_trainings":cf_candidates,"counterfactual_aggregate_evaluations":cf_aggregates,
-            "nominal_model_transfer_bytes_at_45MB":45000000*(2*(draws+adaptive_max)+initial),
+            nominal_model_transfer_upper_bound_at_45MB":45000000*(2*(draws+adaptive_max)+initial),
             "initial_task_il_downloads":initial,
             "task_il_local_training_rounds":sum(j["config"].get("local_training_rounds",0) for j in training),
             "note":"Adaptive, threshold, failures, duplicate draws and counterfactual continuation alter actual costs. No runtime or peak memory guarantee."}

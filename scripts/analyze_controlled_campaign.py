@@ -126,7 +126,7 @@ def analyze(ledger,out):
             if group not in hashes:hashes[group]=h;truths[group]={"setting_id":group[0],"partition_seed":group[1],"ground_truth_hash":h,**truth_stats(root/"ground_truth")}
             row=flatten(job,summary,audit,{k:v for k,v in truths[group].items() if k not in ("setting_id","partition_seed","ground_truth_hash")})
             rows.append(row)
-            common={k:row[k] for k in ("experiment_id","selector_id","setting_id","partition_seed","k","signal","mechanism","ground_truth_hash")}
+            common={k:row[k] for k in ("experiment_id","selector_id","setting_id","partition_seed","k","selection_mode","threshold","signal","mechanism","ground_truth_hash")}
             for field,handle in zip(fields,files):
                 values=[{"regime":k,**v} for k,v in audit[field].items()] if field=="regimes" else audit[field]
                 for value in values:handle.write(json.dumps({**common,**value},allow_nan=False)+"\n")

@@ -116,7 +116,7 @@ class Training(unittest.TestCase):
                     sys.path.insert(0,str(root/"system"))
                     from flcore.sync.bandwidth import verify_artifacts
                     events=[json.loads(l) for l in (out/"communication_events.jsonl").read_text().splitlines()]
-                    verified=verify_artifacts(out,events,rounds,2,json.loads((out/"final_summary.json").read_text()))
+                    verified=verify_artifacts(out,events,rounds,2,json.loads((out/"final_summary.json").read_text()),policy)
                     self.assertEqual(verified["initial_downloads"],2)
                     if name=="A06-M1-threshold":self.assertTrue(any(not row["selected"] for row in rounds))
                 if name.startswith("B-"):

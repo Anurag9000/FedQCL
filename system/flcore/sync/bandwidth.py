@@ -1,5 +1,6 @@
 """Logical application traffic: dense native model state and serialized envelopes."""
-import hashlib,json
+import hashlib,json,base64
+from .wire import unpack,binary_vector_bytes
 from pathlib import Path
 MODEL={"MODEL_INITIAL","MODEL_UPLOAD","MODEL_DOWNLOAD","MODEL_REFRESH"}
 STAT={"STAT_REPORT","BANK_AGGREGATE","BANK_DELTA","BANK_SNAPSHOT","PEER_STAT_REPORT","PEER_ROSTER","PEER_RECOVERY_REPORT","PEER_RECOVERY_ROSTER","GRADIENT_PROBE"}
@@ -27,7 +28,7 @@ def add(b,e):
     b["envelope_bytes"]+=e["envelope_bytes"];b["transactions"]+=1
     for key,field in (("bytes_by_kind","kind"),("bytes_by_phase","phase")):
         name=e[field];b[key][name]=b[key].get(name,0)+n
-def audit(events,rounds,schema,clients):
+def audit(events,rounds,schema,clients,policy=None):
     total=bucket();ids=set(range(clients));nrounds=len(rounds)
     tensors=schema["tensors"]
     if schema["id"]!=hashlib.sha256(json.dumps(tensors,sort_keys=True,separators=(",",":")).encode()).hexdigest():raise ValueError("model schema fingerprint")
@@ -44,6 +45,16 @@ def audit(events,rounds,schema,clients):
         if n!=e["tensor_bytes"]+e["vector_bytes"]+e["envelope_bytes"] or e["encoded_envelope_bytes"]!=e["vector_bytes"]+e["envelope_bytes"]:raise ValueError("event byte reconciliation")
         if not e["delivered"] or e["delivered_bytes"]!=n:raise ValueError("audited reliable delivery violated")
         if e["tensor_bytes"]!=(schema["tensor_bytes"] if kind in MODEL else 0):raise ValueError("model transfer size")
+        wire=base64.b64decode(e["encoded_envelope_b64"],validate=True)
+        if len(wire)!=e["encoded_envelope_bytes"] or hashlib.sha256(wire).hexdigest()!=e["envelope_sha256"]:raise ValueError("serialized envelope verification")
+        decoded=json.loads(wire) if e["wire_format"]=="json" else unpack(wire)
+        for key in ("round","phase","sender","receiver","kind"):
+            if decoded[key]!=e[key]:raise ValueError("serialized event metadata mismatch")
+        if e["vector_bytes"]!=(0 if e["wire_format"]=="json" else binary_vector_bytes(wire)):raise ValueError("serialized vector bytes")
+        if kind in MODEL and decoded["payload"].get("schema")!=schema["id"]:raise ValueError("model schema reference mismatch")
+        if kind=="MODEL_UPLOAD":
+            row=rounds[r];i=e["sender"];counts=row["supplied_samples"]
+            if decoded["payload"]["sample_count"]!=counts.get(i,counts.get(str(i))):raise ValueError("aggregation mass mismatch")
         for endpoint in ("sender","receiver"):
             i=e[endpoint]
             if i!="server":
@@ -66,6 +77,16 @@ def audit(events,rounds,schema,clients):
             if not set(models[r]["MODEL_REFRESH"])<=selected:raise ValueError("refresh of skipped client")
             for k,d in (("ROUND_CLOCK",[("server",i) for i in ids]),("AVAILABILITY",[(i,"server") for i in ids]),("AVAILABLE_ROSTER",[("server",i) for i in ids])):
                 if set(controls[r].get(k,[]))!=set(d) or len(controls[r].get(k,[]))!=len(d):raise ValueError("missing/duplicate common control")
+            if sorted(controls[r].get("ADMISSION_RESPONSE",[]))!=sorted(("server",i) for i in selected):raise ValueError("admission response roster")
+            if policy in ("own","full","random","oldest") and b["statistics_bytes"]:raise ValueError("unexpected statistics delivery")
+            if policy=="peer":
+                if sorted(controls[r].get("PEER_STAT_REPORT",[]))!=sorted((i,j) for i in ids for j in ids if i!=j):raise ValueError("peer fanout")
+                if sorted(controls[r].get("ELECTION_RESULT",[]))!=sorted((i,"server") for i in ids):raise ValueError("peer election roster")
+            if policy=="server":
+                reports=row["sampled_reports"]
+                expected=[(i,"server") for i in selected if reports.get(i,reports.get(str(i))) is not None]
+                if sorted(controls[r].get("STAT_REPORT",[]))!=sorted(expected):raise ValueError("server report roster")
+                if sorted(controls[r].get("BANK_AGGREGATE",[]))!=sorted(("server",i) for i in selected):raise ValueError("aggregate report roster")
             participants+=len(selected);skipped+=clients-len(selected);empty+=not selected
         cumulative+=b["total_bytes"]
         rows.append({"round":r,**b,"participants":len(selected) if row else None,"cumulative_bytes":cumulative})
@@ -84,9 +105,9 @@ def write_artifacts(out,total,rounds,clients):
     out=Path(out)
     for name,content in (("communication_summary.json",json.dumps(total,sort_keys=True,indent=2)),("communication_rounds.jsonl","".join(json.dumps(x,sort_keys=True)+"\n" for x in rounds)),("communication_clients.jsonl","".join(json.dumps(x,sort_keys=True)+"\n" for x in clients))):
         tmp=out/(name+".tmp");tmp.write_text(content);tmp.replace(out/name)
-def verify_artifacts(out,events,rounds,clients,summary):
+def verify_artifacts(out,events,rounds,clients,summary,policy=None):
     out=Path(out);schema=json.loads((out/"model_wire_schema.json").read_text())
-    total,rr,cc=audit(events,rounds,schema,clients)
+    total,rr,cc=audit(events,rounds,schema,clients,policy)
     if total!=json.loads((out/"communication_summary.json").read_text()) or rr!=[json.loads(x) for x in (out/"communication_rounds.jsonl").read_text().splitlines()] or cc!=[json.loads(x) for x in (out/"communication_clients.jsonl").read_text().splitlines()]:raise ValueError("communication artifacts disagree with events")
     for k,v in total.items():
         if k in summary and k not in ("schema","accounting") and summary[k]!=v:raise ValueError("communication summary disagreement: "+k)

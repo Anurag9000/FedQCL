@@ -23,5 +23,6 @@ class ComprehensiveAnalysis(unittest.TestCase):
         self.assertAlmostEqual(s["final_accuracy_delta_vs_full_mean"],-.1)
         self.assertAlmostEqual(s["final_accuracy_delta_vs_random_sd"],0.)
         self.assertEqual(s["n_seeds"],3)
+        self.assertEqual(s["byte_savings_fraction_vs_full_n"],0)
         rows[0]["ground_truth_hash"]="invalid"
         with self.assertRaises(ValueError):baseline_deltas(rows)

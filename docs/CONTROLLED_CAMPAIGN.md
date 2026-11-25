@@ -109,3 +109,5 @@ transmitted; local optimization and offline counterfactuals have no FL traffic.
 Physical link throughput, packet overhead and hard-byte-cap variants are not
 measured by this audit. Use --selection-mode threshold --threshold 0.2 to
 filter threshold trajectories; --budget 3 selects only fixed-budget runs.
+
+Audited communication events also preserve base64 of the exact serialized envelope (not model tensor contents), and its SHA-256; the verifier decodes and checks each envelope, tensor schema, message roster, category and direction. The peer roster communicates last-sync ages, and selected peers receive an explicit admission response. Treat derived statistical envelopes as restricted research output, not public releases.

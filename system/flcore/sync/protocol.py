@@ -25,7 +25,8 @@ class LocalState:
 
 class Transport:
     """In-process reliable logical deliveries, per-recipient accounting."""
-    def __init__(self,wire_format="json"):
+    def __init__(self,wire_format="json",audit=False):
+        self.audit=audit
         self.events = []
         self.wire_format=wire_format
     def send(self, r, phase, sender, receiver, kind, payload, tensor_bytes=0, delivered=True):
@@ -53,6 +54,9 @@ class Transport:
                             "tensor_bytes":tensor_bytes,"vector_bytes":vector_bytes,
                             "envelope_bytes":len(wire)-vector_bytes,"encoded_envelope_bytes":len(wire),
                             "delivered_bytes":n if delivered else 0})
+        if getattr(self,"audit",False):
+            import base64
+            self.events[-1].update(encoded_envelope_b64=base64.b64encode(wire).decode("ascii"),envelope_sha256=hashlib.sha256(wire).hexdigest())
         return decoded["payload"] if delivered else None
 
 def observe_local(a,i,task,r,dataset,model_version):
@@ -86,7 +90,7 @@ class Controller:
         self.args = args
         self.ids = tuple(sorted(ids))
         self.local = {i:LocalState() for i in self.ids}
-        self.transport = Transport(getattr(args,"sync_wire_format","json"))
+        self.transport = Transport(getattr(args,"sync_wire_format","json"),getattr(args,"sync_bandwidth_audit",False))
         self.bank = {}
         self.bank_version = 0
         self.bank_snapshots = {0:()}
@@ -187,7 +191,7 @@ class Controller:
             for i in self.ids:
                 self.transport.send(r,"observe","server",i,"ROUND_CLOCK",{"task":expected_task,"version":self.model_version})
                 if i in ids:self.transport.send(r,"observe",i,"server","AVAILABILITY",{"available":True})
-            for i in ids:self.transport.send(r,"observe","server",i,"AVAILABLE_ROSTER",{"clients":ids})
+            for i in ids:self.transport.send(r,"observe","server",i,"AVAILABLE_ROSTER",{"clients":ids,**({"last_sync":{j:self.local[j].last_sync for j in ids}} if peer and getattr(a,"sync_bandwidth_audit",False) else {})})
         last = {i:self.local[i].last_sync for i in ids}
         due = due_clients(ids,last,r,a.sync_max_skip)
         threshold = threshold_value(a.sync_threshold)
@@ -355,7 +359,7 @@ class Controller:
                           "mandatory":i in due,"unknown":score is None})
                 if i in selected:
                     self.transport.send(r,"admission","server",i,"ADMISSION_RESPONSE",{"admitted":True})
-        if getattr(a,"sync_bandwidth_audit",False) and (policy in ("full","random","oldest") or (r==0 and not peer)):
+        if getattr(a,"sync_bandwidth_audit",False) and (policy in ("full","random","oldest") or peer or r==0):
             for i in selected:self.transport.send(r,"admission","server",i,"ADMISSION_RESPONSE",{"admitted":True})
         if getattr(a,"sync_dynamic_threshold",False):
             for i in ids:

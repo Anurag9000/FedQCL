@@ -218,11 +218,11 @@ def restore_client(c,state):
     c.task_memories=state["memories"];c.observed_windows=state["observed_windows"]
     c.signal_history=state["signal_history"];c.memory_rounds=state["memory_rounds"]
 
-def save_checkpoint(path,r,model,clients,controller,metrics,rounds,signature,counterfactual_rows):
+def save_checkpoint(path,r,model,clients,controller,metrics,rounds,signature,counterfactual_rows,tier_a_anchor=None):
     tmp=path.with_suffix(".tmp")
     torch.save({"round":r,"server":model.state_dict(),"clients":[checkpoint_client(c) for c in clients],
                 "controller":controller,"metrics":metrics,"rounds":rounds,"signature":signature,
-                "counterfactual_rows":counterfactual_rows,
+                "counterfactual_rows":counterfactual_rows,"tier_a_anchor":tier_a_anchor,
                 "python_rng":random.getstate(),"numpy_rng":np.random.get_state(),
                 "torch_rng":torch.get_rng_state(),
                 "cuda_rng":torch.cuda.get_rng_state_all() if torch.cuda.is_available() else []},tmp)
@@ -277,7 +277,7 @@ def run_research(args):
     device=torch.device(a.device)
     model=copy.deepcopy(a.model).to(device)
     from .signals import SignalExtractor
-    extractor=SignalExtractor(a,copy.deepcopy(a.model) if a.sync_signal in ("feature","prototypes","feature_covariance","spectral","multichannel","representation_anchor","conditional_moments") else None)
+    extractor=SignalExtractor(a,copy.deepcopy(a.model) if a.sync_signal in ("feature","prototypes","feature_covariance","spectral","multichannel","representation_anchor","conditional_moments","tier_a_features") else None)
     clients=[]
     for i in range(a.num_clients):
         task0=os.path.join(a.dataset,"task_0")
@@ -305,6 +305,9 @@ def run_research(args):
         if state["signature"]!=signature:
             raise ValueError("checkpoint configuration mismatch")
         model.load_state_dict(state["server"])
+        if a.sync_signal=="tier_a_features":
+            if state.get("tier_a_anchor") is None:raise ValueError("missing learned feature anchor in checkpoint")
+            extractor.anchor.load_state_dict(state["tier_a_anchor"]);extractor.tier_a_anchor_ready=True
         for c,s in zip(clients,state["clients"]):
             restore_client(c,s)
         ctl=state["controller"]; metrics=state["metrics"]; rounds=state["rounds"]
@@ -461,6 +464,8 @@ def run_research(args):
                     raise RuntimeError("byte-cap invariant violated")
             if r==0 and len(downloaded)!=a.num_clients:
                 raise RuntimeError("bootstrap download incomplete")
+            if r==0 and a.sync_signal=="tier_a_features":
+                extractor.anchor.load_state_dict(model.state_dict());extractor.anchor.eval();extractor.tier_a_anchor_ready=True
             boundary=(r+1)%rpt==0
             if boundary:
                 for i in set(range(a.num_clients))-set(trained):
@@ -499,7 +504,7 @@ def run_research(args):
             if a.sync_counterfactual:
                 write_jsonl(out/'counterfactuals.jsonl',counterfactual_rows)
             if a.sync_checkpoint:
-                save_checkpoint(ckpt,r,model,clients,ctl,metrics,rounds,signature,counterfactual_rows)
+                save_checkpoint(ckpt,r,model,clients,ctl,metrics,rounds,signature,counterfactual_rows,extractor.anchor.state_dict() if a.sync_signal=="tier_a_features" else None)
             if a.sync_stop_after_round is not None and r==a.sync_stop_after_round and r<a.global_rounds:
                 atomic_json(out/"status.json",{"status":"paused","last_committed_round":r})
                 return None

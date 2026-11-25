@@ -16,19 +16,19 @@ CORE_TASK_IL_IDS=(
     "E10-01","E10-03",
 )
 
+CORE_SIGNAL_COUNT=9
+PUBLIC_PROBE_PER_CLASS=4
 def read_core_signal_entries():
     import json
     from pathlib import Path
     rows=[json.loads(line) for line in (Path(__file__).resolve().parents[1]/"configs/sync/core_signal_ledger.jsonl").read_text().splitlines() if line.strip()]
-    signals={"replay":("replay_composition",[]),"gradients":("gradient",["--sync-native-space"]),
-             "activations":("feature",[]),"jensen_shannon":("histogram",["--sync-histogram-distance","js"]),
-             "mutual_information":("mutual_information",["--sync-native-space"]),
-             "bayesian":("bayesian_head",["--sync-native-space"]),"cka":("cka",[]),
-             "gradient_variance":("gradient_variance_only",["--sync-native-space"]),"fisher":("fisher",["--sync-native-space"])}
+    signals={"class_conditional_features":("tier_a_features",[]),
+             "replay_aware_gradients":("tier_a_gradients",["--sync-native-space"]),
+             "functional_predictions":("tier_a_functional",[])}
     methods={"M1":"own","M2":"server","M3":"peer"}
-    if len(rows)!=27 or len({x["id"] for x in rows})!=27 or {(x["signal"],x["method"]) for x in rows}!={(s,m) for s in signals for m in methods}:
-        raise ValueError("core requires exactly nine signals crossed with three mechanisms")
-    mechanism_flags={"M1":["--sync-local-reference","previous"],"M2":["--sync-bank-reference","aggregate"],"M3":["--sync-peer-transport","direct"]}
+    mechanism_flags={"M1":["--sync-local-reference","last_sync"],"M2":["--sync-bank-reference","aggregate"],"M3":["--sync-peer-transport","direct"]}
+    if len(rows)!=CORE_SIGNAL_COUNT or len({x["id"] for x in rows})!=CORE_SIGNAL_COUNT or {(x["signal"],x["method"]) for x in rows}!={(s,m) for s in signals for m in methods}:
+        raise ValueError("core requires exactly three merged Tier-A signal families crossed with three mechanisms")
     for x in rows:
         extractor,options=signals[x["signal"]]
         if x["flags"]!=["--sync-signal",extractor,*options,*mechanism_flags[x["method"]]]:

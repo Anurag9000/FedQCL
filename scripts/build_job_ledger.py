@@ -10,7 +10,7 @@ import itertools
 import subprocess
 sys.path.insert(0,str(Path(__file__).resolve().parents[1]/"system"))
 from flcore.sync.backbone import BACKBONE
-from core_suite import read_core_signal_entries
+from core_suite import read_core_signal_entries,CORE_SIGNAL_COUNT,PUBLIC_PROBE_PER_CLASS
 ROOT=Path(__file__).resolve().parents[1]
 
 def build(output,tiny_root=None,suite="core"):
@@ -40,7 +40,7 @@ def build(output,tiny_root=None,suite="core"):
         v=add(stage,"validate",cfg,[sys.executable,"scripts/validate_streams.py",str(folder),"--receipt",str(receipt)],deps=[d],artifacts=[str(receipt)])
         data[tag,seed,n]=(folder,v);dimensions[tag,seed,n]=(dataset,tasks,classes)
     if suite=="core":
-        register("clustered","clustered",42,stage="data")
+        register("clustered","clustered",42,gen_flags=("--public-probe-per-class",str(PUBLIC_PROBE_PER_CLASS)),stage="data")
     else:
         for n in (5,10,20,50):
             regimes_for_n=("near","separated","changing","clustered","dirichlet","conditional","drift") if n==5 else ("near","clustered","separated")
@@ -75,7 +75,7 @@ def build(output,tiny_root=None,suite="core"):
         for entry in read_core_signal_entries():
             run("signals",entry["policy"],entry["regime"],entry["seed"],entry["k"],flags=entry["flags"],entry=entry)
         training=[j["id"] for j in jobs if j["kind"]=="train"]
-        if len(training)!=27:raise ValueError("core must contain exactly 27 training jobs")
+        if len(training)!=CORE_SIGNAL_COUNT:raise ValueError("core must contain exactly nine training jobs")
         results=ROOT/"research_results"/("signal-matrix-"+commit[:12])
         add("postprocess","analysis",{"scope":"signal_matrix"},
             [sys.executable,"scripts/analyze_signal_matrix.py","--ledger",str(output.resolve()),"--output",str(results)],

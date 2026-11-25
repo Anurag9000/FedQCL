@@ -38,8 +38,11 @@ class Report:
         if self.metric=="tv":
             return (all(type(x) is int and x>=0 for x in self.counts)
                     and sum(self.counts)>=minimum)
-        valid=(self.metric in ("cosine","bounded_l2","channels","cka") and self.sample_count>=minimum
+        valid=(self.metric in ("cosine","bounded_l2","channels","cka","tier_a") and self.sample_count>=minimum
                 and all(isinstance(x,(float,int)) and math.isfinite(x) for x in self.counts))
+        if valid and self.metric=="tier_a":
+            from .tier_a_reports import valid_layout
+            return valid_layout(self)
         if valid and self.metric=="channels":
             from .multichannel import valid_layout
             return valid_layout(self)
@@ -50,6 +53,9 @@ def distance(a, b):
             or (a.task!=b.task and a.kind!="replay_composition")
             or (a.labels,a.schema,a.kind,a.space,a.metric,a.histogram_distance) != (b.labels,b.schema,b.kind,b.space,b.metric,b.histogram_distance)):
         return None
+    if a.metric=="tier_a":
+        from .tier_a_reports import report_distance
+        return report_distance(a,b)
     if a.metric=="channels":
         from .multichannel import channel_distance
         return channel_distance(a,b)
@@ -90,6 +96,9 @@ def local_reference(current, last_report, history, kind, length):
 def pooled(records, template, weighted=True):
     if not records:
         return None
+    if template.metric=="tier_a":
+        from .tier_a_reports import pooled_report
+        return pooled_report(records,template,weighted)
     if template.metric=="channels":
         raise ValueError("pooling incompatible with channel-presence masks")
     if template.metric!="tv":

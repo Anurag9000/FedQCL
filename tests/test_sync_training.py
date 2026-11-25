@@ -19,7 +19,14 @@ class Training(unittest.TestCase):
                         x=rng.normal(0,.1,size=(4,3,8,8)).astype("float32")
                         y=np.array([2*t,2*t+1,2*t,2*t+1],dtype=np.int64)
                         np.savez_compressed(folder/f"{i}.npz",data={"x":x,"y":y,"window":np.zeros(4,dtype=int)})
-            (data/"manifest.json").write_text(json.dumps({"clients":2,"tasks":2,"windows":2,"manifest_id":"synthetic"}))
+            import hashlib
+            shards={}
+            for t in range(2):
+                folder=data/f"task_{t}"/"public_probe";folder.mkdir(parents=True,exist_ok=True)
+                path=folder/"0.npz";x=rng.normal(0,.1,size=(4,3,8,8)).astype("float32")
+                np.savez_compressed(path,data={"x":x,"y":np.array([2*t,2*t,2*t+1,2*t+1])})
+                shards[str(path.relative_to(data))]=hashlib.sha256(path.read_bytes()).hexdigest()
+            (data/"manifest.json").write_text(json.dumps({"clients":2,"tasks":2,"windows":2,"manifest_id":"synthetic","public_probe_per_class":2,"shards":shards}))
             base=[sys.executable,"main.py","-data",str(data),"-m","resnet18","-algo","FedAvg","-dev","cpu",
                   "-tasks","2","-nb","2","-nc","2","-gr","3","-lbs","2","-lr",".001","-ls","1",
                   "-memory_size","4","-memory_batch_size","2","-seed","42",
@@ -43,7 +50,10 @@ class Training(unittest.TestCase):
             cases=[(policy,policy,()) for policy in ("server","peer","cached","combined123")]
             cases.extend([("aggregate_cka","server",("--sync-bank-reference","aggregate","--sync-signal","cka")),
                           ("local_replay","own",("--sync-local-reference","previous","--sync-signal","replay_composition")),
-                          ("peer_mi","peer",("--sync-signal","mutual_information","--sync-native-space"))])
+                          ("peer_mi","peer",("--sync-signal","mutual_information","--sync-native-space")),
+                          ("tier_a_features","server",("--sync-signal","tier_a_features","--sync-bank-reference","aggregate")),
+                          ("tier_a_gradients","own",("--sync-signal","tier_a_gradients","--sync-native-space")),
+                          ("tier_a_functional","peer",("--sync-signal","tier_a_functional"))])
             for name,policy,extra in cases:
                 out=run(name,policy,extra)
                 if name=="aggregate_cka":
@@ -51,6 +61,10 @@ class Training(unittest.TestCase):
                 rounds=[json.loads(l) for l in (out/"rounds.jsonl").read_text().splitlines()]
                 self.assertEqual(rounds[0]["selected"],[0,1])
                 self.assertEqual(len(rounds),4)
+                if name.startswith("tier_a_"):
+                    self.assertTrue(any(v is not None for row in rounds[1:] for v in row["sampled_reports"].values()))
+                    self.assertTrue(all("replay_loss_by_task" in v for row in rounds for v in row["probe_cost"].values()))
+                    self.assertTrue(any(v["replay_loss_by_task"] for v in rounds[-1]["probe_cost"].values()))
                 for row in rounds:
                     self.assertEqual(row["selected"],row["trained"])
                     self.assertEqual(row["accepted"],row["downloaded"])

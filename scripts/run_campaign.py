@@ -33,11 +33,11 @@ def valid(job):
             receipt=json.loads(Path(job["artifacts"][0]).read_text())
             return receipt["completed"]==receipt["expected"]==job["config"]["expected_training"] and receipt["incomplete"]==0
         if job["kind"]=="analysis" and job["config"].get("scope")=="signal_matrix":
-            from core_suite import read_core_signal_entries
+            from core_suite import read_core_signal_entries,CORE_SIGNAL_COUNT
             result=json.loads(Path(job["artifacts"][1]).read_text())
             expected={x["id"]:(x["signal"],x["method"]) for x in read_core_signal_entries()}
             rows=result["results"]
-            return result["training_runs"]==len(rows)==27 and {x["experiment_id"]:(x["signal"],x["mechanism"]) for x in rows}==expected
+            return result["training_runs"]==len(rows)==CORE_SIGNAL_COUNT and {x["experiment_id"]:(x["signal"],x["mechanism"]) for x in rows}==expected
         if job["kind"]!="train":return True
         out=Path(job["artifacts"][0]).parent
         summary=json.loads((out/"final_summary.json").read_text())
@@ -66,6 +66,8 @@ def valid(job):
             if any(resolved_config.get(k)!=v for k,v in expected.items()):return False
             if any(len(x["selected"])!=(5 if i==0 else 3) or x["selected"]!=x["accepted"] or x["accepted"]!=x["downloaded"] for i,x in enumerate(rounds)):return False
             if entry["method"]=="M2" and not any(e["kind"]=="BANK_AGGREGATE" for e in events):return False
+            if not any(report is not None for row in rounds[1:] for report in row["sampled_reports"].values()):return False
+            if any("replay_loss_by_task" not in cost for row in rounds for cost in row["probe_cost"].values()):return False
         n=job["config"].get("rounds",50);tasks=job["config"].get("tasks",5)
         if job["config"].get("campaign") in ("task_il_48","task_il_joint"):
             from hashlib import sha256

@@ -46,6 +46,9 @@ class SignalExtractor:
         kind=self.args.sync_signal
         start=time.monotonic()
         cost={"forward_examples":0,"backward_examples":0,"seconds":0.}
+        if kind.startswith("tier_a_"):
+            from .tier_a_signals import extract
+            return extract(self,c,data,t,r,version,kind)
         if kind=="histogram":return hist,cost
         if kind=="update":return None,cost
         if kind=="replay_composition":

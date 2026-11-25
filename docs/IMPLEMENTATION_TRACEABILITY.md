@@ -1,9 +1,6 @@
 # Active goal override
 
-Only the 27 signal × mechanism configurations in
-configs/sync/core_signal_ledger.jsonl are in the active default campaign.
-Historical expanded and Task-IL catalogs below are optional and out of scope.
-See EXPERIMENT_LEDGER.md for the updated exact signal definitions and caveats.
+Only the nine merged Tier-A configurations in configs/sync/core_signal_ledger.jsonl are active. See EXPERIMENT_LEDGER.md; all historical catalogs below are optional.
 
 # Campaign scope update
 

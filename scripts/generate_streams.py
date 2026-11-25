@@ -185,6 +185,9 @@ def generate(args):
     n=args.clients
     if n<1 or args.windows<1 or args.validation_per_class<1 or args.validation_per_class>=min(np.bincount(raw.targets)):
         raise ValueError("invalid dimensions")
+    public_n=getattr(args,"public_probe_per_class",0)
+    if public_n<0 or args.validation_per_class+public_n>=min(np.bincount(raw.targets)):
+        raise ValueError("invalid disjoint public probe size")
     train_y=np.asarray(raw.targets); test_y=np.asarray(test.targets)
     # Match CIFAR-100 normalization used in standard preprocessing; stored float32 CHW.
     def images(data,ids):
@@ -195,14 +198,22 @@ def generate(args):
               "windows":args.windows,"validation_per_class":args.validation_per_class,"workload_skew":args.workload_skew,
               "drift_pattern":args.drift_pattern,"conditional_domain":args.conditional_domain,
               "normalization":{"mean":mean,"std":std},"shards":{}, "tasks_data":[]}
+    if public_n:manifest["public_probe_per_class"]=public_n
     seen=set()
     for t in range(tasks):
         labels=range(t*c,(t+1)*c)
-        train_ids=[]; dev_ids=[]
+        train_ids=[]; dev_ids=[]; public_ids=[]
         for y in labels:
             perm=np.random.default_rng(np.random.SeedSequence([args.seed,y,1])).permutation(np.flatnonzero(train_y==y))
             dev_ids.append(perm[:args.validation_per_class])
-            train_ids.append(perm[args.validation_per_class:])
+            public_ids.extend(perm[args.validation_per_class:args.validation_per_class+public_n].tolist())
+            train_ids.append(perm[args.validation_per_class+public_n:])
+        if public_n:
+            ids=np.asarray(public_ids,dtype=int)
+            if seen.intersection(ids.tolist()):raise AssertionError("public probe overlap")
+            seen.update(ids.tolist())
+            file,digest=write_shard(root,t,"public_probe",0,images(raw.data,ids),train_y[ids],ids,np.zeros(len(ids),dtype=int))
+            manifest["shards"][file]=digest
         cols=np.array([len(x) for x in train_ids])
         rows=client_rows(int(cols.sum()),n,args.workload_skew)
         if args.client_counts:
@@ -300,6 +311,7 @@ if __name__=="__main__":
     p.add_argument("--windows",type=int,default=10)
     p.add_argument("--floor",type=int,default=1)
     p.add_argument("--validation-per-class",type=int,default=50)
+    p.add_argument("--public-probe-per-class",type=int,default=0,help="Reserve public training-source examples before private allocation; never train or evaluate on them")
     p.add_argument("--regime",choices=["near","clustered","separated","changing","dirichlet","equal","conditional","drift"],default="near")
     p.add_argument("--profiles",help="JSON target profile matrix or per-task matrices")
     p.add_argument("--similarity-tolerance",type=float)

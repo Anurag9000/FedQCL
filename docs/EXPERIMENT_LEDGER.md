@@ -1,3 +1,66 @@
+# Active campaign — merged Tier-A only
+
+Exactly **9 training trajectories + 3 supporting jobs = 12 jobs**.
+This is a literal Tier-A-only interpretation of the audit. The Tier-S
+replay-aware gradient family is included only as the parent of Tier-A
+current/past gradient interference; standalone label-distribution and
+model-update experiments are excluded. No additional baselines or Task-IL.
+
+| Family | M1 last successful sync | M2 pooled historical server report | M3 direct peer selection |
+|---|---|---|---|
+| Class-conditional feature prototypes + activation moments | A01-M1 | A01-M2 | A01-M3 |
+| Current/replay gradient similarity + interference diagnostic | A02-M1 | A02-M2 | A02-M3 |
+| Functional predictive similarity | A03-M1 | A03-M2 | A03-M3 |
+
+Replay loss and within-task deterioration on fixed private memory probes
+are logged across every run; not standalone selection signals. Interference
+is logged as signed current/past shared-backbone gradient-sketch cosine;
+the selector compares the two gradient channels separately using normalized
+Euclidean discrepancy (direction and magnitude). All reports preserve
+explicit missing-channel support; M2 pools per-block sufficient statistics.
+Feature mean and second moment of normalized 32-dimensional projected
+activations use one frozen learned encoder, the model already distributed
+to all clients at bootstrap. No additional encoder download, no future data.
+Missing class or task coverage is penalized; past/current channel groups
+receive equal weight when both available. The anchor is checkpointed.
+Feature reports start after bootstrap. The gradient probe uses native local
+model coordinates (stale-model confounding remains), not a common refreshed model.
+Functional similarity compares aligned probabilities with normalized JS on
+four public CIFAR-100 training-source examples per class, reserved BEFORE
+private allocation and disjoint from training/validation/test. Every
+experiment uses the same partition, including the reservation (44,600
+private train examples, 5,000 validation, 400 public probes, 10,000 test).
+Only encountered task probes are used; probes are preprovisioned from the
+public dataset, not sent from private client datasets. Public data provisioning
+is outside simulated per-round communication accounting.
+
+Fixed learning backbone: FedAvg + vanilla ER, ResNet-18, SGD .005,
+private memory 500, batch 13, replay batch 13; five clients, k=3 (all at
+round 0), five tasks of 20 classes, 10 rounds/task, 5 local epochs/round,
+clustered CIFAR-100, seed 42, validation evaluation. Pre-training
+partial participation remains unchanged. M1 uses last successful sync rather
+than previous round per audit recommendation. M2 uses latest compatible
+accepted other-client reports, not raw examples. M3 uses exact peer
+representative selection. Single seed, no independent baseline; descriptive
+not confirmatory. No claims of formal privacy or physical network execution.
+
+```bash
+python scripts/build_job_ledger.py
+bash run_all_sync.sh --dry-run
+bash run_all_sync.sh --estimate-only
+bash run_all_sync.sh --all
+```
+
+Portable ledger: configs/sync/core_signal_ledger.jsonl.
+Resolved ledger: experiments/job_ledger.jsonl.
+Results: research_results/signal-matrix-<commit>/matrix.csv and matrix.json.
+Only 9 training jobs are active; extended/Task-IL are explicit separate
+historical campaigns. Old results cannot be reused as the new design.
+
+---
+
+# Historical catalogs (not active)
+
 # Active research campaign: exactly 27 training configurations
 
 The only default campaign is the prespecified 9 signal × 3 mechanism matrix in

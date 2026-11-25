@@ -21,14 +21,14 @@ class CoreLedgers(unittest.TestCase):
         for jobs in ledgers:dependency_order(jobs)
         sync,extended,task,fulltask=ledgers
         train=lambda jobs:[j for j in jobs if j["kind"]=="train"]
-        self.assertEqual(len(train(sync)),27)
+        self.assertEqual(len(train(sync)),9)
         self.assertEqual(len(train(extended)),3282)
         self.assertEqual(len(train(task)),22)
         self.assertEqual(len(train(fulltask)),48)
-        self.assertEqual(len(sync),30)
+        self.assertEqual(len(sync),12)
         self.assertEqual({(j["config"]["signal"],j["config"]["mechanism"]) for j in train(sync)},{(x["signal"],x["method"]) for x in read_core_signal_entries()})
         self.assertEqual(len({j["dependencies"][0] for j in train(sync)}),1)
-        self.assertEqual(len(sync[-1]["dependencies"]),27)
+        self.assertEqual(len(sync[-1]["dependencies"]),9)
         self.assertEqual({j["config"]["experiment_id"] for j in train(task)},set(CORE_TASK_IL_IDS))
         self.assertTrue(all(j["config"]["partition_seed"]==42 and j["config"]["k"]==3 for j in train(sync)))
         self.assertTrue({j["id"] for j in train(task)}<={j["id"] for j in train(fulltask)})

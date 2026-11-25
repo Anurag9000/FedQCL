@@ -83,7 +83,7 @@ def build(output,tiny_root=None,suite="core"):
         results=ROOT/"research_results"/("signal-matrix-"+commit[:12])
         add("postprocess","analysis",{"scope":"signal_matrix"},
             [sys.executable,"scripts/analyze_signal_matrix.py","--ledger",str(output.resolve()),"--output",str(results)],
-            training,[str(results/"matrix.csv"),str(results/"matrix.json"),str(results/"regime_metrics.csv"),str(results/"round_metrics.csv"),str(results/"signal_comparisons.csv"),str(results/"counterfactual_metrics.csv"),str(results/"ground_truth_heatmap.png"),str(results/"coverage_by_regime.png")])
+            training,[str(results/"matrix.csv"),str(results/"matrix.json"),str(results/"regime_metrics.csv"),str(results/"round_metrics.csv"),str(results/"signal_comparisons.csv"),str(results/"counterfactual_metrics.csv"),str(results/"ground_truth_heatmap.png"),str(results/"coverage_by_regime.png"),str(results/"transition_response.csv"),str(results/"optimization_comparisons.csv"),str(results/"omission_comparisons.csv"),str(results/"participation_heatmap.png"),str(results/"learning_curves.png"),str(results/"communication_tradeoff.png"),str(results/"signal_validity.png")])
     else:
         policies=("full","random","oldest","own","server","peer")
         regimes=("near","separated","changing")

@@ -37,5 +37,9 @@
     33,
     41,
     43
-  ]
+  ],
+  "analysis_thresholds": {
+    "distribution_tv": 0.2,
+    "signal_distance": 0.1
+  }
 }

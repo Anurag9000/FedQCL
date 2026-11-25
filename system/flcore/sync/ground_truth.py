@@ -59,10 +59,12 @@ def analyze_run(out,rounds,decisions,metrics,counterfactuals,events=()):
         counts=z["counts"];p=z["realized_labels"];q=z["realized_joint"].reshape(*p.shape[:2],-1);joint=z["spatial_joint"];label=z["spatial_label"];conditional=z["spatial_conditional"]
     from .statistics import js
     from .tier_a_reports import blocks
-    from .policies import Report
+    from .policies import Report,distance
     if len(rounds)!=len(p) or len(decisions)!=len(p):raise ValueError("incomplete ground truth trajectory")
     index={report["id"]:report for row in rounds for report in row["sampled_reports"].values() if report is not None}
-    by_round={};observations=[];comparisons=[];regimes={};replay={};transitions=[]
+    by_round={};observations=[];comparisons=[];regimes={};replay={};transitions=[];geometry_comparisons=[];omission_comparisons=[]
+    thresholds=meta["specification"].get("analysis_thresholds",{"distribution_tv":.2,"signal_distance":.1})
+    def to_report(x):return Report(**{k:tuple(x[k]) if k in ("labels","counts") else x[k] for k in Report.__dataclass_fields__}) if x is not None else None
     def vector(x):
         x=np.asarray(x,dtype=float);return x/x.sum() if x.sum() else None
     def mapping(d,k,default=None):return d.get(k,d.get(str(k),default))
@@ -105,10 +107,17 @@ def analyze_run(out,rounds,decisions,metrics,counterfactuals,events=()):
         if r and task==rounds[r-1]["task"]:
             for i in range(n):
                 change=tv(p[r,i],p[r-1,i]);joint_change=tv(q[r,i],q[r-1,i])
-                transitions.append({"round":r,"client":i,"regime":phase["regime"],"previous_regime":meta["schedule"][r-1]["regime"],"label_change":change,"joint_change":joint_change,"selected":i in selected,"score":mapping(decision["scores"],i),"reason":mapping(decision["reasons"],i),"explicit_reassignment":phase["transition"]})
+                cur=to_report(mapping(row["sampled_reports"],i));prev=to_report(mapping(rounds[r-1]["sampled_reports"],i))
+                estimate=distance(cur,prev)
+                transitions.append({"estimated_self_change":None if estimate is None else float(estimate),"true_joint_shift":joint_change>=thresholds["distribution_tv"],"detected_shift":None if estimate is None else estimate>=thresholds["signal_distance"],"round":r,"client":i,"regime":phase["regime"],"previous_regime":meta["schedule"][r-1]["regime"],"label_change":change,"joint_change":joint_change,"selected":i in selected,"score":mapping(decision["scores"],i),"reason":mapping(decision["reasons"],i),"explicit_reassignment":phase["transition"]})
         def add(i,j,estimate,pr,qr,reference_p,reference_q,kind,source,old_a=None,old_b=None):
             if estimate is None:return
-            comparisons.append({"round":r,"regime":phase["regime"],"client":i,"reference":j,"kind":kind,
+            current_js=js(pr,reference_p)
+            past_js=js(old_a,old_b) if old_a is not None and old_b is not None else 1. if (old_a is None)!=(old_b is None) else None
+            expected_js=(current_js+past_js)/2 if past_js is not None else current_js
+            is_js=mapping(row["sampled_reports"],i)["kind"]=="tier_a_distributions"
+            if is_js and abs(float(estimate)-expected_js)>1e-8:raise ValueError("A06 JS score disagrees with exact current/replay truth")
+            comparisons.append({"exact_js_error":abs(float(estimate)-expected_js) if is_js else None,"round":r,"regime":phase["regime"],"client":i,"reference":j,"kind":kind,
                                 "estimated_distance":float(estimate),"label_tv":tv(pr,reference_p),"label_js":js(pr,reference_p),"joint_tv":tv(qr,reference_q),
                                 "replay_label_tv":tv(old_a,old_b) if old_a is not None and old_b is not None else None,"source":source})
         for i,report in row["sampled_reports"].items():
@@ -148,6 +157,15 @@ def analyze_run(out,rounds,decisions,metrics,counterfactuals,events=()):
             if a is not None and b is not None:
                 u,v=source_round(a),source_round(b)
                 add(i,j,pair["distance"],p[u,i],q[u,i],p[v,j],q[v,j],"peer",[u,v],vector(replay[u,i]),vector(replay[v,j]))
+    for transition in transitions:
+        if not transition["true_joint_shift"]:continue
+        r=transition["round"];i=transition["client"];task=by_round[r]["task"]
+        # Stop at the next large shift for this client or at task boundary.
+        end=next((x["round"] for x in transitions if x["client"]==i and x["round"]>r and x["true_joint_shift"]),len(rounds))
+        end=min(end,(task+1)*meta["specification"]["windows"])
+        first=next((u for u in range(r,end) if i in by_round[u]["selected"]),None)
+        transition["selection_delay"]=None if first is None else first-r
+        transition["selection_delay_censored"]=first is None
     cf=[]
     for r in meta["specification"]["counterfactual_rounds"]:
         items=[x for x in counterfactuals if x["round"]==r]
@@ -155,6 +173,16 @@ def analyze_run(out,rounds,decisions,metrics,counterfactuals,events=()):
         k=len(by_round[r]["selected"]);matched=[x for x in items if x["size"]==k]
         if len(actual)!=1 or len(full)!=1 or len(matched)!=math.comb(len(p[r]),k):raise ValueError("incomplete counterfactual subsets")
         a=actual[0]
+        geometry=full[0]["candidate_update_geometry"]["relative_l2"]
+        for i,j in combinations(range(len(p[r])),2):
+            ra=to_report(mapping(rounds[r]["sampled_reports"],i));rb=to_report(mapping(rounds[r]["sampled_reports"],j))
+            estimate=distance(ra,rb)
+            if estimate is not None:geometry_comparisons.append({"round":r,"regime":by_round[r]["regime"],"clients":[i,j],"estimated_pair_distance":float(estimate),"actual_update_distance":geometry[i][j],"source_rounds":[source_round(mapping(rounds[r]["sampled_reports"],i)),source_round(mapping(rounds[r]["sampled_reports"],j))]})
+        for i in range(len(p[r])):
+            yes=[x for x in matched if i in x["subset"]];no=[x for x in matched if i not in x["subset"]]
+            if yes and no:
+                gain=lambda key:float(np.mean([x[key] for x in no])-np.mean([x[key] for x in yes])) if yes[0][key] is not None else None
+                omission_comparisons.append({"round":r,"regime":by_round[r]["regime"],"client":i,"selected":i in a["subset"],"novelty_score":mapping(decisions[r]["scores"],i),"matched_current_marginal":gain("current_loss"),"matched_past_marginal":gain("past_loss")})
         for expected in a["task_metrics"]:
             observed=next(x for x in metrics if x["round"]==r and x["task"]==expected["task"])
             if not math.isclose(observed["loss"],expected["loss"],rel_tol=1e-5,abs_tol=1e-6) or not math.isclose(observed["accuracy"],expected["accuracy"],abs_tol=1e-6):raise ValueError("actual subset counterfactual differs from real trajectory")
@@ -167,6 +195,9 @@ def analyze_run(out,rounds,decisions,metrics,counterfactuals,events=()):
     def mean(x):return float(np.mean(x)) if x else None
     def summarize(items):
         rr={x["round"] for x in items};comp=[x for x in comparisons if x["round"] in rr]
+        shifts=[x for x in transitions if x["round"] in rr];known=[x for x in shifts if x["detected_shift"] is not None]
+        tp=sum(x["true_joint_shift"] and x["detected_shift"] for x in known);fp=sum(not x["true_joint_shift"] and x["detected_shift"] for x in known);fn=sum(x["true_joint_shift"] and not x["detected_shift"] for x in known)
+        geom=[x for x in geometry_comparisons if x["round"] in rr];omit=[x for x in omission_comparisons if x["round"] in rr and x["novelty_score"] is not None]
         return {"rounds":len(items),"mean_label_coverage_regret":mean([x["label"]["coverage_regret"] for x in items]),
                 "mean_joint_coverage_regret":mean([x["joint"]["coverage_regret"] for x in items]),
                 "mean_joint_mass_regret":mean([x["joint"]["mass_regret"] for x in items]),
@@ -174,15 +205,27 @@ def analyze_run(out,rounds,decisions,metrics,counterfactuals,events=()):
                 "mean_replay_coverage_regret":mean([x["replay_label"]["coverage_regret"] for x in items if x["replay_label"] is not None]),
                 "communication_bytes":sum(x["bytes"] for x in items),"optimizer_steps":sum(x["optimizer_steps"] for x in items),
                 "processed_samples":sum(x["processed_samples"] for x in items),"replay_samples":sum(x["replay_samples"] for x in items),
+                "shift_precision":tp/(tp+fp) if tp+fp else None,"shift_recall":tp/(tp+fn) if tp+fn else None,
+                "shift_comparisons_available":len(known),"shift_comparisons_total":len(shifts),
+                "mean_selection_delay":mean([x["selection_delay"] for x in shifts if x.get("selection_delay") is not None]),
+                "censored_selection_delays":sum(x.get("selection_delay_censored",False) for x in shifts),
+                "max_exact_js_error":max([x["exact_js_error"] for x in comp if x["exact_js_error"] is not None],default=None),
+                "update_geometry_rank_agreement":corr([(x["estimated_pair_distance"],x["actual_update_distance"]) for x in geom]),
+                "novelty_current_marginal_rank_agreement":corr([(x["novelty_score"],x["matched_current_marginal"]) for x in omit]),
+                "novelty_past_marginal_rank_agreement":corr([(x["novelty_score"],x["matched_past_marginal"]) for x in omit if x["matched_past_marginal"] is not None]),
                 "mean_past_accuracy":mean([x["accuracy"] for x in metrics if x["round"] in rr and x["task"]<rounds[x["round"]]["task"]]),
                 "missing_report_fraction":1-sum(x["valid_reports"] for x in items)/sum(x["available"] for x in items),
                 "mean_current_accuracy":mean([x["accuracy"] for x in metrics if x["round"] in rr and x["task"]==rounds[x["round"]]["task"]]),
                 "label_rank_agreement":corr([(x["estimated_distance"],x["label_tv"]) for x in comp]),
                 "joint_rank_agreement":corr([(x["estimated_distance"],x["joint_tv"]) for x in comp]),
                 "replay_rank_agreement":corr([(x["estimated_distance"],x["replay_label_tv"]) for x in comp if x["replay_label_tv"] is not None])}
+    for r,item in by_round.items():
+        scores=[x for x in metrics if x["round"]==r];item["mean_accuracy"]=mean([x["accuracy"] for x in scores]);item["current_accuracy"]=scores[-1]["accuracy"]
+        item["mean_past_accuracy"]=mean([x["accuracy"] for x in scores[:-1]])
+        item["mean_forgetting"]=mean([max(y["accuracy"] for y in metrics if y["task"]==x["task"] and y["round"]<=r)-x["accuracy"] for x in scores[:-1]])
     summary=summarize(list(by_round.values()))
     analysis=Path(out)/"analysis";analysis.mkdir(exist_ok=True)
     write(analysis/"ground_truth_comparison.json",{"ground_truth_hash":receipt["ground_truth_hash"],"summary":summary,
-        "regimes":{k:summarize(v) for k,v in regimes.items()},"rounds":list(by_round.values()),"comparisons":comparisons,"observations":observations,"counterfactuals":cf,"transitions":transitions})
+        "regimes":{k:summarize(v) for k,v in regimes.items()},"rounds":list(by_round.values()),"comparisons":comparisons,"observations":observations,counterfactuals":cf,"transitions":transitions,"geometry_comparisons":geometry_comparisons,"omission_comparisons":omission_comparisons})
     return {"ground_truth_hash":receipt["ground_truth_hash"],"ground_truth_audit":summary,
             "counterfactual_checkpoints":len(cf),"counterfactual_seconds":sum(x["counterfactual_seconds"] for x in by_round.values())}

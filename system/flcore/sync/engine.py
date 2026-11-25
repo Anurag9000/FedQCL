@@ -61,24 +61,30 @@ class ResearchClient:
         self.optimizer_steps=0;self.current_samples=0;self.training_counts=[]
         self.signal_history={};self.memory_rounds={};self.active_round=0
 
+    def window_samples(self,task,windows):
+        # Read the private shard into a transient local scope; expose only
+        # the permitted windows, never retain a full future-task loader.
+        path=Path("../dataset")/self.dataset/f"task_{task}"/"train"/f"{self.id}.npz"
+        with np.load(path,allow_pickle=True) as z:
+            data=z["data"].item()
+        if "window" not in data:raise ValueError("missing window IDs")
+        mask=np.isin(data["window"],sorted(windows))
+        x=torch.from_numpy(data["x"][mask]).float()
+        y=torch.from_numpy(data["y"][mask]).long()
+        return list(zip(x,y))
+
     def reveal(self,task,r):
         a=self.research_args
         verify_shard(a,task,"train",self.id)
+        window=r%self.round_per_task
+        self.observed_windows.setdefault(task,set()).add(window)
+        if a.sync_windowed:
+            return self.window_samples(task,{window})
         if self.task_trainloaders[task] is None:
             path=os.path.join(self.dataset,f"task_{task}")
             self.task_trainloaders[task]=read_client_data(path,self.id,True,self.few_shot)
-        self.observed_windows.setdefault(task,set()).add(r%self.round_per_task)
         current=self.task_trainloaders[task]
-        if isinstance(current,DataLoader):
-            current=current.dataset
-        if a.sync_windowed:
-            path=Path('../dataset')/self.dataset/f"task_{task}"/"train"/f"{self.id}.npz"
-            with np.load(path,allow_pickle=True) as z:
-                data=z["data"].item()
-            if "window" not in data:
-                raise ValueError("windowed run requires generated window IDs")
-            current=[current[j] for j,w in enumerate(data["window"]) if int(w)==r%self.round_per_task]
-        return current
+        return current.dataset if isinstance(current,DataLoader) else current
 
     def prepare_training(self,task,r,dataset):
         g=torch.Generator().manual_seed(seed_for(self.research_seed,"train",self.id,task,r))
@@ -137,12 +143,10 @@ class ResearchClient:
         if not observed:return
         a=self.research_args
         verify_shard(a,task,"train",self.id)
-        raw=self.task_trainloaders[task]
-        if raw is None:raw=read_client_data(os.path.join(self.dataset,f"task_{task}"),self.id,True,self.few_shot)
-        if a.sync_windowed:
-            path=Path("../dataset")/self.dataset/f"task_{task}"/"train"/f"{self.id}.npz"
-            with np.load(path,allow_pickle=True) as z:windows=z["data"].item()["window"]
-            raw=[raw[j] for j,w in enumerate(windows) if int(w) in observed]
+        if a.sync_windowed:raw=self.window_samples(task,observed)
+        else:
+            raw=self.task_trainloaders[task]
+            if raw is None:raw=read_client_data(os.path.join(self.dataset,f"task_{task}"),self.id,True,self.few_shot)
         self.save_task_memory_from_loader(self.id,task,DataLoader(raw,batch_size=self.batch_size),self.memory_size)
         self.task_trainloaders[task]=None
         self.observed_windows.pop(task,None)
@@ -293,7 +297,7 @@ def run_research(args):
     for i in range(a.num_clients):
         task0=os.path.join(a.dataset,"task_0")
         verify_shard(a,0,"train",i)
-        n=len(read_client_data(task0,i,True))
+        n=0 if a.sync_windowed else len(read_client_data(task0,i,True))
         client_args=copy.copy(a)
         if integrity_manifest:
             client_args.dataset_manifest={**integrity_manifest,"shards":{k:v for k,v in integrity_manifest.get("shards",{}).items() if k.endswith(f"/train/{i}.npz") or "/public_probe/" in k}}

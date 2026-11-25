@@ -15,7 +15,7 @@ def main():
     expected={x["id"]:(x["signal"],x["method"]) for x in read_core_signal_entries()}
     if len(train)!=CORE_SIGNAL_COUNT or {j["config"]["experiment_id"]:(j["config"]["signal"],j["config"]["mechanism"]) for j in train}!=expected:
         raise ValueError("not the exact core signal matrix")
-    rows=[];regime_rows=[];round_rows=[];comparisons=[];counterfactuals=[]
+    rows=[];regime_rows=[];round_rows=[];comparisons=[];counterfactuals=[];transitions=[];geometry=[];omission=[]
     for j in train:
         if not valid(j):raise ValueError("unverified training result "+j["id"])
         out=Path(j["artifacts"][0]).parent
@@ -26,6 +26,9 @@ def main():
         round_rows.extend({**common,**v} for v in audit["rounds"])
         comparisons.extend({**common,**v} for v in audit["comparisons"])
         counterfactuals.extend({**common,**v} for v in audit["counterfactuals"])
+        transitions.extend({**common,**v} for v in audit["transitions"])
+        geometry.extend({**common,**v} for v in audit["geometry_comparisons"])
+        omission.extend({**common,**v} for v in audit["omission_comparisons"])
         costs=[v for row in rounds for v in row["probe_cost"].values()]
         sources=[v["cached_update_age"] for v in costs if v.get("cached_update_age") is not None]
         rows.append({**json.loads((out/"final_summary.json").read_text()),**j["config"],"job_id":j["id"],
@@ -40,9 +43,9 @@ def main():
         with (a.output/name).open("w",newline="") as handle:
             fields=sorted(set().union(*(r.keys() for r in items))) if items else ["empty"]
             writer=csv.DictWriter(handle,fieldnames=fields);writer.writeheader();writer.writerows(items)
-    for name,items in (("regime_metrics.csv",regime_rows),("round_metrics.csv",round_rows),("signal_comparisons.csv",comparisons),("counterfactual_metrics.csv",counterfactuals)):csv_rows(name,items)
+    for name,items in (("regime_metrics.csv",regime_rows),("round_metrics.csv",round_rows),("signal_comparisons.csv",comparisons),("counterfactual_metrics.csv",counterfactuals),("transition_response.csv",transitions),("optimization_comparisons.csv",geometry),("omission_comparisons.csv",omission)):csv_rows(name,items)
     from plot_ground_truth_results import plot
-    plot(a.output,Path(train[0]["artifacts"][0]).parent/"ground_truth",regime_rows)
+    plot(a.output,Path(train[0]["artifacts"][0]).parent/"ground_truth",regime_rows,round_rows,comparisons,rows)
     with (a.output/"matrix.csv").open("w",newline="") as out:
         writer=csv.DictWriter(out,fieldnames=sorted(set().union(*(r.keys() for r in rows))))
         writer.writeheader();writer.writerows(rows)

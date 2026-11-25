@@ -53,3 +53,12 @@ validation preserves full-parameter candidate update geometry and discrepancy
 from full aggregation, and checks actual-branch validation metrics against
 the real run. Per-round replay and conditional coverage, transitions and
 separate communication/optimization costs are included in the audit.
+
+For A06, offline reconstruction verifies the actual current/replay JS decision
+score against the exact supplied and retained counts, including block-support
+pooling for M2. For other signals, rank associations are exploratory. Shift
+thresholds are prespecified in the stream JSON; retrospective same-client
+report differences and selection delay are recorded separately from the actual
+scheduler score. Delays are censored at the next shift or task boundary.
+Full candidate update comparisons use current-round counterfactuals and
+retrospective report pairs, not privileged admission information.

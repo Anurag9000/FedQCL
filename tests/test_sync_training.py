@@ -103,6 +103,9 @@ class Training(unittest.TestCase):
                         self.assertEqual(audit["ground_truth_hash"],receipt["ground_truth_hash"])
                         self.assertEqual(len(audit["counterfactuals"]),2)
                         self.assertEqual(len(audit["rounds"]),4)
+                        if name.startswith("A06"):
+                            self.assertLessEqual(audit["summary"]["max_exact_js_error"] or 0.,1e-8)
+                        self.assertEqual(len(audit["transitions"]),4)
                 for row in rounds:
                     self.assertEqual(row["selected"],row["trained"])
                     self.assertEqual(row["accepted"],row["downloaded"])

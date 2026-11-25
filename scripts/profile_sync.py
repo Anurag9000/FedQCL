@@ -19,12 +19,15 @@ def main():
     commit=subprocess.check_output(["git","rev-parse","HEAD"],cwd=ROOT,text=True).strip()
     if any(j["source_commit"]!=commit for j in jobs):raise ValueError("stale ledger")
     training=[j for j in jobs if j["kind"]=="train"]
-    chosen=[j for j in training if ("all" in a.experiment or j["config"].get("experiment_id") in a.experiment or j["config"].get("selector_id") in a.experiment) and (not a.setting or j["config"].get("setting_id") in a.setting) and (not a.seed or j["config"].get("partition_seed") in a.seed) and (not a.budget or (j["config"].get("selection_mode","fixed")=="fixed" and j["config"].get("k") in a.budget)) and (not a.selection_mode or j["config"].get("selection_mode","fixed") in a.selection_mode) and (not a.threshold or (j["config"].get("selection_mode")=="threshold" and j["config"].get("threshold") in a.threshold))]
+    chosen=[j for j in training if ("all" in a.experiment or j["config"].get("experiment_id") in a.experiment or j["config"].get("selector_id") in a.experiment) and (not a.setting or j["config"].get("setting_id") in a.setting) and (not a.seed or j["config"].get("partition_seed") in a.seed) and (not a.budget or (j["config"].get("selection_mode","fixed")=="fixed" and j["config"].get("k") in a.budget)) and (not a.selection_mode or j["config"].get("selection_mode","fixed") in a.selection_mode) and (not a.threshold or (j["config"].get("source_selection_mode",j["config"].get("selection_mode"))=="threshold" and j["config"].get("threshold") in a.threshold))]
     if not chosen:raise ValueError("unknown experiment")
     from run_campaign import select_jobs
     dependencies={dep for j in chosen for dep in j["dependencies"]}
     by_id={j["id"]:j for j in jobs}
-    dependencies|={dep for key in list(dependencies) for dep in by_id[key]["dependencies"]}
+    pending=list(dependencies)
+    while pending:
+        for dep in by_id[pending.pop()]["dependencies"]:
+            if dep not in dependencies:dependencies.add(dep);pending.append(dep)
     if not all(valid(by_id[key]) for key in dependencies):raise ValueError("run selected data stage first")
     if not 0<=a.stop_after_round<min(j["config"]["rounds"]-1 for j in chosen):raise ValueError("profiling must stop before final round")
     out=a.output.resolve()

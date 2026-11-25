@@ -7,7 +7,7 @@ ROOT=Path(__file__).resolve().parents[1]
 CATALOG=ROOT/"configs/sync/campaign.json"
 BASELINES={"B-RANDOM":"random","B-OLDEST":"oldest","B-FULL":"full"}
 DETAILS=("regime_metrics","round_metrics","signal_comparisons","counterfactual_metrics","transition_response","optimization_comparisons","omission_comparisons")
-OUTPUTS=("matrix.csv","matrix.json","matched_baseline_deltas.csv","seed_summary.csv","ground_truth_settings.csv","effectiveness.png","threshold_tradeoff.csv","threshold_tradeoff.png",*[x+".jsonl" for x in DETAILS])
+OUTPUTS=("matrix.csv","matrix.json","matched_baseline_deltas.csv","seed_summary.csv","ground_truth_settings.csv","effectiveness.png","threshold_tradeoff.csv","threshold_tradeoff.png","learning_vs_bytes.jsonl","target_accuracy_bytes.jsonl","equal_byte_comparisons.jsonl","pareto_front.csv",*[x+".jsonl" for x in DETAILS])
 
 def read_catalog():
     c=json.loads(CATALOG.read_text())
@@ -82,7 +82,7 @@ def build(output):
         for mode in modes:
             suffix="B-BYTES" if mode=="matched_bytes" else "B-COUNT"
             ident=source_id+"-"+suffix;out=source_out.with_name(ident)
-            cfg={**source_cfg,"experiment_id":ident,"selector_id":suffix+"-"+source_cfg["selector_id"],"signal":"none","mechanism":"baseline","policy":"random","selection_mode":mode,"source_selection_mode":source_cfg["selection_mode"],"source_experiment_id":source_id,"source_output":str(source_out),"flags":list(CORE_RUNTIME_FLAGS)}
+            cfg={**source_cfg,"experiment_id":ident,"selector_id":suffix+"-"+source_cfg["selector_id"],"signal":"none","mechanism":"baseline","policy":"random","selection_mode":mode,"source_selection_mode":source_cfg["selection_mode"],"source_experiment_id":source_id,"source_selector_id":source_cfg["selector_id"],"source_output":str(source_out),"flags":list(CORE_RUNTIME_FLAGS)}
             cmd=source_cmd[:source_cmd.index("--sync-eval-split")+2]+list(CORE_RUNTIME_FLAGS)
             for flag,value in (("--sync-policy","random"),("--sync-mode","fixed"),("--sync-output",str(out))):cmd[cmd.index(flag)+1]=value
             cmd += ["--sync-count-schedule",str(source_out/("participation_schedule.json" if mode=="matched_count" else "matched_byte_count_schedule.json"))]

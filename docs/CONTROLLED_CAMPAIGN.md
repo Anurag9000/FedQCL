@@ -131,3 +131,12 @@ recorded only after optimization and all validation decisions finish. Validation
 remains the basis for model/threshold selection; test metrics must not be used
 to tune the suite. Count matching does not imply identical processed samples on
 unequal-workload streams. The new comparison is logical bytes, not throughput.
+
+The consolidated analyzer additionally records per-round validation accuracy against
+actual cumulative and task-local bytes, first attainment of prespecified 50/70/90%
+current-task validation accuracy (unreached targets stay null), and paired
+comparisons at common within-task byte checkpoints, without interpolation or
+extrapolation across tasks. Three-objective Pareto membership is based only on
+validation final accuracy, forgetting and total bytes, separately per setting.
+Paired seed-level t intervals are exploratory (n=3; no multiplicity-adjusted
+significance claim). Held-out test metrics are reported separately.

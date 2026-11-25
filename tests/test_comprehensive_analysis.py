@@ -35,3 +35,22 @@ class ComprehensiveAnalysis(unittest.TestCase):
         self.assertEqual(s["extra_statistics_control_bytes_vs_full_mean"],40)
         rows[0]["ground_truth_hash"]="invalid"
         with self.assertRaises(ValueError):baseline_deltas(rows)
+
+    def test_communication_efficiency(self):
+        from communication_efficiency import learning_curve,bytes_to_targets,compare_equal_bytes,pareto_front
+        comm=[{"round":-1,"cumulative_bytes":10}]
+        for r in range(4):
+            comm.append({"round":r,"cumulative_bytes":20+10*r,"participants":1,"model_bytes":8,"statistics_bytes":1,"control_bytes":1})
+        metrics=[{"round":r,"task":t,"accuracy":.5+.1*r} for r in range(4) for t in range(r//2+1)]
+        curve=learning_curve(metrics,comm,2,4)
+        self.assertEqual([x["task_bytes"] for x in curve],[10,20,10,20])
+        targets=bytes_to_targets(curve,(.55,.95))
+        self.assertEqual(targets[0]["task_bytes"],20)
+        self.assertFalse(targets[1]["reached"])
+        equal=compare_equal_bytes(curve,curve)
+        self.assertIsNone(equal[0]["current_accuracy_delta"])
+        self.assertEqual(equal[-1]["current_accuracy_delta"],0)
+        def row(ident,b,a,f):
+            return dict(setting_id="S01",selector_id=ident,selection_mode="fixed",threshold=.1,k=3,n_seeds=3,total_bytes_mean=b,final_accuracy_mean=a,forgetting_mean=f)
+        front=pareto_front([row("A",1,.8,.1),row("B",2,.7,.2),row("C",2,.9,.1)])
+        self.assertEqual([x["selector_id"] for x in front if x["nondominated"]],["A","C"])

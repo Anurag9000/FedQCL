@@ -7,6 +7,7 @@ from contextlib import ExitStack
 import numpy as np
 from campaign_matrix import expected_ids,read_catalog,CATALOG,DETAILS
 from run_campaign import valid
+from communication_efficiency import learning_curve,bytes_to_targets,compare_equal_bytes,pareto_front,read_rows
 
 MEASURES=("test_final_accuracy","test_worst_task_accuracy","test_worst_class_accuracy","final_accuracy","forgetting","worst_task_accuracy","worst_class_accuracy","backward_transfer","retention_auc_mean","acquisition_auc_mean","total_bytes","optimizer_steps","processed_samples","replay_samples","complete_syncs","mean_model_age","jain_sync_fairness","deadline_cap_violations","counterfactual_seconds","model_bytes","statistics_bytes","control_bytes","upload_bytes","download_bytes","peer_bytes","model_tensor_bytes","statistic_vector_bytes","full_model_payload_bytes","model_uploads","model_downloads","initial_downloads","model_refreshes","skipped_client_rounds","no_aggregation_rounds","mean_participants","participation_fraction")
 AUDIT=("mean_label_coverage_regret","mean_joint_coverage_regret","mean_joint_mass_regret","mean_conditional_coverage_regret","mean_replay_coverage_regret","mean_selection_delay","shift_precision","shift_recall","mean_past_accuracy","mean_current_accuracy","missing_report_fraction")
@@ -93,6 +94,13 @@ def seed_summary(rows,deltas):
             row[key+"_mean"]=statistics.mean(vals) if vals else None
             row[key+"_sd"]=statistics.stdev(vals) if len(vals)>1 else None
             row[key+"_n"]=len(vals)
+            if "_delta_vs_" in key:
+                # Paired t interval is exploratory with only three independent seeds.
+                # Do not pool rounds or clients as independent replicates.
+                from scipy.stats import t as student_t
+                half=float(student_t.ppf(.975,len(vals)-1))*statistics.stdev(vals)/len(vals)**.5 if len(vals)>1 else None
+                row[key+"_ci95_low"]=statistics.mean(vals)-half if half is not None else None
+                row[key+"_ci95_high"]=statistics.mean(vals)+half if half is not None else None
         result.append(row)
     return result
 
@@ -130,8 +138,15 @@ def analyze(ledger,out):
     out.mkdir(parents=True,exist_ok=True)
     fields=("regimes","rounds","comparisons","counterfactuals","transitions","geometry_comparisons","omission_comparisons")
     rows=[];truths={};hashes={}
+    by_id={j["config"]["experiment_id"]:j for j in train}
+    from functools import lru_cache
+    curve=lru_cache(maxsize=256)(lambda ident:curve_for_id(ident))
+    def curve_for_id(ident):
+        job=by_id[ident];root=Path(job["artifacts"][0]).parent;c=job["config"]
+        return learning_curve(read_rows(root/"server_metrics.jsonl"),read_rows(root/"communication_rounds.jsonl"),c["tasks"],c["rounds"])
     with ExitStack() as stack:
         files=[stack.enter_context((out/(name+".jsonl")).open("w")) for name in DETAILS]
+        curves,targets,equal= [stack.enter_context((out/(name+".jsonl")).open("w")) for name in ("learning_vs_bytes","target_accuracy_bytes","equal_byte_comparisons")]
         for job in train:
             if not valid(job):raise ValueError("unverified run "+job["config"]["experiment_id"])
             root=Path(job["artifacts"][0]).parent;c=job["config"];group=(c["setting_id"],c["partition_seed"])
@@ -142,12 +157,24 @@ def analyze(ledger,out):
             row=flatten(job,summary,audit,{k:v for k,v in truths[group].items() if k not in ("setting_id","partition_seed","ground_truth_hash")})
             rows.append(row)
             common={k:row[k] for k in ("experiment_id","selector_id","setting_id","partition_seed","k","selection_mode","threshold","signal","mechanism","ground_truth_hash")}
+            observed=curve(row["experiment_id"])
+            for point in observed:curves.write(json.dumps({**common,**point},allow_nan=False)+"\n")
+            for point in bytes_to_targets(observed):targets.write(json.dumps({**common,**point},allow_nan=False)+"\n")
+            if row["mechanism"]!="baseline":
+                baseline_id=f'{row["setting_id"]}-seed{row["partition_seed"]}-k5-B-FULL'
+                refs=[("full",baseline_id),("matched_byte_random",row["experiment_id"]+"-B-BYTES")]
+                if row["selection_mode"]=="threshold":refs.append(("matched_count_random",row["experiment_id"]+"-B-COUNT"))
+                else:refs.append(("fixed_count_random",f'{row["setting_id"]}-seed{row["partition_seed"]}-k{row["k"]}-B-RANDOM'))
+                for name,ident in refs:
+                    for point in compare_equal_bytes(observed,curve(ident)):
+                        equal.write(json.dumps({**common,"baseline":name,"baseline_experiment_id":ident,**point},allow_nan=False)+"\n")
             for field,handle in zip(fields,files):
                 values=[{"regime":k,**v} for k,v in audit[field].items()] if field=="regimes" else audit[field]
                 for value in values:handle.write(json.dumps({**common,**value},allow_nan=False)+"\n")
     if len(hashes)!=72:raise ValueError("missing matched stream groups")
     deltas=baseline_deltas(rows);summary=seed_summary(rows,deltas)
     csv_rows(out/"matrix.csv",rows);csv_rows(out/"matched_baseline_deltas.csv",deltas);csv_rows(out/"seed_summary.csv",summary);csv_rows(out/"ground_truth_settings.csv",truths.values());plot(out,summary)
+    csv_rows(out/"pareto_front.csv",pareto_front(summary))
     threshold_rows=[x for x in summary if x["selection_mode"]=="threshold"]
     csv_rows(out/"threshold_tradeoff.csv",threshold_rows);plot_threshold(out,threshold_rows)
     (out/"matrix.json").write_text(json.dumps({"training_runs":len(rows),"matched_groups":len(hashes),"catalog_sha256":hashlib.sha256(CATALOG.read_bytes()).hexdigest(),"design":"fixed budget and threshold selection, three paired seeds; seed-level descriptive means/SD; one-round counterfactuals","results":rows},indent=2,allow_nan=False))

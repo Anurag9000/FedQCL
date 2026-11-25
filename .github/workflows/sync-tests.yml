@@ -46,9 +46,13 @@ jobs:
       - run: python scripts/run_campaign.py --stage data --setting S14 --seed 42 --device cpu --resume
       - run: python scripts/preflight_sync.py --setting S14 --seed 42 --output preflight_summary.json
       - uses: actions/upload-artifact@v4
+        if: always()
         with:
           name: cifar100-preflight-summary
-          path: preflight_summary.json
+          path: |
+            preflight_summary.json
+            experiments/logs/*.log
+            experiments/job_ledger.status.json
   training:
     runs-on: ubuntu-latest
     timeout-minutes: 20

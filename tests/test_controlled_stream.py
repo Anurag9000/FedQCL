@@ -60,7 +60,7 @@ class ControlledStream(unittest.TestCase):
             (path/"ground_truth"/"specification.json").write_text("{}")
             self.assertFalse(verify_bundle(path,receipt))
     def test_all_named_settings_inventory(self):
-        from stream_design import target_profiles,window_workloads
+        from stream_design import target_profiles,window_workloads,allocate_joint
         catalog=json.loads((ROOT/"configs/sync/campaign.json").read_text())
         n=5;c=20;w=10;d=5
         cols=np.tile([90,89,89,89,89],c)
@@ -70,7 +70,7 @@ class ControlledStream(unittest.TestCase):
                 for task in range(5):
                     target,schedule=target_profiles(spec,task,c,np.random.default_rng(np.random.SeedSequence([seed,task,3])))
                     rows=window_workloads(spec,int(cols.sum()))
-                    actual=allocate(rows,cols,target.reshape(n*w,c*d),0).reshape(w,n,c,d)
+                    actual=allocate_joint(rows,cols,target.reshape(n*w,c,d),allocate).reshape(w,n,c,d)
                     with self.subTest(setting=entry["id"],seed=seed,task=task):
                         self.assertTrue(np.array_equal(actual.sum((0,1)).ravel(),cols))
                         self.assertLessEqual(tv(normalize(actual.sum(-1)),target.sum(-1)).max(),spec["tolerances"]["label_tv"])

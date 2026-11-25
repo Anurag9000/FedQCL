@@ -139,6 +139,26 @@ def target_profiles(spec,task,c,rng):
                          "transition":window%2==1 and regime=="reassigned"})
     return np.asarray(result),schedule
 
+def allocate_joint(rows,cols,target,allocate):
+    """Exact integer allocation with primary label and secondary domain margins.
+
+    Conserve the same joint inventory but first minimize label-profile error.
+    Then independently realize the domain profile conditional on each exact
+    allocated class count. This prevents the joint L1 objective sacrificing
+    class balance to improve individual domain bins.
+    """
+    target=np.asarray(target,float);n,c,d=target.shape
+    cols=np.asarray(cols,dtype=int).reshape(c,d)
+    label_target=target.sum(-1)
+    label_counts=allocate(rows,cols.sum(-1),label_target,0)
+    counts=np.empty((n,c,d),dtype=int)
+    for j in range(c):
+        mass=label_target[:,j,None]
+        conditional=np.divide(target[:,j,:],mass,out=np.full((n,d),1/d),where=mass>0)
+        counts[:,j,:]=allocate(label_counts[:,j],cols[j],conditional,0)
+    if not np.array_equal(counts.sum(-1),label_counts) or not np.array_equal(counts.sum(0),cols):raise ValueError("joint margins")
+    return counts
+
 def joint_allocate(spec,task,train_ids,raw_data,rng,allocate,client_rows,read_pixels,target_rng=None):
     n,w,d=spec["clients"],spec["windows"],spec["domain_bins"]
     c=len(train_ids)
@@ -146,7 +166,7 @@ def joint_allocate(spec,task,train_ids,raw_data,rng,allocate,client_rows,read_pi
     cols=np.asarray([len(ids) for group in sources for ids in group])
     rows=window_workloads(spec,int(cols.sum()))
     targets,schedule=target_profiles(spec,task,c,rng if target_rng is None else target_rng)
-    counts=allocate(rows,cols,targets.reshape(w*n,c*d),0).reshape(w,n,c,d)
+    counts=allocate_joint(rows,cols,targets.reshape(w*n,c,d),allocate).reshape(w,n,c,d)
     assigned=[[] for _ in range(n)];windows=[[] for _ in range(n)]
     for j,group in enumerate(sources):
         for k,ids in enumerate(group):

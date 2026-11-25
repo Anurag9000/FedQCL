@@ -78,3 +78,8 @@ Counterfactuals are immediate alternatives, not complete trajectories.
 Three paired seeds are descriptive evidence, not a guarantee of statistical
 significance. Independently verified realized profiles and actual replay
 histories govern interpretation.
+
+The integer allocator first minimizes label allocation error subject to exact
+row and class margins, then realizes within-class domain allocations while
+preserving each allocated label count and the domain inventory. This is an
+explicit lexicographic allocation objective, not an unconstrained joint fit.

@@ -38,7 +38,7 @@ class Report:
         if self.metric=="tv":
             return (all(type(x) is int and x>=0 for x in self.counts)
                     and sum(self.counts)>=minimum)
-        valid=(self.metric in ("cosine","bounded_l2","channels") and self.sample_count>=minimum
+        valid=(self.metric in ("cosine","bounded_l2","channels","cka") and self.sample_count>=minimum
                 and all(isinstance(x,(float,int)) and math.isfinite(x) for x in self.counts))
         if valid and self.metric=="channels":
             from .multichannel import valid_layout
@@ -52,11 +52,12 @@ def distance(a, b):
     if a.metric=="channels":
         from .multichannel import channel_distance
         return channel_distance(a,b)
-    if a.metric=="cosine":
+    if a.metric in ("cosine","cka"):
         na=math.sqrt(sum(x*x for x in a.counts));nb=math.sqrt(sum(x*x for x in b.counts))
         if na==0 or nb==0:
             return 0.0 if na==nb==0 else 1.0
-        return max(0.,min(1.,(1-sum(x*y for x,y in zip(a.counts,b.counts))/(na*nb))/2))
+        cosine=sum(x*y for x,y in zip(a.counts,b.counts))/(na*nb)
+        return max(0.,min(1.,1-cosine if a.metric=="cka" else (1-cosine)/2))
     if a.metric=="bounded_l2":
         d=math.sqrt(sum((x-y)**2 for x,y in zip(a.counts,b.counts)))
         return d/(1+d)
@@ -108,6 +109,8 @@ def pooled(records, template, weighted=True):
 def bank_score(report, bank, round_id, age=5, include_self=False, kind="latest"):
     records = [x for x in bank if (include_self or x.client != report.client)
                and 0 <= round_id-x.round <= age and distance(report,x) is not None]
+    if kind=="aggregate":
+        records=[x for x in records if x.client==-1]
     if kind == "prior":
         records = [x for x in records if x.round == round_id-1]
     if kind == "latest":

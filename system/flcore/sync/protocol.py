@@ -5,7 +5,7 @@ import random
 import hashlib
 from .advanced import cached_views, select_cached, update_match, combine_scores, peer_filter
 from .policies import (Report, distance, threshold_value, due_clients,
-                       local_reference, bank_score, novelty_admit, peer_select,
+                       local_reference, bank_score, novelty_admit, peer_select, pooled,
                        baseline_select, coverage)
 
 def encoded(payload):
@@ -116,6 +116,24 @@ class Controller:
         records = tuple(sorted(self.bank.values(),key=lambda x:(x.client,x.task,x.round)))
         for i in recipients:
             local=self.local[i]
+            if self.args.sync_bank_reference=="aggregate":
+                from dataclasses import replace
+                groups={}
+                for x in records:
+                    if (not self.args.sync_include_self and x.client==i) or not x.valid() or not 0<=r-x.round<=self.args.sync_bank_age:continue
+                    key=(x.task,x.labels,x.schema,x.kind,x.space,x.metric,x.histogram_distance)
+                    group=groups.setdefault(key,{})
+                    if x.client not in group or group[x.client].round<x.round:group[x.client]=x
+                aggregates=[]
+                for group in groups.values():
+                    members=list(group.values())
+                    aggregate=pooled(members,members[0],weighted=True)
+                    aggregates.append(replace(aggregate,round=min(x.round for x in members)))
+                payload=self.transport.send(r,phase,"server",i,"BANK_AGGREGATE",
+                    {"version":self.bank_version,"records":[asdict(x) for x in aggregates]})
+                local.bank=tuple(Report(**{**x,"labels":tuple(x["labels"]),"counts":tuple(x["counts"])}) for x in payload["records"])
+                local.bank_version=payload["version"]
+                continue
             if self.args.sync_bank_transfer=="delta" and local.bank_version in self.bank_snapshots:
                 old={x.id:x for x in self.bank_snapshots[local.bank_version]}
                 new={x.id:x for x in records}

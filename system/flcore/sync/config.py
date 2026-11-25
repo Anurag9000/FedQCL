@@ -10,7 +10,7 @@ def add_arguments(parser):
     p.add_argument("--sync-min-observation",type=int,default=32)
     p.add_argument("--sync-history",type=int,default=5)
     p.add_argument("--sync-local-reference",choices=["last_sync","previous","window"],default="last_sync")
-    p.add_argument("--sync-bank-reference",choices=["latest","prior","mean","weighted_mean","envelope","history"],default="latest")
+    p.add_argument("--sync-bank-reference",choices=["latest","prior","mean","weighted_mean","envelope","history","aggregate"],default="latest")
     p.add_argument("--sync-bank-age",type=int,default=5)
     p.add_argument("--sync-include-self",action="store_true")
     p.add_argument("--sync-delivery",choices=["piggyback","broadcast","telemetry"],default="piggyback")
@@ -46,7 +46,7 @@ def add_arguments(parser):
     p.add_argument("--sync-posttrain",action="store_true")
     p.add_argument("--sync-bank-transfer",choices=["snapshot","delta"],default="snapshot")
     p.add_argument("--sync-failures",help="JSON mapping round to upload/reject/download client IDs")
-    p.add_argument("--sync-signal",choices=["histogram","replay","feature","gradient","update","replay_histogram","prototypes","feature_covariance","spectral","parameter_norms","normalization","predictions","loss","uncertainty","entropy","jacobian","fisher","gradient_variance","multichannel","gradient_conflict","information","temporal","bayesian_head","representation_anchor","replay_diagnostics","fisher_full","parameter_jacobian","head_hessian","conditional_moments"],default="histogram")
+    p.add_argument("--sync-signal",choices=["histogram","replay","feature","gradient","update","replay_histogram","prototypes","feature_covariance","spectral","parameter_norms","normalization","predictions","loss","uncertainty","entropy","jacobian","fisher","gradient_variance","multichannel","gradient_conflict","information","temporal","bayesian_head","representation_anchor","replay_diagnostics","fisher_full","parameter_jacobian","head_hessian","conditional_moments","replay_composition","mutual_information","cka","gradient_variance_only"],default="histogram")
     p.add_argument("--sync-histogram-distance",choices=["tv","js","hellinger"],default="tv")
     p.add_argument("--sync-sketch-dim",type=int,default=128)
     p.add_argument("--sync-byte-cap",type=int,default=0,help="Hard logical bytes per round including bootstrap")
@@ -148,6 +148,8 @@ def validate(a):
         raise ValueError("multichannel quantization requires block-specific scales")
     if a.sync_coverage_weight=="aggregation" and a.sync_weighting=="processed":
         raise ValueError("processed aggregation weight is not available at pre-training admission")
+    if a.sync_bank_reference=="aggregate" and (a.sync_bank_transfer!="snapshot" or a.sync_signal=="multichannel"):
+        raise ValueError("aggregate reference requires snapshot transfer and poolable signal")
     if a.sync_signal=="multichannel" and (a.sync_local_reference=="window" or a.sync_bank_reference in ("mean","weighted_mean","envelope")):
         raise ValueError("multichannel reports require non-pooled references")
     if a.sync_update_weighted and a.sync_policy!="update_match":

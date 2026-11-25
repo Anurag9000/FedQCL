@@ -99,7 +99,7 @@ class Training(unittest.TestCase):
         data=[(torch.randn(3,8,8),torch.tensor(i%2)) for i in range(4)]
         hist=Report(0,0,0,(0,1),(2,2))
         state={k:v.clone() for k,v in model.state_dict().items()}
-        for signal in ("replay_histogram","feature","prototypes","feature_covariance","spectral",
+        for signal in ("replay_composition","mutual_information","cka","gradient_variance_only","replay_histogram","feature","prototypes","feature_covariance","spectral",
                        "parameter_norms","normalization","predictions","loss","uncertainty","entropy","jacobian","fisher","gradient","gradient_variance","multichannel","gradient_conflict","information","temporal","bayesian_head","representation_anchor","replay_diagnostics","fisher_full","parameter_jacobian","head_hessian","conditional_moments"):
             args=SimpleNamespace(sync_signal=signal,sync_sketch_dim=8,seed=7,device="cpu",
                                  sync_observation_size=4,sync_min_observation=1,sync_native_space=True,sync_history=5)

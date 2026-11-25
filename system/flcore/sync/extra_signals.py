@@ -8,7 +8,7 @@ import torch
 from torch.utils.data import default_collate
 from .signals import seed
 
-KINDS=("information","temporal","bayesian_head","representation_anchor","replay_diagnostics",
+KINDS=("information","mutual_information","temporal","bayesian_head","representation_anchor","replay_diagnostics",
        "fisher_full","parameter_jacobian","head_hessian","conditional_moments")
 
 def features(model,x,batch):
@@ -82,13 +82,14 @@ def extra(ex,c,data,hist,t,r,version,kind):
             v.extend([1.,*sum((ex.sketch([(f"conditional_{k}_{j}",a)]) for j,a in enumerate(moments)),[])])
         cost["forward_examples"]=n
         return finish(v,n,f"conditional_anchor:{ex.args.seed}")
-    if kind=="information":
+    if kind in ("information","mutual_information"):
         from .information import joint_entropy,mutual_information,conditional_mi,total_correlation,interaction_information
         with torch.no_grad():
             prob=torch.cat([model(xx,t) for xx in x.split(c.batch_size)]).softmax(-1)
         pred=prob.argmax(-1).cpu().tolist();label=y.cpu().tolist()
         confidence=(prob.max(-1).values*4).long().clamp(0,3).cpu().tolist()
         cost["forward_examples"]=n
+        if kind=="mutual_information":return finish([mutual_information(label,pred)],n,native)
         return finish([joint_entropy(label,pred),mutual_information(label,pred),
                        conditional_mi(label,pred,confidence),total_correlation(label,pred,confidence),
                        interaction_information(label,pred,confidence)],n,native)

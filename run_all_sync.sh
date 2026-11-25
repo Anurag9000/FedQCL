@@ -13,7 +13,7 @@ args=(--suite "$suite" --output "$ledger")
 if [[ -n "${TINYIMAGENET_ROOT:-}" ]]; then args+=(--tiny-root "$TINYIMAGENET_ROOT"); fi
 python scripts/build_job_ledger.py "${args[@]}"
 if [[ $# -eq 0 ]]; then
-  python scripts/run_campaign.py --ledger "$ledger" --stage pilot --resume
+  python scripts/run_campaign.py --ledger "$ledger" --resume
 elif [[ "$1" == "--all" ]]; then
   shift
   python scripts/run_campaign.py --ledger "$ledger" --resume "$@"

@@ -48,6 +48,34 @@ class SignalExtractor:
         cost={"forward_examples":0,"backward_examples":0,"seconds":0.}
         if kind=="histogram":return hist,cost
         if kind=="update":return None,cost
+        if kind=="replay_composition":
+            # Class composition of actual prior-task local exemplars, not
+            # merely task quotas (which are often identical across clients).
+            counts=[0]*(c.num_tasks*c.classes_per_task)
+            for k,items in c.task_memories.items():
+                if k<t:
+                    for _,y in items:counts[k*c.classes_per_task+int(y)%c.classes_per_task]+=1
+            cost["seconds"]=time.monotonic()-start
+            if not sum(counts):return None,cost
+            return Report(c.id,t,r,tuple(range(len(counts))),tuple(counts),kind=kind,
+                          space="prior_replay_class_counts_v1",model_version=version),cost
+        if kind=="cka":
+            if not len(data):return None,cost
+            from .extra_signals import features
+            # Aligned, public synthetic probe; fixed seed and row order for
+            # all clients and rounds. No private examples are sent.
+            shape=tuple(data[0][0].shape);n=32
+            gen=torch.Generator().manual_seed(seed(self.args.seed,"cka_public_probe",shape))
+            public=torch.randn((n,*shape),generator=gen).to(c.device)
+            model=copy.deepcopy(c.model).eval()
+            z=features(model,public,c.batch_size).cpu().double()
+            z=z-z.mean(0)
+            gram=z@z.T;norm=gram.norm()
+            cost["forward_examples"]=n;cost["seconds"]=time.monotonic()-start
+            if not torch.isfinite(norm) or norm<=0:return None,cost
+            # Dot product of normalized centered Gram matrices is linear CKA.
+            return self._vector(c,t,r,version,kind,f"cka_public_v1:{self.args.seed}:{shape}",
+                                (gram/norm).flatten().tolist(),n,"cka"),cost
         from .extra_signals import KINDS,extra
         if kind in KINDS:return extra(self,c,data,hist,t,r,version,kind)
         if kind in ("multichannel","gradient_conflict"):
@@ -160,20 +188,22 @@ class SignalExtractor:
         else:
             model=copy.deepcopy(c.model).eval()
             model.zero_grad(set_to_none=True)
-            if kind=="gradient_variance":
+            if kind in ("gradient_variance","gradient_variance_only"):
                 sketches=[]
                 for xx,yy in zip(x.split(c.batch_size),y.split(c.batch_size)):
                     model.zero_grad(set_to_none=True)
                     torch.nn.functional.cross_entropy(model(xx,t),yy).backward()
                     sketches.append(self.sketch((name,p.grad) for name,p in model.named_parameters() if p.grad is not None))
-                z=np.asarray(sketches);v=np.r_[z.mean(0),z.var(0)].tolist()
+                z=np.asarray(sketches)
+                if kind=="gradient_variance_only" and len(z)<2:return None,cost
+                v=(z.var(0) if kind=="gradient_variance_only" else np.r_[z.mean(0),z.var(0)]).tolist()
             else:
                 for xx,yy in zip(x.split(c.batch_size),y.split(c.batch_size)):
                     loss=torch.nn.functional.cross_entropy(model(xx,t),yy,reduction="sum")/len(x)
                     loss.backward()
                 v=self.sketch((name,p.grad) for name,p in model.named_parameters() if p.grad is not None)
             space="native_parameter_coordinates" if self.args.sync_native_space else f"server_version:{version}"
-            report=self._vector(c,t,r,version,kind,space,v,len(x))
+            report=self._vector(c,t,r,version,kind,space,v,len(x),"bounded_l2" if kind=="gradient_variance_only" else "cosine")
             cost["backward_examples"]=len(x)
         cost["forward_examples"]=len(x)
         cost["seconds"]=time.monotonic()-start

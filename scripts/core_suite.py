@@ -16,47 +16,15 @@ CORE_TASK_IL_IDS=(
     "E10-01","E10-03",
 )
 
-def core_sync_jobs(jobs):
-    by={j["id"]:j for j in jobs}
-    chosen=set()
-    for j in jobs:
-        if j["kind"]!="train":continue
-        c=j["config"];stage=j["stage"];policy=c["policy"]
-        regime=c["regime"];seed=c["partition_seed"];flags=c["flags"];k=c["k"]
-        if stage=="pilot":
-            if (regime in ("near","separated") and seed in (42,43)) or (regime=="changing" and seed==42 and policy!="oldest"):
-                chosen.add(j["id"])
-            continue
-        if not (regime=="near" and seed==42):continue
-        keep=(
-            (stage=="budget" and policy in ("random","peer") and k==2)
-            or (stage=="threshold" and flags==["--sync-mode","threshold","--sync-threshold","0.1"])
-            or (stage=="ablation" and (policy,tuple(flags)) in (
-                ("own",("--sync-local-reference","previous")),
-                ("server",("--sync-bank-reference","mean")),
-                ("peer",("--sync-peer-transport","relay"))))
-            or (stage=="mechanism" and policy=="peer" and flags==["--sync-refresh"])
-            or (stage=="counterfactual" and policy=="peer")
-            or (stage=="signals" and policy=="peer" and flags[1] in ("replay","feature","gradient"))
-            or (stage=="advanced" and policy in ("cached","combined123") and not flags)
-            or (stage=="robustness" and policy=="peer")
-            or (stage=="hard_bytes" and policy in ("random","peer") and flags==["--sync-byte-cap","280000000","--sync-bootstrap-byte-cap","500000000"])
-        )
-        if keep:chosen.add(j["id"])
-    # One matched-count and one matched-byte random comparator use the same
-    # predeclared threshold-peer source. No data-dependent winner selection.
-    sources={j["id"] for j in jobs if j["id"] in chosen and j["stage"]=="threshold" and j["config"]["policy"]=="peer"}
-    if len(sources)!=1:raise ValueError("core matched baseline source must be unique")
-    for j in jobs:
-        if j["kind"]=="train" and j["stage"] in ("rate_matched","byte_matched"):
-            if any(by[d]["kind"]=="schedule" and by[d]["config"].get("source") in sources for d in j["dependencies"]):
-                chosen.add(j["id"])
-        elif j["kind"]=="analysis" and j["stage"]=="counterfactual_analysis" and set(j["dependencies"])<=chosen:
-            chosen.add(j["id"])
-    if sum(by[i]["kind"]=="train" for i in chosen)!=50:
-        raise ValueError("unexpected core synchronization training count")
-    stack=list(chosen)
-    while stack:
-        for d in by[stack.pop()]["dependencies"]:
-            if d not in chosen:chosen.add(d);stack.append(d)
-    return [j for j in jobs if j["id"] in chosen]
+def read_core_signal_entries():
+    import json
+    from pathlib import Path
+    rows=[json.loads(line) for line in (Path(__file__).resolve().parents[1]/"configs/sync/core_signal_ledger.jsonl").read_text().splitlines() if line.strip()]
+    signals={"replay","gradients","activations","jensen_shannon","mutual_information","bayesian","cka","gradient_variance","fisher"}
+    methods={"M1":"own","M2":"server","M3":"peer"}
+    if len(rows)!=27 or len({x["id"] for x in rows})!=27 or {(x["signal"],x["method"]) for x in rows}!={(s,m) for s in signals for m in methods}:
+        raise ValueError("core requires exactly nine signals crossed with three mechanisms")
+    for x in rows:
+        if x["policy"]!=methods[x["method"]] or (x["regime"],x["seed"],x["k"])!=("clustered",42,3):
+            raise ValueError("core matrix changes a fixed condition")
+    return rows

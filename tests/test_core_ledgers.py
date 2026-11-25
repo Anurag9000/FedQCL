@@ -4,7 +4,7 @@ from pathlib import Path
 ROOT=Path(__file__).resolve().parents[1]
 sys.path.insert(0,str(ROOT/"scripts"))
 from run_campaign import dependency_order
-from core_suite import CORE_TASK_IL_IDS
+from core_suite import CORE_TASK_IL_IDS,read_core_signal_entries
 class CoreLedgers(unittest.TestCase):
     def test_core_selection_spec(self):
         self.assertEqual(len(CORE_TASK_IL_IDS),22)
@@ -21,13 +21,16 @@ class CoreLedgers(unittest.TestCase):
         for jobs in ledgers:dependency_order(jobs)
         sync,extended,task,fulltask=ledgers
         train=lambda jobs:[j for j in jobs if j["kind"]=="train"]
-        self.assertEqual(len(train(sync)),50)
+        self.assertEqual(len(train(sync)),27)
         self.assertEqual(len(train(extended)),3282)
         self.assertEqual(len(train(task)),22)
         self.assertEqual(len(train(fulltask)),48)
-        self.assertEqual(len(sync),67)
+        self.assertEqual(len(sync),30)
+        self.assertEqual({(j["config"]["signal"],j["config"]["mechanism"]) for j in train(sync)},{(x["signal"],x["method"]) for x in read_core_signal_entries()})
+        self.assertEqual(len({j["dependencies"][0] for j in train(sync)}),1)
+        self.assertEqual(len(sync[-1]["dependencies"]),27)
         self.assertEqual({j["config"]["experiment_id"] for j in train(task)},set(CORE_TASK_IL_IDS))
-        self.assertTrue({j["id"] for j in train(sync)}<={j["id"] for j in train(extended)})
+        self.assertTrue(all(j["config"]["partition_seed"]==42 and j["config"]["k"]==3 for j in train(sync)))
         self.assertTrue({j["id"] for j in train(task)}<={j["id"] for j in train(fulltask)})
         self.assertTrue(all(j["config"]["backbone"]=="fedavg_uniform_er_v1" for jobs in ledgers for j in train(jobs)))
         self.assertEqual(sum(j["kind"]=="analysis" for j in task),1)

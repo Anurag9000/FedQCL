@@ -54,6 +54,15 @@ def valid(job):
         if job["kind"]=="analysis" and job["config"].get("campaign")=="task_il_joint":
             receipt=json.loads(Path(job["artifacts"][0]).read_text())
             return receipt["completed"]==receipt["expected"]==job["config"]["expected_training"] and receipt["incomplete"]==0
+        if job["kind"]=="analysis" and job["config"].get("scope")=="compact_shortlist":
+            from compact_campaign import shortlist_valid
+            return shortlist_valid(job)
+        if job["kind"]=="analysis" and job["config"].get("scope")=="controlled_compact":
+            from campaign_matrix import CATALOG
+            from compact_campaign import compact_ids
+            cfg=job["config"];result=json.loads(Path(job["artifacts"][1]).read_text());rows=result["results"]
+            receipt=json.loads(Path(cfg["shortlist"]).read_text())
+            return (sha_file(CATALOG)==cfg["catalog_sha256"] and len(rows)==result["training_runs"]==101 and {x["experiment_id"] for x in rows}==compact_ids(receipt["finalists"])==set(cfg["expected_ids"]) and result["matched_groups"]==6 and result["dataset_groups"]==24)
         if job["kind"]=="analysis" and job["config"].get("scope")=="controlled_comprehensive":
             from campaign_matrix import expected_ids,CATALOG
             result=json.loads(Path(job["artifacts"][1]).read_text());rows=result["results"]
@@ -101,6 +110,7 @@ def valid(job):
                 if flag=="--sync-native-space":expected["sync_native_space"]=True
                 elif flag.startswith("--"):expected[flag[2:].replace("-","_")]=flags[pos+1]
             expected.update({flag[2:].replace("-","_"):True for flag in CORE_RUNTIME_FLAGS})
+            if cfg.get("all_subsets"):expected["sync_all_subsets"]=True
             if any(resolved_config.get(k)!=v for k,v in expected.items()):return False
             from flcore.sync.bandwidth import verify_artifacts
             verify_artifacts(out,events,rounds,cfg["clients"],summary,cfg["policy"])
@@ -124,6 +134,14 @@ def valid(job):
             if not (receipt["ground_truth_hash"]==summary["ground_truth_hash"]==resolved_config["ground_truth_hash"]==audit["ground_truth_hash"]==provenance["ground_truth_hash"]):return False
             if len(audit["rounds"])!=job["config"]["rounds"] or set(x["round"] for x in audit["counterfactuals"])!=set(job["config"]["counterfactual_rounds"]):return False
             if summary["counterfactual_checkpoints"]!=len(job["config"]["counterfactual_rounds"]):return False
+            if cfg.get("all_subsets"):
+                from itertools import combinations
+                subsets={s for k in range(cfg["clients"]+1) for s in combinations(range(cfg["clients"]),k)}
+                cf=[json.loads(l) for l in (out/"counterfactuals.jsonl").read_text().splitlines()]
+                for r in cfg["counterfactual_rounds"]:
+                    items=[tuple(x["subset"]) for x in cf if x["round"]==r]
+                    if len(items)!=len(subsets) or set(items)!=subsets:return False
+                if len(cf)!=len(subsets)*len(cfg["counterfactual_rounds"]):return False
             if cfg.get("setting_id") and (manifest["controlled_stream"].get("setting_id")!=cfg["setting_id"] or manifest["seed"]!=cfg["partition_seed"]):return False
             if any((len(x["selected"])!=(5 if i==0 else cfg["k"]) if cfg.get("selection_mode","fixed")=="fixed" else (i==0 and len(x["selected"])!=5)) or x["selected"]!=x["accepted"] or x["accepted"]!=x["downloaded"] for i,x in enumerate(rounds)):return False
             from flcore.sync.decision_audit import verify_decisions
@@ -226,6 +244,8 @@ def estimate(jobs):
     from math import comb
     cf_aggregates=sum(len(j["config"].get("counterfactual_rounds",[]))*(comb(j["config"]["clients"],j["config"]["k"])+int(j["config"]["k"]!=j["config"]["clients"])) for j in fixed)
     cf_max=cf_aggregates+sum(len(j["config"]["counterfactual_rounds"])*(comb(j["config"]["clients"],j["config"]["clients"]//2)+1) for j in adaptive)
+    if training and all(j["config"].get("all_subsets") for j in training):
+        cf_aggregates=cf_max=sum(len(j["config"]["counterfactual_rounds"])*2**j["config"]["clients"] for j in training)
     return {"jobs":len(jobs),"training_jobs":len(training),"threshold_jobs":sum(j["config"].get("selection_mode")=="threshold" for j in adaptive),"matched_control_jobs":sum(j["config"].get("selection_mode") in ("matched_count","matched_bytes") for j in adaptive),"nominal_client_draws":draws,"threshold_draw_upper_bound":adaptive_max,"counterfactual_aggregate_upper_bound":cf_max,"counterfactual_checkpoints":cf_rounds,"counterfactual_candidate_local_trainings":cf_candidates,"counterfactual_aggregate_evaluations":cf_aggregates,
             "nominal_model_transfer_upper_bound_at_45MB":45000000*(2*(draws+adaptive_max)+initial),
             "initial_downloads":initial,"initial_task_il_downloads":sum(j["config"]["clients"] for j in training if j["config"].get("campaign") in ("task_il_48","task_il_joint")),
@@ -255,8 +275,13 @@ def main():
     jobs=[json.loads(x) for x in a.ledger.read_text().splitlines()]
     commit=subprocess.check_output(["git","rev-parse","HEAD"],cwd=ROOT,text=True).strip()
     if any(j.get("source_commit")!=commit for j in jobs):raise ValueError("ledger source commit differs; rebuild ledger")
+    unfiltered=not any((a.stage,a.job_id,a.setting,a.seed,a.budget,a.selector,a.selection_mode,a.threshold))
+    compact_pending=any(j["config"].get("scope")=="compact_shortlist" for j in jobs) and not any(j["config"].get("scope")=="controlled_compact" for j in jobs)
     jobs=select_jobs(jobs,a.stage,a.job_id,a.setting,a.seed,a.budget,a.selector,a.selection_mode,a.threshold)
-    if a.estimate_only:print(json.dumps(estimate(jobs),indent=2));return 0
+    if a.estimate_only:
+        result=estimate(jobs)
+        if compact_pending and unfiltered:result.update(planned_training_jobs=101,planned_jobs=151,planned_counterfactual_checkpoints=1010,planned_counterfactual_aggregate_evaluations=32320,note="Current ledger is screening phase; validation shortlist expands to 101 training runs. Estimates above describe currently materialized jobs.")
+        print(json.dumps(result,indent=2));return 0
     if a.dry_run:
         for job in jobs:
             command=job["command"]+(["-dev",a.device,"-did",a.gpu_id] if job["kind"]=="train" else [])
@@ -271,7 +296,12 @@ def main():
     with lock.open("w") as guard:
         try:fcntl.flock(guard,fcntl.LOCK_EX|fcntl.LOCK_NB)
         except BlockingIOError:raise RuntimeError("another runner owns this ledger")
-        return run_jobs(a,jobs,devices)
+        rc=run_jobs(a,jobs,devices)
+        if rc==0 and compact_pending and unfiltered:
+            from campaign_matrix import build
+            jobs=build(a.ledger,compact=True,require_shortlist=True)
+            return run_jobs(a,jobs,devices)
+        return rc
 
 def run_jobs(a,jobs,devices):
     state_path=a.ledger.with_suffix(".status.json")

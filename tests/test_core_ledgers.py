@@ -21,29 +21,28 @@ class CoreLedgers(unittest.TestCase):
         for jobs in ledgers:dependency_order(jobs)
         sync,extended,task,fulltask=ledgers
         train=lambda jobs:[j for j in jobs if j["kind"]=="train"]
-        self.assertEqual(len(train(sync)),35208)
+        self.assertIn(len(train(sync)),(27,101))
         self.assertEqual(len(train(extended)),3282)
         self.assertEqual(len(train(task)),22)
         self.assertEqual(len(train(fulltask)),48)
-        self.assertEqual(len(sync),35353)
+        self.assertIn(len(sync),(76,151))
         self.assertTrue(all(j["config"]["controlled_stream"] and "--sync-windowed" in j["command"] and "--sync-counterfactual" in j["command"] for j in train(sync)))
-        from campaign_matrix import expected_ids
-        self.assertEqual({j["config"]["experiment_id"] for j in train(sync)},expected_ids())
-        self.assertEqual(len({j["config"]["setting_id"] for j in train(sync)}),24)
-        self.assertEqual(len({j["dependencies"][0] for j in train(sync)}),72)
-        self.assertEqual(len(sync[-1]["dependencies"]),35208)
-        self.assertEqual(sum(j["config"]["mechanism"]=="baseline" for j in train(sync)),21384)
-        self.assertEqual({j["config"]["k"] for j in train(sync)},{1,2,3,4,5})
-        self.assertEqual(sum(j["config"]["selection_mode"]=="threshold" for j in train(sync)),6912)
-        self.assertEqual(sum(j["config"]["selection_mode"]=="matched_count" for j in train(sync)),6912)
-        self.assertEqual(sum(j["config"]["selection_mode"]=="matched_bytes" for j in train(sync)),13824)
-        by_id={j["id"]:j for j in sync}
-        for j in train(sync):
-            if j["config"]["selection_mode"].startswith("matched_"):
-                self.assertEqual(len(j["dependencies"]),2)
-                self.assertEqual(by_id[j["dependencies"][1]]["config"]["experiment_id"],j["config"]["source_experiment_id"])
-        self.assertEqual({j["config"]["threshold"] for j in train(sync) if j["config"]["selection_mode"]=="threshold"},{.05,.1,.2,.35})
-        self.assertEqual({j["config"]["training_seed"] for j in train(sync)},{42,43,44})
+        from compact_campaign import compact_ids
+        from unittest.mock import patch
+        from campaign_matrix import build
+        self.assertEqual({j["config"]["training_seed"] for j in train(sync)},{42})
+        self.assertEqual(len([j for j in sync if j["kind"]=="validate"]),24)
+        self.assertTrue(all("--sync-all-subsets" in j["command"] for j in train(sync)))
+        shortlist=next(j for j in sync if j["config"].get("scope")=="compact_shortlist")
+        self.assertEqual(len(shortlist["dependencies"]),27)
+        if len(train(sync))==27:self.assertEqual({j["semantic_id"] for j in train(sync)},compact_ids(None))
+        finalists={"M1":"A06-M1","M2":"A08-M2","M3":"A01-M3"}
+        self.assertEqual(len(compact_ids(finalists)),101)
+        # A synthetic shortlist exercises full materialization without training or test leakage.
+        import tempfile
+        from compact_campaign import compact_cases
+        self.assertEqual(len(compact_cases(finalists)),77)
+        self.assertEqual(len({s for s,*_ in compact_cases(finalists)}),6)
         self.assertEqual({j["config"]["experiment_id"] for j in train(task)},set(CORE_TASK_IL_IDS))
         self.assertTrue(all(j["config"]["partition_seed"]==j["config"]["training_seed"] for j in train(sync)))
         self.assertTrue({j["id"] for j in train(task)}<={j["id"] for j in train(fulltask)})

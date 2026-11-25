@@ -55,7 +55,10 @@ def baseline_deltas(rows):
     for row in rows:
         if row["selector_id"]=="B-FULL":continue
         refs=[("full",idx[row["setting_id"],row["partition_seed"],5,"B-FULL"])]
-        if row.get("selection_mode","fixed")=="fixed":refs += [("random",idx[row["setting_id"],row["partition_seed"],row["k"],"B-RANDOM"]),("oldest",idx[row["setting_id"],row["partition_seed"],row["k"],"B-OLDEST"])]
+        if row.get("selection_mode","fixed")=="fixed":
+            for name,selector in (("random","B-RANDOM"),("oldest","B-OLDEST")):
+                base=idx.get((row["setting_id"],row["partition_seed"],row["k"],selector))
+                if base is not None:refs.append((name,base))
         for mode,name in (("matched_count","matched_count_random"),("matched_bytes","matched_byte_random")):
             other=matches.get((row["experiment_id"],mode))
             if other is not None:refs.append((name,other))
@@ -81,13 +84,13 @@ def baseline_deltas(rows):
         result.append(v)
     return result
 
-def seed_summary(rows,deltas):
+def seed_summary(rows,deltas,seeds=(42,43,44)):
     grouped=defaultdict(list);paired={r["experiment_id"]:r for r in deltas}
     for r in rows:grouped[r["setting_id"],r.get("selection_mode","fixed"),r.get("threshold",.1),r["k"],r["selector_id"]].append({**r,**paired.get(r["experiment_id"],{})})
     result=[]
     for (setting,mode,tau,k,selector),items in sorted(grouped.items()):
-        if {x["partition_seed"] for x in items}!={42,43,44} or len(items)!=3:raise ValueError("incomplete paired seeds")
-        row={"setting_id":setting,"selection_mode":mode,"threshold":tau,"k":k,"selector_id":selector,"n_seeds":3}
+        if {x["partition_seed"] for x in items}!=set(seeds) or len(items)!=len(seeds):raise ValueError("incomplete paired seeds")
+        row={"setting_id":setting,"selection_mode":mode,"threshold":tau,"k":k,"selector_id":selector,"n_seeds":len(seeds)}
         keys=[key for key in items[0] if key in MEASURES or key in AUDIT or "_delta_vs_" in key or key in ("byte_savings_fraction_vs_full","net_bytes_saved_vs_full","model_bytes_avoided_vs_full","extra_statistics_control_bytes_vs_full","unused_matched_byte_budget") or key.endswith(("_spearman","_kendall")) or key.startswith("counterfactual_mean_")]
         for key in keys:
             vals=[v[key] for v in items if v.get(key) is not None]
@@ -110,8 +113,8 @@ def plot(out,summary):
     import matplotlib.pyplot as plt
     settings=[x["id"] for x in read_catalog()["settings"]];selectors=sorted({r["selector_id"] for r in summary if r["selector_id"].startswith("A")})
     idx={(r["setting_id"],r["k"],r["selector_id"]):r["final_accuracy_delta_vs_random_mean"] for r in summary if r["selector_id"].startswith("A") and r["selection_mode"]=="fixed"}
-    values=[np.array([[idx[s,k,a] for s in settings] for a in selectors]) for k in (1,2,3,4)]
-    scale=max(1e-9,max(float(np.max(np.abs(x))) for x in values))
+    values=[np.array([[idx.get((s,k,a),np.nan) for s in settings] for a in selectors]) for k in (1,2,3,4)]
+    scale=max(1e-9,max(float(np.nanmax(np.abs(x))) if np.isfinite(x).any() else 0. for x in values))
     fig,axes=plt.subplots(2,2,figsize=(19,16),layout="constrained")
     for k,ax,m in zip((1,2,3,4),axes.ravel(),values):
         im=ax.imshow(m,vmin=-scale,vmax=scale,cmap="RdBu",aspect="auto");ax.set(title=f"k={k}/5: mean accuracy difference vs matched random")
@@ -133,11 +136,22 @@ def plot_threshold(out,rows):
 def analyze(ledger,out):
     jobs=[json.loads(l) for l in ledger.read_text().splitlines() if l.strip()]
     train=[j for j in jobs if j["kind"]=="train"]
-    expected=expected_ids()
-    if len(train)!=len(expected) or {j["config"]["experiment_id"] for j in train}!=expected:raise ValueError("incomplete comprehensive ledger")
+    compact=next((j for j in jobs if j["config"].get("scope")=="controlled_compact"),None)
+    if compact:
+        from compact_campaign import compact_ids,shortlist_valid
+        shortlist=next(j for j in jobs if j["config"].get("scope")=="compact_shortlist")
+        if not shortlist_valid(shortlist):raise ValueError("unverified shortlist")
+        receipt=json.loads(Path(shortlist["artifacts"][0]).read_text());expected=compact_ids(receipt["finalists"])
+        if expected!=set(compact["config"]["expected_ids"]):raise ValueError("compact ledger differs from shortlist")
+    else:expected=expected_ids()
+    if len(train)!=len(expected) or {j["config"]["experiment_id"] for j in train}!=expected:raise ValueError("incomplete campaign ledger")
     out.mkdir(parents=True,exist_ok=True)
     fields=("regimes","rounds","comparisons","counterfactuals","transitions","geometry_comparisons","omission_comparisons")
     rows=[];truths={};hashes={}
+    if compact:
+        from compact_diagnostics import distribution_analysis
+        (out/"shortlist.json").write_text(json.dumps(receipt,indent=2,allow_nan=False))
+        distribution_analysis(jobs,out,truths)
     by_id={j["config"]["experiment_id"]:j for j in train}
     from functools import lru_cache
     curve=lru_cache(maxsize=256)(lambda ident:curve_for_id(ident))
@@ -147,6 +161,10 @@ def analyze(ledger,out):
     with ExitStack() as stack:
         files=[stack.enter_context((out/(name+".jsonl")).open("w")) for name in DETAILS]
         curves,targets,equal= [stack.enter_context((out/(name+".jsonl")).open("w")) for name in ("learning_vs_bytes","target_accuracy_bytes","equal_byte_comparisons")]
+        if compact:
+            from compact_diagnostics import run_diagnostics
+            subset_file=stack.enter_context((out/"all_subset_metrics.jsonl").open("w"))
+            sensitivity_file=stack.enter_context((out/"decision_sensitivity.jsonl").open("w"))
         for job in train:
             if not valid(job):raise ValueError("unverified run "+job["config"]["experiment_id"])
             root=Path(job["artifacts"][0]).parent;c=job["config"];group=(c["setting_id"],c["partition_seed"])
@@ -157,6 +175,7 @@ def analyze(ledger,out):
             row=flatten(job,summary,audit,{k:v for k,v in truths[group].items() if k not in ("setting_id","partition_seed","ground_truth_hash")})
             rows.append(row)
             common={k:row[k] for k in ("experiment_id","selector_id","setting_id","partition_seed","k","selection_mode","threshold","signal","mechanism","ground_truth_hash")}
+            if compact:run_diagnostics(root,c,common,subset_file,sensitivity_file)
             observed=curve(row["experiment_id"])
             for point in observed:curves.write(json.dumps({**common,**point},allow_nan=False)+"\n")
             for point in bytes_to_targets(observed):targets.write(json.dumps({**common,**point},allow_nan=False)+"\n")
@@ -166,18 +185,19 @@ def analyze(ledger,out):
                 if row["selection_mode"]=="threshold":refs.append(("matched_count_random",row["experiment_id"]+"-B-COUNT"))
                 else:refs.append(("fixed_count_random",f'{row["setting_id"]}-seed{row["partition_seed"]}-k{row["k"]}-B-RANDOM'))
                 for name,ident in refs:
+                    if ident not in by_id:continue
                     for point in compare_equal_bytes(observed,curve(ident)):
                         equal.write(json.dumps({**common,"baseline":name,"baseline_experiment_id":ident,**point},allow_nan=False)+"\n")
             for field,handle in zip(fields,files):
                 values=[{"regime":k,**v} for k,v in audit[field].items()] if field=="regimes" else audit[field]
                 for value in values:handle.write(json.dumps({**common,**value},allow_nan=False)+"\n")
-    if len(hashes)!=72:raise ValueError("missing matched stream groups")
-    deltas=baseline_deltas(rows);summary=seed_summary(rows,deltas)
+    if len(hashes)!=(6 if compact else 72):raise ValueError("missing matched stream groups")
+    deltas=baseline_deltas(rows);summary=seed_summary(rows,deltas,(42,) if compact else (42,43,44))
     csv_rows(out/"matrix.csv",rows);csv_rows(out/"matched_baseline_deltas.csv",deltas);csv_rows(out/"seed_summary.csv",summary);csv_rows(out/"ground_truth_settings.csv",truths.values());plot(out,summary)
     csv_rows(out/"pareto_front.csv",pareto_front(summary))
     threshold_rows=[x for x in summary if x["selection_mode"]=="threshold"]
     csv_rows(out/"threshold_tradeoff.csv",threshold_rows);plot_threshold(out,threshold_rows)
-    (out/"matrix.json").write_text(json.dumps({"training_runs":len(rows),"matched_groups":len(hashes),"catalog_sha256":hashlib.sha256(CATALOG.read_bytes()).hexdigest(),"design":"fixed budget and threshold selection, three paired seeds; seed-level descriptive means/SD; one-round counterfactuals","results":rows},indent=2,allow_nan=False))
+    (out/"matrix.json").write_text(json.dumps({"training_runs":len(rows),"matched_groups":len(hashes),"catalog_sha256":hashlib.sha256(CATALOG.read_bytes()).hexdigest(),"dataset_groups":len(truths),"design":"single seed 42; descriptive only; selected finalists; one-round counterfactuals" if compact else "fixed budget and threshold selection, three paired seeds; seed-level descriptive means/SD; one-round counterfactuals","results":rows},indent=2,allow_nan=False))
 
 if __name__=="__main__":
     p=argparse.ArgumentParser();p.add_argument("--ledger",type=Path,required=True);p.add_argument("--output",type=Path,required=True);a=p.parse_args();analyze(a.ledger,a.output)

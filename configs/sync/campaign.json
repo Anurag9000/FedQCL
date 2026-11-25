@@ -172,5 +172,20 @@
   "matched_controls": [
     "matched_count",
     "matched_bytes"
-  ]
+  ],
+  "compact": {
+    "seed": 42,
+    "screening": "S14",
+    "anchors": [
+      "S01",
+      "S03",
+      "S04",
+      "S10",
+      "S13"
+    ],
+    "oldest_anchor": "S04",
+    "training_runs": 101,
+    "rank_rule": "equal rank sum: validation final accuracy descending, forgetting ascending, total bytes ascending, mean joint coverage regret ascending; selector ID tie break",
+    "counterfactual_all_subsets": true
+  }
 }

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Core: 24 settings x 3 seeds x all nontrivial participation budgets, with baselines.
+# Core: 101 staged trajectories, seed 42; all 24 datasets, six neural streams.
 # Former 24-run suite: SYNC_SUITE=pilot (diagnostic only).
 # Generation, ground truth, ten counterfactual checkpoints per run, analysis.
 # Historical combinatorial suite requires explicit opt-in.
@@ -11,6 +11,7 @@ case "$suite" in
   core) ledger=experiments/job_ledger.jsonl ;;
   pilot) ledger=experiments/job_ledger_pilot.jsonl ;;
   extended) ledger=experiments/job_ledger_extended.jsonl ;;
+  exhaustive) ledger=experiments/job_ledger_exhaustive.jsonl ;;
   *) echo "Unknown SYNC_SUITE: $suite" >&2; exit 2 ;;
 esac
 args=(--suite "$suite" --output "$ledger")

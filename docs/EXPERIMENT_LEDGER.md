@@ -1,3 +1,7 @@
+# Active synchronization campaign: 101 runs (seed 42)
+
+The authoritative current plan is [CONTROLLED_CAMPAIGN.md](CONTROLLED_CAMPAIGN.md). The older material below is historical design context, not the default executable matrix. Default `core` is staged: 27 screening runs then 74 validation-selected runs, 24 generated/verified datasets, six neural streams, 151 total jobs after expansion. The former 35,208-trajectory factorial is available only as `exhaustive`; the original 24-selector single-stream pilot and legacy extended suite remain explicit opt-ins. Do not infer multi-seed robustness or neural results on dataset-only streams.
+
 # Active controlled-stream campaign
 
 The eight signals x three mechanisms remain exactly 24 training jobs, plus
@@ -7,7 +11,7 @@ See [CONTROLLED_STREAM_SPEC.md](CONTROLLED_STREAM_SPEC.md).
 
 # Previous static campaign — eight high-priority signal families
 
-Exactly **24 training trajectories + 3 supporting jobs = 27 jobs**. No independent
+Historical pilot: **24 training trajectories + 3 supporting jobs = 27 jobs**. No independent
 baselines, extra seeds, Task-IL, parameter sweeps or other statistical signals in
 the active goal. The previous 9-run merged interpretation is superseded.
 

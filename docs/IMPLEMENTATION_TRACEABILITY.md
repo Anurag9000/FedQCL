@@ -1,6 +1,10 @@
+# Active synchronization campaign: 101 runs (seed 42)
+
+The authoritative current plan is [CONTROLLED_CAMPAIGN.md](CONTROLLED_CAMPAIGN.md). The older material below is historical design context, not the default executable matrix. Default `core` is staged: 27 screening runs then 74 validation-selected runs, 24 generated/verified datasets, six neural streams, 151 total jobs after expansion. The former 35,208-trajectory factorial is available only as `exhaustive`; the original 24-selector single-stream pilot and legacy extended suite remain explicit opt-ins. Do not infer multi-seed robustness or neural results on dataset-only streams.
+
 # Active goal override
 
-Only the 24 high-priority signal configurations in configs/sync/core_signal_ledger.jsonl are active. See EXPERIMENT_LEDGER.md; all historical catalogs below are optional.
+The 24 high-priority signal configurations in configs/sync/core_signal_ledger.jsonl define the historical pilot and current screening selector inventory. See EXPERIMENT_LEDGER.md; all historical catalogs below are optional.
 
 # Campaign scope update
 

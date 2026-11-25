@@ -1,6 +1,6 @@
 # Active comprehensive synchronization campaign
 
-The default ledger now covers 24 independent distribution settings × three paired seeds × all nontrivial participation budgets, with full, random and oldest-first references: **35,208 training trajectories, 35,353 jobs** (including four threshold-driven admission levels). See [the comprehensive campaign specification](docs/CONTROLLED_CAMPAIGN.md). The former 24-run design below is a historical pilot (`SYNC_SUITE=pilot`).
+The default ledger is the **101-training-run, 151-job staged single-seed campaign** (seed 42, 24 validated datasets, six neural streams). See [the current campaign specification](docs/CONTROLLED_CAMPAIGN.md). Before screening, the 76-job ledger contains 27 training runs; the runner expands automatically after validation-only shortlisting. The former exhaustive 35,208-run suite is opt-in (`SYNC_SUITE=exhaustive`); the 24-run historical pilot is `SYNC_SUITE=pilot`.
 
 # Historical pilot: eight-signal research goal
 
@@ -198,7 +198,7 @@ test on the target environment before launching all training jobs.
 
 The expanded campaign includes cached/combined/adaptive selectors, binary reports,
 rich statistics, sparse and lossy peer variants, counterfactual continuations,
-rate matching and scaling to 10/20/50 clients. The active default synchronization ledger has 27 jobs (24 training configurations); separate Task-IL launchers are optional and outside this goal. The historical 3,934-job and 86-job matrices are available only through explicit `--suite extended` (launcher variables `SYNC_SUITE=extended` and `TASK_IL_SUITE=extended`). Do not expand the core campaign automatically. The exact matrix and remaining
+rate matching and scaling to 10/20/50 clients. The historical pilot synchronization ledger has 27 jobs (24 training configurations); separate Task-IL launchers are optional and outside this goal. The historical 3,934-job and 86-job matrices are available only through explicit `--suite extended` (launcher variables `SYNC_SUITE=extended` and `TASK_IL_SUITE=extended`). The active compact campaign automatically expands only after verified screening. The exact matrix and remaining
 limitations are documented in the runbook above. Parallel execution: bash run_all_sync.sh --stage pilot --resume --workers 2 --gpu-ids 0,1. Use --estimate-only to inspect the scope without training. Development uses validation;
 held-out adaptive jobs use separate partition seeds. Do not use --all before
 validating the full-data pilot.
@@ -223,4 +223,4 @@ For consecutive local class overlap (e.g. {0,1} -> {1,2}), run
 `bash run_all_task_il_joint.sh --dry-run` or `bash run_all_task_il_joint.sh`.
 The separate [44-entry mirror specification](docs/TASK_IL_JOINT_SPEC.md) and
 [portable ledger](configs/task_il_joint/job_ledger.jsonl) exclude existing E08
-interventions and reuse the width-five baseline. The temporal-overlap mirror is outside the active 24-run goal.
+interventions and reuse the width-five baseline. The temporal-overlap mirror is outside the active compact goal.

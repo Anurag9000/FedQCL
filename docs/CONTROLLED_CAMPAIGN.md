@@ -1,3 +1,42 @@
+# Active compact controlled campaign (101 training runs)
+
+The default `core` uses seed 42 for both partition and training. Five clients, five tasks, 50 rounds, sample-weighted complete FedAvg, uniform experience replay, pre-training admission, all existing statistical and communication instrumentation. No test metrics determine selection.
+
+| Phase | Design | Trajectories |
+|---|---|---:|
+| Screening | S14, all 24 selectors at k=3, random/oldest at k=3, full k=5 | 27 |
+| Generalization | S01/S03/S10/S13: three finalists + full/random each; S04 additionally oldest | 26 |
+| Fixed sensitivity | S14, finalists and random at k=1/2/4 (reuse k=3/full) | 12 |
+| Adaptive | S14, one finalist/mechanism at thresholds .05/.10/.20/.35 | 12 |
+| Matched count | One random comparator per adaptive source | 12 |
+| Matched bytes | One cumulative-ceiling random comparator per adaptive source | 12 |
+| Total | | 101 |
+
+All 24 distribution settings generated and independently validated, but only S01/S03/S04/S10/S13/S14 receive neural trajectories. All 32 distribution subsets per round for all 24 streams. All 32 candidate aggregation subsets at each of ten checkpoints in each run (32,320 evaluations; 5,050 isolated candidate local trainings). No counterfactual is an alternative long-term trajectory. Fixed-state sensitivity uses causal observed scores or peer reports and actual due/last-sync state; model tensor byte estimates are not total hypothetical network bytes. Actual transaction bandwidth remains exact logical payload + envelopes, not physical network throughput.
+
+## Staging and execution
+
+```bash
+python scripts/build_job_ledger.py
+bash run_all_sync.sh --estimate-only
+bash run_all_sync.sh --stage data --resume --device cpu
+bash run_all_sync.sh --stage screening --stage shortlist --resume
+python scripts/build_job_ledger.py --require-shortlist
+bash run_all_sync.sh --all
+```
+
+Or simply `bash run_all_sync.sh --all` to run screening and automatically expand under the runner lock. Before screening, the actual ledger has 76 jobs (48 data + 27 training + 1 shortlist); after a verified shortlist it has 151 (48 data + 101 training + 1 shortlist + 1 final analysis). The estimate prints both planned and materialized counts. Filtered runs never trigger implicit expansion. Rebuild after screening before filtering generalization/adaptive/participation. Resume retains screening job IDs and paths at the same commit. Changed source commits intentionally require new ledgers/results.
+
+Finalists: within each M1/M2/M3 group rank the eight S14 screening configurations by validation final mean accuracy (higher), forgetting (lower), exact logical total bytes (lower), and mean joint distribution coverage regret (lower); equal-weight competition rank sum, selector ID tie-break. Record all inputs, ranks, validation/audit hashes and commit in shortlist.json. No held-out metrics used. Selection and evaluation on S14 are exploratory; six training streams and single seed do not imply generalization to all settings or uncertainty intervals. Matched controls constrain cumulative bytes (not strict equality or online caps); matched-count does not imply equal sample computation.
+
+Final analysis keeps all prior tables, adds shortlist.json, distribution_subset_metrics.jsonl, all_subset_metrics.jsonl, decision_sensitivity.jsonl. Single-seed SD/CI are null, absent baselines are not fabricated, missing heatmap cells are masked. Ground-truth settings includes dataset-only settings, explicitly labeled. Final held-out test results are reported but not used to shortlist. Secondary sensitivity and physical networking remain outside this primary campaign.
+
+## Optional historical suites
+
+`SYNC_SUITE=exhaustive bash run_all_sync.sh --estimate-only` retains the former 35,208-run / 35,353-job matrix (three seeds); `SYNC_SUITE=pilot` and `SYNC_SUITE=extended` retain prior separate suites. Do not run them by default.
+
+## Historical exhaustive specification (superseded as default)
+
 # Comprehensive controlled-stream campaign
 
 The default synchronization ledger is now the prespecified comprehensive study.

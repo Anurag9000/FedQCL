@@ -13,11 +13,11 @@ from flcore.sync.backbone import BACKBONE
 from core_suite import read_core_signal_entries,CORE_SIGNAL_COUNT,PUBLIC_PROBE_PER_CLASS,CORE_REGIME,CORE_RUNTIME_FLAGS
 ROOT=Path(__file__).resolve().parents[1]
 
-def build(output,tiny_root=None,suite="core"):
-    if suite=="core":
+def build(output,tiny_root=None,suite="core",require_shortlist=False):
+    if suite in ("core","exhaustive"):
         if tiny_root is not None:raise ValueError("TinyImageNet only belongs to extended suite")
         from campaign_matrix import build as comprehensive
-        return comprehensive(output)
+        return comprehensive(output,compact=suite=="core",require_shortlist=require_shortlist)
     if suite=="pilot":suite="core"
     if suite not in ("core","extended"):raise ValueError("unknown suite")
     if tiny_root is not None and suite!="extended":raise ValueError("TinyImageNet is an explicit extended-suite experiment")
@@ -291,8 +291,8 @@ def build(output,tiny_root=None,suite="core"):
 
 if __name__=="__main__":
     p=argparse.ArgumentParser();p.add_argument("--output",type=Path)
-    p.add_argument("--suite",choices=["core","pilot","extended"],default="core")
+    p.add_argument("--suite",choices=["core","pilot","extended","exhaustive"],default="core")
     p.add_argument("--tiny-root",type=Path,help="Opt in to extracted TinyImageNet transfer runs")
-    a=p.parse_args()
-    output=a.output or ROOT/"experiments"/({"core":"job_ledger.jsonl","pilot":"job_ledger_pilot.jsonl","extended":"job_ledger_extended.jsonl"}[a.suite])
-    build(output,a.tiny_root.resolve() if a.tiny_root else None,a.suite)
+    p.add_argument("--require-shortlist",action="store_true");a=p.parse_args()
+    output=a.output or ROOT/"experiments"/({"core":"job_ledger.jsonl","pilot":"job_ledger_pilot.jsonl","extended":"job_ledger_extended.jsonl","exhaustive":"job_ledger_exhaustive.jsonl"}[a.suite])
+    build(output,a.tiny_root.resolve() if a.tiny_root else None,a.suite,a.require_shortlist)

@@ -17,7 +17,7 @@ def subset_distribution(counts,dist,s):
 def distribution_analysis(jobs,out,truths):
     from analyze_controlled_campaign import truth_stats
     data=[j for j in jobs if j["kind"]=="validate"]
-    if len(data)!=24 or {j["config"]["partition_seed"] for j in data}!={42}:raise ValueError("compact dataset inventory")
+    if len(data)!=25 or {j["config"]["partition_seed"] for j in data}!={42}:raise ValueError("compact dataset inventory")
     trained={j["config"]["setting_id"] for j in jobs if j["kind"]=="train"}
     with (out/"distribution_subset_metrics.jsonl").open("w") as handle:
         for job in data:

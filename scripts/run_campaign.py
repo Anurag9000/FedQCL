@@ -30,6 +30,12 @@ def verify_controlled_source(root,config):
 def valid(job):
     if not all(Path(x).is_file() for x in job["artifacts"]):return False
     try:
+        if job["kind"]=="calibration":
+            from compact_calibration import prefix_valid
+            return prefix_valid(job)
+        if job["kind"]=="analysis" and job["config"].get("scope")=="compact_calibration":
+            from compact_calibration import calibration_valid
+            return calibration_valid(job)
         if job["kind"]=="generate" and job["config"].get("controlled_stream"):
             return verify_controlled_source(Path(job["artifacts"][0]).parent,job["config"])
         if job["kind"]=="validate":
@@ -62,7 +68,7 @@ def valid(job):
             from compact_campaign import compact_ids
             cfg=job["config"];result=json.loads(Path(job["artifacts"][1]).read_text());rows=result["results"]
             receipt=json.loads(Path(cfg["shortlist"]).read_text())
-            return (sha_file(CATALOG)==cfg["catalog_sha256"] and len(rows)==result["training_runs"]==101 and {x["experiment_id"] for x in rows}==compact_ids(receipt["finalists"])==set(cfg["expected_ids"]) and result["matched_groups"]==6 and result["dataset_groups"]==24)
+            return (sha_file(CATALOG)==cfg["catalog_sha256"] and len(rows)==result["training_runs"]==123 and {x["experiment_id"] for x in rows}==compact_ids(receipt["finalists"],include_scale=True)==set(cfg["expected_ids"]) and result["matched_groups"]==7 and result["dataset_groups"]==25)
         if job["kind"]=="analysis" and job["config"].get("scope")=="controlled_comprehensive":
             from campaign_matrix import expected_ids,CATALOG
             result=json.loads(Path(job["artifacts"][1]).read_text());rows=result["results"]
@@ -104,8 +110,8 @@ def valid(job):
             if entry is None:return False
             if (cfg["signal"],cfg["mechanism"],cfg["policy"])!=(entry["signal"],entry["method"],entry["policy"]):return False
             flags=entry["flags"];expected={"sync_policy":entry["policy"],"sync_mode":"fixed" if cfg.get("selection_mode") in ("matched_count","matched_bytes") else cfg.get("selection_mode","fixed"),"sync_threshold":cfg.get("threshold",.1),"sync_k":cfg["k"],"sync_max_skip":cfg.get("max_skip",4),"seed":cfg["training_seed"],
-                "num_clients":5,"tasks":5,"num_classes":20,"global_rounds":49,"local_epochs":5,"batch_size":13,
-                "memory_size":500,"memory_batch_size":13,"local_learning_rate":.005,"sync_eval_split":"validation"}
+                "num_clients":cfg["clients"],"tasks":5,"num_classes":20,"global_rounds":49,"local_epochs":5,"batch_size":13,
+                "memory_size":cfg["memory"],"memory_batch_size":13,"local_learning_rate":cfg.get("learning_rate",.005),"sync_eval_split":"validation"}
             for pos,flag in enumerate(flags):
                 if flag=="--sync-native-space":expected["sync_native_space"]=True
                 elif flag.startswith("--"):expected[flag[2:].replace("-","_")]=flags[pos+1]
@@ -143,7 +149,7 @@ def valid(job):
                     if len(items)!=len(subsets) or set(items)!=subsets:return False
                 if len(cf)!=len(subsets)*len(cfg["counterfactual_rounds"]):return False
             if cfg.get("setting_id") and (manifest["controlled_stream"].get("setting_id")!=cfg["setting_id"] or manifest["seed"]!=cfg["partition_seed"]):return False
-            if any((len(x["selected"])!=(5 if i==0 else cfg["k"]) if cfg.get("selection_mode","fixed")=="fixed" else (i==0 and len(x["selected"])!=5)) or x["selected"]!=x["accepted"] or x["accepted"]!=x["downloaded"] for i,x in enumerate(rounds)):return False
+            if any((len(x["selected"])!=(cfg["clients"] if i==0 else cfg["k"]) if cfg.get("selection_mode","fixed")=="fixed" else (i==0 and len(x["selected"])!=cfg["clients"])) or x["selected"]!=x["accepted"] or x["accepted"]!=x["downloaded"] for i,x in enumerate(rounds)):return False
             from flcore.sync.decision_audit import verify_decisions
             decisions=[json.loads(l) for l in (out/"decisions.jsonl").read_text().splitlines()]
             verify_decisions(resolved_config,rounds,decisions,events)
@@ -244,8 +250,13 @@ def estimate(jobs):
     from math import comb
     cf_aggregates=sum(len(j["config"].get("counterfactual_rounds",[]))*(comb(j["config"]["clients"],j["config"]["k"])+int(j["config"]["k"]!=j["config"]["clients"])) for j in fixed)
     cf_max=cf_aggregates+sum(len(j["config"]["counterfactual_rounds"])*(comb(j["config"]["clients"],j["config"]["clients"]//2)+1) for j in adaptive)
-    if training and all(j["config"].get("all_subsets") for j in training):
-        cf_aggregates=cf_max=sum(len(j["config"]["counterfactual_rounds"])*2**j["config"]["clients"] for j in training)
+    for j in training:
+        c=j["config"]
+        if c.get("all_subsets"):
+            n=c["clients"];m=len(c["counterfactual_rounds"]);exact=m*2**n
+            old=m*(comb(n,n//2)+1) if j in adaptive else m*(comb(n,c["k"])+int(c["k"]!=n))
+            cf_max+=exact-old
+            cf_aggregates+=exact-(0 if j in adaptive else old)
     return {"jobs":len(jobs),"training_jobs":len(training),"threshold_jobs":sum(j["config"].get("selection_mode")=="threshold" for j in adaptive),"matched_control_jobs":sum(j["config"].get("selection_mode") in ("matched_count","matched_bytes") for j in adaptive),"nominal_client_draws":draws,"threshold_draw_upper_bound":adaptive_max,"counterfactual_aggregate_upper_bound":cf_max,"counterfactual_checkpoints":cf_rounds,"counterfactual_candidate_local_trainings":cf_candidates,"counterfactual_aggregate_evaluations":cf_aggregates,
             "nominal_model_transfer_upper_bound_at_45MB":45000000*(2*(draws+adaptive_max)+initial),
             "initial_downloads":initial,"initial_task_il_downloads":sum(j["config"]["clients"] for j in training if j["config"].get("campaign") in ("task_il_48","task_il_joint")),
@@ -253,7 +264,7 @@ def estimate(jobs):
             "note":"Adaptive, threshold, failures, duplicate draws and counterfactual continuation alter actual costs. No runtime or peak memory guarantee."}
 
 def execute(job,command,logs):
-    cwd=ROOT/"system" if job["kind"]=="train" else ROOT
+    cwd=ROOT/"system" if job["kind"] in ("train","calibration") else ROOT
     with (logs/f'{job["id"]}.log').open("a") as log:
         log.write("\nCOMMAND: "+shlex.join(command)+"\n");log.flush()
         return subprocess.run(command,cwd=cwd,stdout=log,stderr=subprocess.STDOUT).returncode
@@ -276,16 +287,16 @@ def main():
     commit=subprocess.check_output(["git","rev-parse","HEAD"],cwd=ROOT,text=True).strip()
     if any(j.get("source_commit")!=commit for j in jobs):raise ValueError("ledger source commit differs; rebuild ledger")
     unfiltered=not any((a.stage,a.job_id,a.setting,a.seed,a.budget,a.selector,a.selection_mode,a.threshold))
-    compact_pending=any(j["config"].get("scope")=="compact_shortlist" for j in jobs) and not any(j["config"].get("scope")=="controlled_compact" for j in jobs)
+    compact_pending=any(j["config"].get("scope")=="compact_calibration" for j in jobs) and not any(j["config"].get("scope")=="controlled_compact" for j in jobs)
     jobs=select_jobs(jobs,a.stage,a.job_id,a.setting,a.seed,a.budget,a.selector,a.selection_mode,a.threshold)
     if a.estimate_only:
         result=estimate(jobs)
-        if compact_pending and unfiltered:result.update(planned_training_jobs=101,planned_jobs=151,planned_counterfactual_checkpoints=1010,planned_counterfactual_aggregate_evaluations=32320,note="Current ledger is screening phase; validation shortlist expands to 101 training runs. Estimates above describe currently materialized jobs.")
+        if compact_pending and unfiltered:result.update(planned_training_jobs=123,primary_training_jobs=101,scale_training_jobs=22,planned_jobs=179,calibration_prefixes=3,note="Staged ledger expands after verified LR calibration and screening. Estimates above describe materialized jobs.")
         print(json.dumps(result,indent=2));return 0
     if a.dry_run:
-        if compact_pending and unfiltered:print("# Screening ledger only: 27 of 101 training runs; the remaining IDs require a verified shortlist. Planned total: 151 jobs.")
+        if compact_pending and unfiltered:print("# Staged ledger: remaining IDs require verified calibration and shortlist. Planned: 101 primary + 22 scale training runs, 179 jobs.")
         for job in jobs:
-            command=job["command"]+(["-dev",a.device,"-did",a.gpu_id] if job["kind"]=="train" else [])
+            command=job["command"]+(["-dev",a.device,"-did",a.gpu_id] if job["kind"] in ("train","calibration") else [])
             print(job["id"],job["stage"],shlex.join(command))
         return 0
     devices=(a.gpu_ids or a.gpu_id).split(",") if a.device=="cuda" else [str(i) for i in range(a.workers)]
@@ -298,10 +309,12 @@ def main():
         try:fcntl.flock(guard,fcntl.LOCK_EX|fcntl.LOCK_NB)
         except BlockingIOError:raise RuntimeError("another runner owns this ledger")
         rc=run_jobs(a,jobs,devices)
-        if rc==0 and compact_pending and unfiltered:
+        while rc==0 and compact_pending and unfiltered:
             from campaign_matrix import build
-            jobs=build(a.ledger,compact=True,require_shortlist=True)
-            return run_jobs(a,jobs,devices)
+            previous=len(jobs);jobs=build(a.ledger,compact=True)
+            if len(jobs)<=previous:raise RuntimeError("staged ledger did not expand")
+            compact_pending=not any(j["config"].get("scope")=="controlled_compact" for j in jobs)
+            rc=run_jobs(a,jobs,devices)
         return rc
 
 def run_jobs(a,jobs,devices):
@@ -337,7 +350,7 @@ def run_jobs(a,jobs,devices):
                 if old.get("status") in ("failed","running") and not (a.retry_failed or a.resume):
                     failed.add(key);del remaining[key];changed=True;continue
                 if len(running)>=a.workers:continue
-                train=job["kind"]=="train"
+                train=job["kind"] in ("train","calibration")
                 # Dataset generation/validation and other CPU tasks are serialized
                 # to avoid simultaneous downloads and high concurrent I/O.
                 preferred=old.get("device_slot")
@@ -349,7 +362,7 @@ def run_jobs(a,jobs,devices):
                     command+=["-dev",a.device,"-did",slot]
                     out=Path(job["artifacts"][0]).parent
                     if (out/"status.json").exists():
-                        if a.resume and not valid(job) and (out/"checkpoint.pt").exists() and old.get("dependency_artifacts")==deps_digest(job) and old.get("device_slot")==slot and old.get("device")==a.device:
+                        if job["kind"]=="train" and a.resume and not valid(job) and (out/"checkpoint.pt").exists() and old.get("dependency_artifacts")==deps_digest(job) and old.get("device_slot")==slot and old.get("device")==a.device:
                             command.append("--sync-resume")
                         else:out.rename(out.with_name(out.name+".archived-"+str(time.time_ns())))
                 elif job["kind"]=="generate" and Path(job["artifacts"][0]).exists():

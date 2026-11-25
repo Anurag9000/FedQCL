@@ -186,6 +186,32 @@
     "oldest_anchor": "S04",
     "training_runs": 101,
     "rank_rule": "equal rank sum: validation final accuracy descending, forgetting ascending, total bytes ascending, mean joint coverage regret ascending; selector ID tie break",
-    "counterfactual_all_subsets": true
+    "counterfactual_all_subsets": true,
+    "calibration": {
+      "learning_rates": [
+        0.005,
+        0.01,
+        0.02
+      ],
+      "prefix_rounds": 20,
+      "rule": "mean validation acquisition and retention accuracy over prefix; tie lower final forgetting then smaller LR"
+    },
+    "scale": {
+      "setting_id": "S14N10",
+      "clients": 10,
+      "budgets": [
+        6,
+        8,
+        9
+      ],
+      "adaptive_slot": 0.2,
+      "training_runs": 22,
+      "total_replay_capacity": 2500,
+      "checkpoints": [
+        13,
+        33
+      ]
+    },
+    "threshold_calibration": "retain nominal thresholds if four distinct offline mean participation counts separated by >=0.25; otherwise choose monotone grid thresholds targeting 4,3,2,1 clients with best attainable separation"
   }
 }

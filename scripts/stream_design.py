@@ -6,7 +6,7 @@ def validate_spec(s,n,tasks,windows):
         raise ValueError("controlled stream dimensions")
     if s["domain"]!="brightness" or not 2<=s["domain_bins"]<=10:
         raise ValueError("unsupported domain")
-    if s["mode"] not in ("balanced_dynamic","dirichlet","custom","named"):raise ValueError("stream mode")
+    if s["mode"] not in ("balanced_dynamic","dirichlet","custom","named","split_dynamic"):raise ValueError("stream mode")
     if not np.isfinite(s["alpha"]) or s["alpha"]<=0 or not 0<=s["temporal_persistence"]<=1:
         raise ValueError("alpha/persistence")
     if any(not 0<=s[k]<=1 for k in ("label_specialization","domain_specialization")):
@@ -14,6 +14,7 @@ def validate_spec(s,n,tasks,windows):
     if s["mode"]=="balanced_dynamic" and (n!=5 or windows!=10 or s["domain_bins"]!=5 or s["regimes"]!=["similar","clustered","separated","reassigned","conditional"]):
         raise ValueError("balanced schedule contract")
     if "alpha_schedule" in s and (len(s["alpha_schedule"]) not in (windows,tasks*windows) or any(not np.isfinite(x) or x<=0 for x in s["alpha_schedule"])):raise ValueError("alpha schedule")
+    if s["mode"]=="split_dynamic" and (n,windows,s["domain_bins"])!=(10,10,5):raise ValueError("paired scale requires ten clients, ten windows, five domains")
     if s["mode"]=="named" and (n,windows,s["domain_bins"])!=(5,10,5):raise ValueError("named settings require five clients, ten windows, five domains")
     weights=np.asarray(s.get("workload_weights",[1]*n),float)
     if weights.shape!=(n,) or not np.isfinite(weights).all() or np.any(weights<=0):raise ValueError("workload weights")
@@ -28,6 +29,9 @@ def domain_ids(ids,pixels,bins):
 
 def window_workloads(spec,total):
     n,w=spec["clients"],spec["windows"]
+    if spec["mode"]=="split_dynamic":
+        parent=window_workloads({**spec,"mode":"balanced_dynamic","clients":5},total)
+        return np.column_stack(((parent+1)//2,parent//2)).ravel()
     weights=np.asarray(spec.get("workload_weights",[1]*n),dtype=float)
     ideal=np.tile(weights/weights.sum(),w)*total/w
     rows=np.floor(ideal).astype(int)
@@ -100,6 +104,9 @@ def named_profiles(spec,task,c,rng):
 
 def target_profiles(spec,task,c,rng):
     if spec["mode"]=="named":return named_profiles(spec,task,c,rng)
+    if spec["mode"]=="split_dynamic":
+        targets,schedule=target_profiles({**spec,"mode":"balanced_dynamic","clients":5},task,c,rng)
+        return np.repeat(targets,2,axis=1),[{**v,"groups":[g for g in v["groups"] for _ in range(2)]} for v in schedule]
     n,w,d=spec["clients"],spec["windows"],spec["domain_bins"]
     uniform=np.full((n,c),1/c)
     result=[];schedule=[];previous=None
@@ -166,7 +173,18 @@ def joint_allocate(spec,task,train_ids,raw_data,rng,allocate,client_rows,read_pi
     cols=np.asarray([len(ids) for group in sources for ids in group])
     rows=window_workloads(spec,int(cols.sum()))
     targets,schedule=target_profiles(spec,task,c,rng if target_rng is None else target_rng)
-    counts=allocate_joint(rows,cols,targets.reshape(w*n,c,d),allocate).reshape(w,n,c,d)
+    if spec["mode"]=="split_dynamic":
+        # Identical parent-cell allocation and permutation order to S14, then
+        # split each parent cell into two disjoint integer-balanced children.
+        parent=allocate_joint(rows.reshape(-1,2).sum(1),cols,targets[:,::2].reshape(w*5,c,d),allocate).reshape(w,5,c,d)
+        counts=np.zeros((w,n,c,d),dtype=int)
+        for a in range(w):
+            for i in range(5):
+                flat=parent[a,i].ravel();first=flat//2
+                odd=np.flatnonzero(flat%2);first[odd[:(int(flat.sum())+1)//2-int(first.sum())]]+=1
+                counts[a,2*i]=first.reshape(c,d);counts[a,2*i+1]=parent[a,i]-counts[a,2*i]
+        if not np.array_equal(counts.sum((2,3)).ravel(),rows):raise ValueError("paired scale workload")
+    else:counts=allocate_joint(rows,cols,targets.reshape(w*n,c,d),allocate).reshape(w,n,c,d)
     assigned=[[] for _ in range(n)];windows=[[] for _ in range(n)]
     for j,group in enumerate(sources):
         for k,ids in enumerate(group):

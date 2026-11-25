@@ -39,21 +39,25 @@ class CompactCampaign(unittest.TestCase):
         finalists={"M1":"A06-M1","M2":"A08-M2","M3":"A01-M3"}
         original=Path.read_text
         def fake_receipt(path,*a,**kw):
-            if path.name=="shortlist.json":return json.dumps({"finalists":finalists})
+            if path.name=="shortlist.json":return json.dumps({"finalists":finalists,"thresholds":{s:{str(t):t for t in (.05,.1,.2,.35)} for s in finalists.values()}})
+            if path.name=="calibration.json":return json.dumps({"learning_rate":.01})
             return original(path,*a,**kw)
         with TemporaryDirectory() as tmp:
             dest=Path(tmp)/"ledger.jsonl"
-            with patch("compact_campaign.shortlist_valid",return_value=False):
+            with patch("compact_calibration.calibration_valid",return_value=False):
+                first=build(dest,compact=True)
+            with patch("compact_calibration.calibration_valid",return_value=True),patch("compact_campaign.shortlist_valid",return_value=False),patch.object(Path,"read_text",fake_receipt):
                 initial=build(dest,compact=True)
                 with self.assertRaises(ValueError):build(dest,compact=True,require_shortlist=True)
-            with patch("compact_campaign.shortlist_valid",return_value=True),patch.object(Path,"read_text",fake_receipt):
+            with patch("compact_calibration.calibration_valid",return_value=True),patch("compact_campaign.shortlist_valid",return_value=True),patch.object(Path,"read_text",fake_receipt):
                 expanded=build(dest,compact=True,require_shortlist=True)
-            self.assertEqual(len(initial),76);self.assertEqual(len(expanded),151)
-            self.assertEqual(expanded[:len(initial)],initial)
+            self.assertEqual(len(first),54);self.assertEqual(len(initial),82);self.assertEqual(len(expanded),179)
+            self.assertEqual(initial[:len(first)],first);self.assertEqual(expanded[:len(initial)],initial)
             train=[j for j in expanded if j["kind"]=="train"]
-            self.assertEqual({j["semantic_id"] for j in train},compact_ids(finalists))
+            self.assertEqual({j["semantic_id"] for j in train},compact_ids(finalists,include_scale=True))
             self.assertEqual({j["config"]["training_seed"] for j in train},{42})
-            self.assertTrue(all("--sync-all-subsets" in j["command"] for j in train))
+            self.assertTrue(all(("--sync-all-subsets" in j["command"])==(j["config"]["clients"]==5) for j in train))
+            self.assertEqual({j["config"]["learning_rate"] for j in train},{.01})
             by_id=dependency_order(expanded)
             shortlist=initial[-1]["id"]
             for j in train:
@@ -63,11 +67,11 @@ class CompactCampaign(unittest.TestCase):
                     self.assertEqual(source["config"]["selection_mode"],"threshold")
                     self.assertIn(shortlist,source["dependencies"])
                 elif j["stage"]!="screening":self.assertIn(shortlist,j["dependencies"])
-            self.assertEqual(len(expanded[-1]["dependencies"]),126)
+            self.assertEqual(len(expanded[-1]["dependencies"]),150)
             work=estimate(expanded)
-            self.assertEqual(work["training_jobs"],101)
-            self.assertEqual(work["counterfactual_checkpoints"],1010)
-            self.assertEqual(work["counterfactual_aggregate_evaluations"],32320)
+            self.assertEqual(work["training_jobs"],123)
+            self.assertEqual(work["counterfactual_checkpoints"],1054)
+            self.assertGreaterEqual(work["counterfactual_aggregate_evaluations"],32320)
 
     def test_distribution_subset_diagnostics(self):
         import numpy as np

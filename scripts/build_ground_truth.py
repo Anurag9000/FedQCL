@@ -9,7 +9,8 @@ def normalize(x):
     return np.divide(x,s,out=np.zeros_like(x),where=s>0)
 def tv(p,q):return .5*np.abs(p-q).sum(axis=-1)
 def pairwise(p):
-    return tv(p[:,None,:],p[None,:,:])
+    from scipy.spatial.distance import cdist
+    return .5*cdist(p,p,metric="cityblock")
 def js(p,q):
     p,q=np.broadcast_arrays(p,q)
     m=(p+q)/2
@@ -73,7 +74,7 @@ def reconstruct(root,manifest):
                     require(dist<=tol["within_cluster_tv"] if groups[i]==groups[j] else dist>=tol["between_cluster_tv"],f"cluster regime {r}")
                 if regime in ("separated","four_groups"):
                     require(dist<=tol["within_cluster_tv"] if groups[i]==groups[j] else dist>=tol["separated_tv"],f"separated regime {r}")
-                if regime=="conditional":require(1-joint_spatial[r,i,j]>=tol["conditional_joint_tv"],f"conditional regime {r}")
+                if regime=="conditional" and (spec["mode"]!="split_dynamic" or i//2!=j//2):require(1-joint_spatial[r,i,j]>=tol["conditional_joint_tv"],f"conditional regime {r}")
     # Validate realized pairwise structure relative to requested pairwise structure.
     target_dist=np.asarray([pairwise(x) for x in target]);realized_dist=1-spatial
     require(np.max(np.abs(target_dist-realized_dist))<=2*tol["label_tv"]+1e-12,"pairwise target mismatch")

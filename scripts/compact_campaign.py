@@ -5,7 +5,7 @@ from pathlib import Path
 from itertools import product,combinations
 from campaign_matrix import variants,experiment_id,threshold_id,read_catalog,CATALOG
 
-EXTRA_OUTPUTS=("all_subset_metrics.jsonl","distribution_subset_metrics.jsonl","decision_sensitivity.jsonl","shortlist.json")
+EXTRA_OUTPUTS=("all_subset_metrics.jsonl","distribution_subset_metrics.jsonl","decision_sensitivity.jsonl","shortlist.json","calibration.json","scale_comparisons.csv")
 SCREEN="S14"
 ANCHORS=("S01","S03","S04","S10","S13")
 THRESHOLDS=(.05,.1,.2,.35)
@@ -25,13 +25,18 @@ def compact_cases(finalists):
     assert len(screen)==77
     return screen
 
-def compact_ids(finalists):
+def scale_cases(finalists):
+    vs={x[0]:x for x in variants()};chosen=[vs[finalists[m]] for m in ("M1","M2","M3")]
+    full=("B-FULL","none","baseline","full",[])
+    return [("S14N10","fixed",10,.1,full)]+[("S14N10","fixed",k,.1,x) for k,x in product((6,8,9),[*chosen,vs["B-RANDOM"]])]+[("S14N10","threshold",10,.2,x) for x in chosen]
+
+def compact_ids(finalists,include_scale=False):
     result=set()
-    for sid,mode,k,tau,x in compact_cases(finalists):
+    for sid,mode,k,tau,x in [*compact_cases(finalists),*(scale_cases(finalists) if include_scale and finalists is not None else [])]:
         ident=experiment_id(sid,42,k,x[0]) if mode=="fixed" else threshold_id(sid,42,tau,x[0])
         result.add(ident)
         if mode=="threshold":result.update((ident+"-B-COUNT",ident+"-B-BYTES"))
-    if finalists is not None:assert len(result)==101
+    if finalists is not None:assert len(result)==(123 if include_scale else 101)
     return result
 
 RANK_FIELDS=(("final_accuracy",-1),("forgetting",1),("total_bytes",1),("mean_joint_coverage_regret",1))
@@ -71,7 +76,13 @@ def choose(screen,verify=True):
         if selector.startswith("A"):
             evidence.append({"selector_id":selector,"final_accuracy":accuracy,"forgetting":forgetting,"total_bytes":summary["total_bytes"],"mean_joint_coverage_regret":audit["summary"]["mean_joint_coverage_regret"]})
     finalists,scores=rank(evidence)
-    return {"schema":1,"source_commit":screen[0]["source_commit"],"catalog_sha256":sha_file(CATALOG),"selection_rule":"within-mechanism equal rank sum of validation final accuracy, forgetting, total bytes, joint coverage regret; ties by selector ID; no held-out metrics","finalists":finalists,"scores":scores,"source_validation_hashes":fingerprints}
+    from compact_calibration import calibrated_thresholds
+    thresholds={};threshold_evidence={}
+    for job in screen:
+        selector=job["config"]["selector_id"]
+        if selector in finalists.values():
+            thresholds[selector],threshold_evidence[selector]=calibrated_thresholds(Path(job["artifacts"][0]).parent)
+    return {"thresholds":thresholds,"threshold_evidence":threshold_evidence,"schema":2,"source_commit":screen[0]["source_commit"],"catalog_sha256":sha_file(CATALOG),"selection_rule":"within-mechanism equal rank sum of validation final accuracy, forgetting, total bytes, joint coverage regret; ties by selector ID; no held-out metrics","finalists":finalists,"scores":scores,"source_validation_hashes":fingerprints}
 
 def shortlist_valid(job):
     try:

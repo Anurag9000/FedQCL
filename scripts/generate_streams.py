@@ -48,7 +48,7 @@ def allocate(rows, cols, target, floor=0):
         raise RuntimeError("allocation violated inventory")
     return x
 
-def profiles(regime,n,c,t,rng):
+def profiles(regime,n,c,t,rng,alpha=10.):
     p=np.ones((n,c))
     if regime=="near":
         p+=rng.uniform(0,.15,p.shape)
@@ -60,7 +60,7 @@ def profiles(regime,n,c,t,rng):
         for i in range(n):
             p[i,np.arange(c)%min(c,n)==i%min(c,n)]=15
     elif regime=="dirichlet":
-        return rng.dirichlet(np.ones(c)*10,n)
+        return rng.dirichlet(np.ones(c)*alpha,n)
     elif regime not in ("equal","conditional","drift"):
         raise ValueError(regime)
     return p/p.sum(1,keepdims=True)
@@ -199,6 +199,17 @@ def generate(args):
               "drift_pattern":args.drift_pattern,"conditional_domain":args.conditional_domain,
               "normalization":{"mean":mean,"std":std},"shards":{}, "tasks_data":[]}
     if public_n:manifest["public_probe_per_class"]=public_n
+    spec_path=getattr(args,"controlled_stream",None)
+    spec=json.loads(Path(spec_path).read_text()) if spec_path else None
+    if spec:
+        from stream_design import validate_spec
+        validate_spec(spec,n,tasks,args.windows)
+        if any(getattr(args,k,None) for k in ("profiles","similarity","counts","window_profiles","client_counts","drift_pattern","workload_skew")):
+            raise ValueError("controlled stream cannot mix legacy allocation overrides")
+        manifest["controlled_stream"]=spec
+    elif not np.isfinite(getattr(args,"dirichlet_alpha",10.)) or getattr(args,"dirichlet_alpha",10.)<=0:
+        raise ValueError("Dirichlet alpha must be positive")
+    if args.regime=="dirichlet":manifest["dirichlet_alpha"]=getattr(args,"dirichlet_alpha",10.)
     seen=set()
     for t in range(tasks):
         labels=range(t*c,(t+1)*c)
@@ -221,50 +232,65 @@ def generate(args):
             rows=custom[t] if custom.ndim==2 else custom
             if rows.shape!=(n,) or not np.issubdtype(rows.dtype,np.integer) or rows.sum()!=cols.sum() or np.any(rows<c*args.floor):
                 raise ValueError("invalid client workload totals")
-        target=profiles(args.regime,n,c,t,rng)
-        if args.profiles:
-            requested=np.asarray(json.loads(Path(args.profiles).read_text()),dtype=float)
-            target=requested[t] if requested.ndim==3 else requested
-        requested_similarity=similarity(target)
-        if args.similarity:
-            requested_similarity=np.asarray(json.loads(Path(args.similarity).read_text()))
-            if requested_similarity.ndim==3:requested_similarity=requested_similarity[t]
-            target=desired_profiles(requested_similarity,rows,cols,args.seed+t,args.floor)
-        if args.counts:
-            counts=np.asarray(json.loads(Path(args.counts).read_text()))
-            if counts.ndim==3:counts=counts[t]
-            if not np.issubdtype(counts.dtype,np.integer):raise ValueError("class counts must be integer")
-            if counts.shape!=(n,c) or np.any(counts<args.floor) or not np.array_equal(counts.sum(0),cols) or not np.array_equal(counts.sum(1),rows):
-                raise ValueError("invalid exact counts")
+        if spec:
+            from stream_design import joint_allocate
+            assigned,window_ids,joint,target_joint,schedule=joint_allocate(spec,t,train_ids,raw.data,rng,allocate,client_rows,read_pixels)
+            counts=joint.sum((0,3));rows=counts.sum(1)
+            target=(target_joint.sum(3)*joint.sum((2,3))[:,:,None]).sum(0)/rows[:,None]
+            requested_similarity=similarity(target)
+            window_counts=joint.sum(3).transpose(1,0,2).tolist()
+            for i,items in enumerate(assigned):
+                ids=np.asarray(items,dtype=int);windows=np.asarray(window_ids[i],dtype=int)
+                order=rng.permutation(len(ids));ids=ids[order];windows=windows[order]
+                if seen.intersection(ids.tolist()) or len(set(ids.tolist()))!=len(ids):raise ValueError("duplicate joint allocation")
+                seen.update(ids.tolist())
+                file,digest=write_shard(root,t,"train",i,images(raw.data,ids),train_y[ids],ids,windows)
+                manifest["shards"][file]=digest
         else:
-            counts=allocate(rows,cols,target,args.floor)
-        assigned=[[] for _ in range(n)]
-        for j,ids in enumerate(train_ids):
-            if args.regime=="conditional":
-                # Rank within-class samples by brightness before assigning disjoint domains.
-                pixels=read_pixels(raw.data,ids).astype(np.float32)
-                score=pixels.mean((1,2,3)) if args.conditional_domain=="brightness" else (pixels[:,:,:,0]-pixels[:,:,:,2]).mean((1,2)) if args.conditional_domain=="color" else pixels.std((1,2,3))
-                ids=ids[np.argsort(score,kind="stable")]
-            cursor=0
-            for i in range(n):
-                assigned[i].extend(ids[cursor:cursor+counts[i,j]].tolist())
-                cursor+=counts[i,j]
-        window_counts=[]
-        for i,items in enumerate(assigned):
-            ids=np.array(items,dtype=int)
-            if seen.intersection(ids.tolist()) or len(set(ids.tolist()))!=len(ids):
-                raise AssertionError("duplicate train allocation")
-            seen.update(ids.tolist())
-            ids=rng.permutation(ids)
-            pattern=args.drift_pattern or ("gradual" if args.regime=="drift" else "static")
-            custom=None
-            if args.window_profiles:
-                requested=np.asarray(json.loads(Path(args.window_profiles).read_text()))
-                custom=requested[t,i] if requested.ndim==4 else requested[i] if requested.ndim==3 else requested
-            windows,wcounts=window_assignment(train_y[ids]-t*c,c,args.windows,pattern,i,rng,custom)
-            window_counts.append(wcounts.tolist())
-            file,digest=write_shard(root,t,"train",i,images(raw.data,ids),train_y[ids],ids,windows)
-            manifest["shards"][file]=digest
+            target=profiles(args.regime,n,c,t,rng,getattr(args,'dirichlet_alpha',10.))
+            if args.profiles:
+                requested=np.asarray(json.loads(Path(args.profiles).read_text()),dtype=float)
+                target=requested[t] if requested.ndim==3 else requested
+            requested_similarity=similarity(target)
+            if args.similarity:
+                requested_similarity=np.asarray(json.loads(Path(args.similarity).read_text()))
+                if requested_similarity.ndim==3:requested_similarity=requested_similarity[t]
+                target=desired_profiles(requested_similarity,rows,cols,args.seed+t,args.floor)
+            if args.counts:
+                counts=np.asarray(json.loads(Path(args.counts).read_text()))
+                if counts.ndim==3:counts=counts[t]
+                if not np.issubdtype(counts.dtype,np.integer):raise ValueError("class counts must be integer")
+                if counts.shape!=(n,c) or np.any(counts<args.floor) or not np.array_equal(counts.sum(0),cols) or not np.array_equal(counts.sum(1),rows):
+                    raise ValueError("invalid exact counts")
+            else:
+                counts=allocate(rows,cols,target,args.floor)
+            assigned=[[] for _ in range(n)]
+            for j,ids in enumerate(train_ids):
+                if args.regime=="conditional":
+                    # Rank within-class samples by brightness before assigning disjoint domains.
+                    pixels=read_pixels(raw.data,ids).astype(np.float32)
+                    score=pixels.mean((1,2,3)) if args.conditional_domain=="brightness" else (pixels[:,:,:,0]-pixels[:,:,:,2]).mean((1,2)) if args.conditional_domain=="color" else pixels.std((1,2,3))
+                    ids=ids[np.argsort(score,kind="stable")]
+                cursor=0
+                for i in range(n):
+                    assigned[i].extend(ids[cursor:cursor+counts[i,j]].tolist())
+                    cursor+=counts[i,j]
+            window_counts=[]
+            for i,items in enumerate(assigned):
+                ids=np.array(items,dtype=int)
+                if seen.intersection(ids.tolist()) or len(set(ids.tolist()))!=len(ids):
+                    raise AssertionError("duplicate train allocation")
+                seen.update(ids.tolist())
+                ids=rng.permutation(ids)
+                pattern=args.drift_pattern or ("gradual" if args.regime=="drift" else "static")
+                custom=None
+                if args.window_profiles:
+                    requested=np.asarray(json.loads(Path(args.window_profiles).read_text()))
+                    custom=requested[t,i] if requested.ndim==4 else requested[i] if requested.ndim==3 else requested
+                windows,wcounts=window_assignment(train_y[ids]-t*c,c,args.windows,pattern,i,rng,custom)
+                window_counts.append(wcounts.tolist())
+                file,digest=write_shard(root,t,"train",i,images(raw.data,ids),train_y[ids],ids,windows)
+                manifest["shards"][file]=digest
         for split,source,yarray,groups in [
             ("validation",raw.data,train_y,dev_ids),
             ("test",test.data,test_y,[np.random.default_rng(np.random.SeedSequence([args.seed,y,2])).permutation(np.flatnonzero(test_y==y)) for y in labels])]:
@@ -288,6 +314,7 @@ def generate(args):
             "realized_profiles":realized.tolist(),"requested_similarity":requested_similarity.tolist(),
             "realized_similarity":similarity(realized).tolist(),
             "similarity_max_abs_error":float(np.max(np.abs(similarity(realized)-requested_similarity)))})
+        if spec:manifest["tasks_data"][-1].update(requested_joint=target_joint.tolist(),joint_counts=joint.tolist(),schedule=schedule)
     if len(seen)!=len(raw.targets):
         raise AssertionError("incomplete train inventory")
     manifest["manifest_id"]=hashlib.sha256(json.dumps(manifest,sort_keys=True).encode()).hexdigest()
@@ -313,6 +340,8 @@ if __name__=="__main__":
     p.add_argument("--validation-per-class",type=int,default=50)
     p.add_argument("--public-probe-per-class",type=int,default=0,help="Reserve public training-source examples before private allocation; never train or evaluate on them")
     p.add_argument("--regime",choices=["near","clustered","separated","changing","dirichlet","equal","conditional","drift"],default="near")
+    p.add_argument("--controlled-stream",help="Immutable joint client-window stream specification JSON")
+    p.add_argument("--dirichlet-alpha",type=float,default=10.)
     p.add_argument("--profiles",help="JSON target profile matrix or per-task matrices")
     p.add_argument("--similarity-tolerance",type=float)
     p.add_argument("--similarity")

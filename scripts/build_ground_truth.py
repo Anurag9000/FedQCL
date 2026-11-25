@@ -1,0 +1,94 @@
+"""Independent reconstruction of the empirical controlled stream from shards."""
+import hashlib,json
+from pathlib import Path
+import numpy as np
+
+def digest(path):return hashlib.sha256(Path(path).read_bytes()).hexdigest()
+def normalize(x):
+    x=np.asarray(x,dtype=float);s=x.sum(axis=-1,keepdims=True)
+    return np.divide(x,s,out=np.zeros_like(x),where=s>0)
+def tv(p,q):return .5*np.abs(p-q).sum(axis=-1)
+def pairwise(p):
+    return tv(p[:,None,:],p[None,:,:])
+def js(p,q):
+    m=(p+q)/2
+    def kl(a):
+        ratio=np.divide(a,m,out=np.ones_like(a),where=(a>0)&(m>0))
+        return (a*np.log2(ratio,where=ratio>0,out=np.zeros_like(a))).sum(-1)
+    return (kl(p)+kl(q))/2
+def conditional_distance(a,b):
+    pa=a.sum(-1);pb=b.sum(-1)
+    support=np.minimum(pa,pb);mass=support.sum()
+    if not mass:return np.nan
+    return float((support*tv(normalize(a),normalize(b))).sum()/mass)
+def require(ok,msg):
+    if not ok:raise ValueError(msg)
+
+def reconstruct(root,manifest):
+    spec=manifest["controlled_stream"]
+    n,t,c,w,d=manifest["clients"],manifest["tasks"],manifest["classes_per_task"],manifest["windows"],spec["domain_bins"]
+    joint=np.zeros((t*w,n,t*c,d),dtype=np.int64);requested=np.zeros_like(joint,dtype=float)
+    schedule=[];errors=[];tol=spec["tolerances"]
+    for task in range(t):
+        chunks=[]
+        for i in range(n):
+            with np.load(root/f"task_{task}/train/{i}.npz",allow_pickle=True) as z:data=z["data"].item()
+            # Recover exact uint8 pixels from normalized values; rank independently.
+            x=np.rint((data["x"]*np.asarray(manifest["normalization"]["std"])[None,:,None,None]+np.asarray(manifest["normalization"]["mean"])[None,:,None,None])*255)
+            require(np.all((x>=0)&(x<=255)),"pixel range")
+            chunks.extend(zip(data["ids"],data["y"],data["window"],np.full(len(x),i),x.astype(np.int64).sum((1,2,3))))
+        arr=np.asarray(chunks,dtype=np.int64)
+        for label in range(task*c,(task+1)*c):
+            a=arr[arr[:,1]==label];order=np.lexsort((a[:,0],a[:,4]))
+            for k,part in enumerate(np.array_split(order,d)):
+                for item in a[part]:joint[task*w+item[2],item[3],label,k]+=1
+        m=manifest["tasks_data"][task];sl=slice(task*w,(task+1)*w);cs=slice(task*c,(task+1)*c)
+        require(np.array_equal(joint[sl,:,cs,:],m["joint_counts"]),"joint count mismatch")
+        requested[sl,:,cs,:]=m["requested_joint"]
+        for entry in m["schedule"]:schedule.append(dict(entry,round=task*w+entry["window"],task=task))
+    counts=joint.sum(-1);rows=counts.sum(-1);require(np.all(rows>0),"empty window")
+    p=normalize(counts);q=normalize(joint.reshape(t*w,n,-1))
+    target=requested.sum(-1);targetq=requested.reshape(t*w,n,-1)
+    require(np.allclose(target.sum(-1),1),"target normalization")
+    label_error=tv(p,target);joint_error=tv(q,targetq)
+    require(label_error.max()<=tol["label_tv"] and joint_error.max()<=tol["joint_tv"],"target realization tolerance exceeded")
+    spatial=np.asarray([1-pairwise(x) for x in p]);joint_spatial=np.asarray([1-pairwise(x) for x in q])
+    for r,entry in enumerate(schedule):
+        regime=entry["regime"];groups=entry["groups"]
+        for i in range(n):
+            for j in range(i):
+                dist=1-spatial[r,i,j]
+                if regime in ("similar","conditional"):require(dist<=tol["near_pair_tv"],f"near label regime {r}")
+                if regime in ("clustered","reassigned"):
+                    require(dist<=tol["within_cluster_tv"] if groups[i]==groups[j] else dist>=tol["between_cluster_tv"],f"cluster regime {r}")
+                if regime=="separated":require(dist>=tol["separated_tv"],f"separated regime {r}")
+                if regime=="conditional":require(1-joint_spatial[r,i,j]>=tol["conditional_joint_tv"],f"conditional regime {r}")
+    joint_prob=q.reshape(t*w,n,t*c,d)
+    conditional=np.asarray([[[conditional_distance(a,b) for b in x] for a in x] for x in joint_prob])
+    flat=p.reshape(t*w*n,-1);flatq=q.reshape(t*w*n,-1)
+    temporal=np.asarray([1-pairwise(p[:,i]) for i in range(n)])
+    federation=normalize(counts.sum(1))
+    cumulative=np.cumsum(counts,axis=0)
+    arrays=dict(counts=counts,joint_counts=joint,requested_joint=requested,requested_labels=target,realized_labels=p,
+        realized_joint=joint_prob,spatial_label=spatial,spatial_joint=joint_spatial,spatial_conditional=1-conditional,
+        spatial_js=np.asarray([js(x[:,None,:],x[None,:,:]) for x in p]),
+        spatiotemporal_label=1-pairwise(flat),spatiotemporal_joint=1-pairwise(flatq),temporal_label=temporal,
+        federation_label=federation,federation_distance=tv(p,federation[:,None,:]),
+        cumulative_counts=cumulative,temporal_change=tv(p[1:],p[:-1]),label_error=label_error,joint_error=joint_error)
+    meta={"schema":1,"manifest_id":manifest["manifest_id"],"specification":spec,"schedule":schedule,
+          "axes":{"counts":["round","client","global_class"],"joint_counts":["round","client","global_class","brightness_rank_bin"],"spatiotemporal":"round-major, client-minor"},
+          "metrics":{"similarity":"1-total variation","spatial_js":"base-2 JS divergence (distance)","conditional":"overlap-weighted within-class TV; NaN if no shared classes"},
+          "max_label_tv":float(label_error.max()),"max_joint_tv":float(joint_error.max())}
+    return arrays,meta
+
+def build(root,manifest):
+    root=Path(root);arrays,meta=reconstruct(root,manifest)
+    dest=root/"ground_truth";dest.mkdir(exist_ok=True)
+    np.savez_compressed(dest/"distributions.npz",**arrays)
+    (dest/"specification.json").write_text(json.dumps(meta,sort_keys=True,indent=2,allow_nan=False))
+    hashes={name:digest(dest/name) for name in ("distributions.npz","specification.json")}
+    return {"ground_truth_hash":hashlib.sha256(json.dumps(hashes,sort_keys=True).encode()).hexdigest(),"ground_truth_files":hashes}
+
+def verify_bundle(root,receipt):
+    hashes=receipt["ground_truth_files"]
+    return all(digest(Path(root)/"ground_truth"/name)==value for name,value in hashes.items()) and hashlib.sha256(json.dumps(hashes,sort_keys=True).encode()).hexdigest()==receipt["ground_truth_hash"]

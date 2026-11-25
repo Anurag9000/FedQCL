@@ -45,7 +45,11 @@ def validate(root):
                         require(actual==manifest["tasks_data"][t]["window_counts"][i],f"window counts: {rel}")
     require(train_seen==set(range(train_n)) and test_seen==set(range(test_n)),"incomplete inventory")
     if manifest.get("schema",1)>=2:require(set(manifest["shards"])==expected,"unexpected manifest shard list")
-    return {"manifest_id":manifest["manifest_id"],"train_and_validation":len(train_seen)-manifest.get("public_probe_per_class",0)*c*manifest["tasks"],"test":len(test_seen),"valid":True,**({"public_probe":manifest["public_probe_per_class"]*c*manifest["tasks"]} if manifest.get("public_probe_per_class") else {})}
+    result={"manifest_id":manifest["manifest_id"],"train_and_validation":len(train_seen)-manifest.get("public_probe_per_class",0)*c*manifest["tasks"],"test":len(test_seen),"valid":True,**({"public_probe":manifest["public_probe_per_class"]*c*manifest["tasks"]} if manifest.get("public_probe_per_class") else {})}
+    if manifest.get("controlled_stream"):
+        from build_ground_truth import build
+        result.update(build(root,manifest))
+    return result
 if __name__=="__main__":
     p=argparse.ArgumentParser();p.add_argument("root",type=Path);p.add_argument("--receipt",type=Path);a=p.parse_args()
     result=validate(a.root)

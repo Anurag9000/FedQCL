@@ -1,6 +1,6 @@
 # Active goal override
 
-Only the nine merged Tier-A configurations in configs/sync/core_signal_ledger.jsonl are active. See EXPERIMENT_LEDGER.md; all historical catalogs below are optional.
+Only the 24 high-priority signal configurations in configs/sync/core_signal_ledger.jsonl are active. See EXPERIMENT_LEDGER.md; all historical catalogs below are optional.
 
 # Campaign scope update
 

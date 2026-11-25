@@ -1,3 +1,87 @@
+# Active campaign — eight high-priority signal families
+
+Exactly **24 training trajectories + 3 supporting jobs = 27 jobs**. No independent
+baselines, extra seeds, Task-IL, parameter sweeps or other statistical signals in
+the active goal. The previous 9-run merged interpretation is superseded.
+
+| Signal family | M1 local | M2 server | M3 peer |
+|---|---|---|---|
+| Class-conditional activation mean + variance | A01-M1 | A01-M2 | A01-M3 |
+| Functional prediction similarity | A02-M1 | A02-M2 | A02-M3 |
+| Replay loss + forgetting | A03-M1 | A03-M2 | A03-M3 |
+| Current–past gradient interference | A04-M1 | A04-M2 | A04-M3 |
+| Class-conditional feature prototypes (mean only) | A05-M1 | A05-M2 | A05-M3 |
+| Current + historical class-distribution JS | A06-M1 | A06-M2 | A06-M3 |
+| Cached completed local model-update similarity | A07-M1 | A07-M2 | A07-M3 |
+| Replay-aware gradient similarity | A08-M1 | A08-M2 | A08-M3 |
+
+All eight have their own report kind and selector input. M1 uses the report
+observed at last successful synchronization; M2 receives pooled latest
+accepted other-client reports; M3 uses direct peer exchange and exact
+representative selection. Fixed k=3 except all five clients at bootstrap.
+No threshold sweeps. All use pre-training partial participation: skipped
+clients do not train. No silent change to post-training selection or backbone.
+
+* Activation moments and prototypes use the SAME frozen learned bootstrap
+  backbone and normalized 32-dimensional projected features, class/task-specific
+  support counts, current and replay probes. A01 compares mean + diagonal
+  variance; A05 compares means only. This is a controlled second-moment ablation.
+* Functional similarity compares aligned softmax predictions using JS on four
+  reserved public CIFAR-100 training-source examples per class. Only encountered
+  tasks are visible; disjoint from private train, replay and evaluation data.
+* Replay loss compares per-past-task absolute mean CE and signed deterioration
+  against the first observation on fixed private memory samples within each
+  current task. Loss diagnostics continue in all eight variants. The replay-loss
+  selector compares bounded transformed statistics; not equivalent to urgency.
+* Interference compares per-past-task shared-backbone current/replay gradient
+  sketch signed cosine and negative inner-product magnitude (bounded transform).
+  Distinct from A08, which compares the actual current and pooled replay gradient
+  sketches in separate channels, preserving direction/magnitude; interference
+  logged as a diagnostic there. Neither estimates exact causal omission harm.
+* Distribution similarity uses normalized current observed label counts and
+  separately pooled historical replay class counts with common global labels;
+  JS compares channels independently. Both current and replay have equal weight
+  when available. Static distributions can yield ties; no noise is manufactured.
+* Update similarity uses a cached actual local parameter delta (before any
+  global-model download) from the last completed selected-client training.
+  Same-task only, age <= bank age, true source round in wire metadata. M1's
+  previous successful pre-admission report is the historical reference; M2
+  pools previously accepted cached reports and preserves oldest source age.
+  M3 compares latest available cached updates. No future/current-round update
+  used for admission. Cache and anchor survive checkpoint/restart.
+* Missing evidence has explicit support; no-memory signals are unavailable
+  on task zero and feature signals before bootstrap; existing unknown/deadline
+  selection fallback applies. For a missing block on one side, discrepancy=1.
+  Current and past groups are balanced; M2 aggregates per-block by support.
+  Gradient/update native coordinate comparisons remain confounded by stale
+  client model states. Replay loss and interference similarity are exploratory
+  hypotheses, not guarantees of redundancy.
+
+Fixed: clustered CIFAR-100, seed 42, 5 clients, 5 tasks of 20 classes,
+50 rounds, 5 local epochs, ResNet-18, FedAvg + vanilla ER, SGD .005,
+private memory 500, current/replay batch 13, validation evaluation.
+Common reservation: 44,600 private training examples, 5,000 validation,
+400 public probes, 10,000 test. Public preprovisioning outside logical
+per-round accounting. Actual report bytes and probe costs logged.
+Single seed, no independent baseline; descriptive comparisons only.
+No new privacy guarantee or physical network deployment is claimed.
+
+```bash
+python scripts/build_job_ledger.py
+bash run_all_sync.sh --dry-run
+bash run_all_sync.sh --estimate-only
+bash run_all_sync.sh --all
+```
+Portable ledger: configs/sync/core_signal_ledger.jsonl.
+Resolved ledger: experiments/job_ledger.jsonl.
+Results: research_results/signal-matrix-<commit>/matrix.csv and matrix.json.
+Historical extended/Task-IL profiles remain separate explicit opt-in.
+Old results cannot be reused for the new design.
+
+---
+
+# Historical designs (not active)
+
 # Active campaign — merged Tier-A only
 
 Exactly **9 training trajectories + 3 supporting jobs = 12 jobs**.

@@ -59,3 +59,28 @@ class ControlledStream(unittest.TestCase):
                 self.assertTrue(np.allclose(np.diag(z["spatiotemporal_label"]),1))
             (path/"ground_truth"/"specification.json").write_text("{}")
             self.assertFalse(verify_bundle(path,receipt))
+    def test_all_named_settings_inventory(self):
+        from stream_design import target_profiles,window_workloads
+        catalog=json.loads((ROOT/"configs/sync/campaign.json").read_text())
+        n=5;c=20;w=10;d=5
+        cols=np.tile([90,89,89,89,89],c)
+        for entry in catalog["settings"]:
+            spec=json.loads((ROOT/entry["path"]).read_text());validate_spec(spec,n,5,w)
+            for seed in catalog["seeds"]:
+                for task in range(5):
+                    target,schedule=target_profiles(spec,task,c,np.random.default_rng(np.random.SeedSequence([seed,task,3])))
+                    rows=window_workloads(spec,int(cols.sum()))
+                    actual=allocate(rows,cols,target.reshape(n*w,c*d),0).reshape(w,n,c,d)
+                    with self.subTest(setting=entry["id"],seed=seed,task=task):
+                        self.assertTrue(np.array_equal(actual.sum((0,1)).ravel(),cols))
+                        self.assertLessEqual(tv(normalize(actual.sum(-1)),target.sum(-1)).max(),spec["tolerances"]["label_tv"])
+                        self.assertLessEqual(tv(normalize(actual.reshape(w,n,-1)),target.reshape(w,n,-1)).max(),spec["tolerances"]["joint_tv"])
+                        for r,phase in enumerate(schedule):
+                            q=normalize(actual[r].sum(-1))
+                            for i in range(n):
+                                for j in range(i):
+                                    dist=float(tv(q[i],q[j]));regime=phase["regime"];groups=phase["groups"];tol=spec["tolerances"]
+                                    if regime in ("similar","conditional"):self.assertLessEqual(dist,tol["near_pair_tv"])
+                                    if regime in ("clustered","reassigned","separated","four_groups"):
+                                        if groups[i]==groups[j]:self.assertLessEqual(dist,tol["within_cluster_tv"])
+                                        else:self.assertGreaterEqual(dist,tol["between_cluster_tv"] if regime in ("clustered","reassigned") else tol["separated_tv"])

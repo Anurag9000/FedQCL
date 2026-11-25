@@ -1,0 +1,48 @@
+{
+  "schema": 1,
+  "mode": "named",
+  "clients": 5,
+  "tasks": 5,
+  "windows": 10,
+  "domain_bins": 5,
+  "domain": "brightness",
+  "alpha": 1,
+  "temporal_persistence": 0.75,
+  "label_specialization": 0.9,
+  "domain_specialization": 0.9,
+  "regimes": [
+    "similar",
+    "clustered",
+    "separated",
+    "reassigned",
+    "conditional"
+  ],
+  "tolerances": {
+    "label_tv": 0.12,
+    "joint_tv": 0.25,
+    "near_pair_tv": 0.15,
+    "within_cluster_tv": 0.18,
+    "between_cluster_tv": 0.65,
+    "separated_tv": 0.65,
+    "conditional_joint_tv": 0.55
+  },
+  "counterfactual_rounds": [
+    1,
+    3,
+    11,
+    13,
+    21,
+    23,
+    31,
+    33,
+    41,
+    43
+  ],
+  "analysis_thresholds": {
+    "distribution_tv": 0.2,
+    "signal_distance": 0.1
+  },
+  "setting_id": "S22",
+  "setting_name": "Dirichlet alpha 1",
+  "setting": "alpha"
+}

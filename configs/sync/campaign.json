@@ -1,0 +1,166 @@
+{
+  "schema": 1,
+  "settings": [
+    {
+      "id": "S01",
+      "name": "Near-IID stable",
+      "kind": "similar",
+      "path": "configs/sync/settings/S01.json"
+    },
+    {
+      "id": "S02",
+      "name": "Moderately heterogeneous diffuse",
+      "kind": "moderate",
+      "path": "configs/sync/settings/S02.json"
+    },
+    {
+      "id": "S03",
+      "name": "Strongly heterogeneous diffuse",
+      "kind": "separated",
+      "path": "configs/sync/settings/S03.json"
+    },
+    {
+      "id": "S04",
+      "name": "Two fixed groups",
+      "kind": "clustered",
+      "path": "configs/sync/settings/S04.json"
+    },
+    {
+      "id": "S05",
+      "name": "Four fixed groups",
+      "kind": "four_groups",
+      "path": "configs/sync/settings/S05.json"
+    },
+    {
+      "id": "S06",
+      "name": "Abrupt reassignment",
+      "kind": "abrupt",
+      "path": "configs/sync/settings/S06.json"
+    },
+    {
+      "id": "S07",
+      "name": "Gradual recurring reassignment",
+      "kind": "gradual_recurring",
+      "path": "configs/sync/settings/S07.json"
+    },
+    {
+      "id": "S08",
+      "name": "Asynchronous client-specific drift",
+      "kind": "asynchronous",
+      "path": "configs/sync/settings/S08.json"
+    },
+    {
+      "id": "S09",
+      "name": "Synchronous federation drift",
+      "kind": "common_drift",
+      "path": "configs/sync/settings/S09.json"
+    },
+    {
+      "id": "S10",
+      "name": "Stable conditional heterogeneity",
+      "kind": "conditional",
+      "path": "configs/sync/settings/S10.json"
+    },
+    {
+      "id": "S11",
+      "name": "Conditional domain reassignment",
+      "kind": "conditional_dynamic",
+      "path": "configs/sync/settings/S11.json"
+    },
+    {
+      "id": "S12",
+      "name": "Unequal quantity, two clusters",
+      "kind": "unequal",
+      "path": "configs/sync/settings/S12.json"
+    },
+    {
+      "id": "S13",
+      "name": "Divergent history, matched current labels",
+      "kind": "history_different_current_similar",
+      "path": "configs/sync/settings/S13.json"
+    },
+    {
+      "id": "S14",
+      "name": "Combined cyclic stress test",
+      "kind": "balanced_dynamic",
+      "path": "configs/sync/settings/S14.json"
+    },
+    {
+      "id": "S15",
+      "name": "Abrupt recurring reassignment",
+      "kind": "recurring",
+      "path": "configs/sync/settings/S15.json"
+    },
+    {
+      "id": "S16",
+      "name": "Gradual spatial convergence",
+      "kind": "convergence",
+      "path": "configs/sync/settings/S16.json"
+    },
+    {
+      "id": "S17",
+      "name": "Gradual spatial divergence",
+      "kind": "divergence",
+      "path": "configs/sync/settings/S17.json"
+    },
+    {
+      "id": "S18",
+      "name": "Matched history, divergent current labels",
+      "kind": "history_similar_current_different",
+      "path": "configs/sync/settings/S18.json"
+    },
+    {
+      "id": "S19",
+      "name": "Gradual cluster reassignment",
+      "kind": "gradual",
+      "path": "configs/sync/settings/S19.json"
+    },
+    {
+      "id": "S20",
+      "name": "Dirichlet alpha 100",
+      "kind": "alpha",
+      "path": "configs/sync/settings/S20.json"
+    },
+    {
+      "id": "S21",
+      "name": "Dirichlet alpha 10",
+      "kind": "alpha",
+      "path": "configs/sync/settings/S21.json"
+    },
+    {
+      "id": "S22",
+      "name": "Dirichlet alpha 1",
+      "kind": "alpha",
+      "path": "configs/sync/settings/S22.json"
+    },
+    {
+      "id": "S23",
+      "name": "Dirichlet alpha 0.1",
+      "kind": "alpha",
+      "path": "configs/sync/settings/S23.json"
+    },
+    {
+      "id": "S24",
+      "name": "Dirichlet alpha 0.01",
+      "kind": "alpha",
+      "path": "configs/sync/settings/S24.json"
+    }
+  ],
+  "seeds": [
+    42,
+    43,
+    44
+  ],
+  "budgets": [
+    1,
+    2,
+    3,
+    4
+  ],
+  "baselines": [
+    "random",
+    "oldest"
+  ],
+  "full_baseline": true,
+  "notes": "All 24 selectors and matched baselines at every non-full budget; full once per setting/seed; fixed FedAvg + ER."
+}

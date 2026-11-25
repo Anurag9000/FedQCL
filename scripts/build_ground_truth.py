@@ -53,6 +53,10 @@ def reconstruct(root,manifest):
         requested[sl,:,cs,:]=expected
         for entry in m["schedule"]:schedule.append(dict(entry,round=task*w+entry["window"],task=task))
     counts=joint.sum(-1);rows=counts.sum(-1);require(np.all(rows>0),"empty window")
+    from stream_design import window_workloads
+    for task in range(t):
+        actual=rows[task*w:(task+1)*w].ravel()
+        require(np.array_equal(actual,window_workloads(spec,int(actual.sum()))),"client-window workload mismatch")
     p=normalize(counts);q=normalize(joint.reshape(t*w,n,-1))
     target=requested.sum(-1);targetq=requested.reshape(t*w,n,-1)
     require(np.allclose(target.sum(-1),1),"target normalization")
@@ -67,8 +71,12 @@ def reconstruct(root,manifest):
                 if regime in ("similar","conditional"):require(dist<=tol["near_pair_tv"],f"near label regime {r}")
                 if regime in ("clustered","reassigned"):
                     require(dist<=tol["within_cluster_tv"] if groups[i]==groups[j] else dist>=tol["between_cluster_tv"],f"cluster regime {r}")
-                if regime=="separated":require(dist>=tol["separated_tv"],f"separated regime {r}")
+                if regime in ("separated","four_groups"):
+                    require(dist<=tol["within_cluster_tv"] if groups[i]==groups[j] else dist>=tol["separated_tv"],f"separated regime {r}")
                 if regime=="conditional":require(1-joint_spatial[r,i,j]>=tol["conditional_joint_tv"],f"conditional regime {r}")
+    # Validate realized pairwise structure relative to requested pairwise structure.
+    target_dist=np.asarray([pairwise(x) for x in target]);realized_dist=1-spatial
+    require(np.max(np.abs(target_dist-realized_dist))<=2*tol["label_tv"]+1e-12,"pairwise target mismatch")
     joint_prob=q.reshape(t*w,n,t*c,d)
     conditional=np.asarray([[[conditional_distance(a,b) for b in x] for a in x] for x in joint_prob])
     flat=p.reshape(t*w*n,-1);flatq=q.reshape(t*w*n,-1)
@@ -90,6 +98,7 @@ def reconstruct(root,manifest):
           "stream_spec_sha256":manifest["controlled_stream_sha256"],
           "axes":{"counts":["round","client","global_class"],"joint_counts":["round","client","global_class","brightness_rank_bin"],"spatiotemporal":"round-major, client-minor"},
           "metrics":{"similarity":"1-total variation","spatial_js":"base-2 JS divergence (distance)","conditional":"overlap-weighted within-class TV; NaN if no shared classes"},
+          "setting_id":spec.get("setting_id","S14"),"max_pairwise_label_error":float(np.max(np.abs(target_dist-realized_dist))),
           "max_label_tv":float(label_error.max()),"max_joint_tv":float(joint_error.max())}
     return arrays,meta,np.asarray(sorted(allocation),dtype=np.int64)
 

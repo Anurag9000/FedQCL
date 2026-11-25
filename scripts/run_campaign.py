@@ -53,6 +53,10 @@ def valid(job):
         if job["kind"]=="analysis" and job["config"].get("campaign")=="task_il_joint":
             receipt=json.loads(Path(job["artifacts"][0]).read_text())
             return receipt["completed"]==receipt["expected"]==job["config"]["expected_training"] and receipt["incomplete"]==0
+        if job["kind"]=="analysis" and job["config"].get("scope")=="controlled_comprehensive":
+            from campaign_matrix import expected_ids,CATALOG
+            result=json.loads(Path(job["artifacts"][1]).read_text());rows=result["results"]
+            return (sha_file(CATALOG)==job["config"]["catalog_sha256"] and len(rows)==result["training_runs"]==job["config"]["expected_training"] and {x["experiment_id"] for x in rows}==expected_ids() and result["matched_groups"]==72)
         if job["kind"]=="analysis" and job["config"].get("scope")=="signal_matrix":
             from core_suite import read_core_signal_entries,CORE_SIGNAL_COUNT
             result=json.loads(Path(job["artifacts"][1]).read_text())
@@ -75,10 +79,18 @@ def valid(job):
         resolved_config=json.loads((out/"config.json").read_text())
         if resolved_config.get("backbone")!=BACKBONE:return False
         if job["config"].get("mechanism"):
+            cfg=job["config"]
             from core_suite import read_core_signal_entries,CORE_RUNTIME_FLAGS
-            entry=next((x for x in read_core_signal_entries() if x["id"]==job["config"].get("experiment_id")),None)
+            selector=cfg.get("selector_id",cfg["experiment_id"])
+            baseline=cfg["mechanism"]=="baseline"
+            entry=next((x for x in read_core_signal_entries() if x["id"]==selector),None)
+            if baseline:
+                from campaign_matrix import BASELINES
+                if selector not in BASELINES or cfg["policy"]!=BASELINES[selector] or cfg["signal"]!="none":return False
+                entry={"policy":cfg["policy"],"flags":[],"method":"baseline","signal":"none"}
             if entry is None:return False
-            flags=entry["flags"];expected={"sync_policy":entry["policy"],"sync_mode":"fixed","sync_k":3,"seed":42,
+            if (cfg["signal"],cfg["mechanism"],cfg["policy"])!=(entry["signal"],entry["method"],entry["policy"]):return False
+            flags=entry["flags"];expected={"sync_policy":entry["policy"],"sync_mode":"fixed","sync_k":cfg["k"],"seed":cfg["training_seed"],
                 "num_clients":5,"tasks":5,"num_classes":20,"global_rounds":49,"local_epochs":5,"batch_size":13,
                 "memory_size":500,"memory_batch_size":13,"local_learning_rate":.005,"sync_eval_split":"validation"}
             for pos,flag in enumerate(flags):
@@ -97,9 +109,13 @@ def valid(job):
             if not (receipt["ground_truth_hash"]==summary["ground_truth_hash"]==resolved_config["ground_truth_hash"]==audit["ground_truth_hash"]==provenance["ground_truth_hash"]):return False
             if len(audit["rounds"])!=job["config"]["rounds"] or set(x["round"] for x in audit["counterfactuals"])!=set(job["config"]["counterfactual_rounds"]):return False
             if summary["counterfactual_checkpoints"]!=len(job["config"]["counterfactual_rounds"]):return False
-            if any(len(x["selected"])!=(5 if i==0 else 3) or x["selected"]!=x["accepted"] or x["accepted"]!=x["downloaded"] for i,x in enumerate(rounds)):return False
+            if cfg.get("setting_id") and (manifest["controlled_stream"].get("setting_id")!=cfg["setting_id"] or manifest["seed"]!=cfg["partition_seed"]):return False
+            if any(len(x["selected"])!=(5 if i==0 else cfg["k"]) or x["selected"]!=x["accepted"] or x["accepted"]!=x["downloaded"] for i,x in enumerate(rounds)):return False
             if entry["method"]=="M2" and not any(e["kind"]=="BANK_AGGREGATE" for e in events):return False
-            if not any(report is not None for row in rounds[1:] for report in row["sampled_reports"].values()):return False
+            if baseline:
+                if any(report is not None for row in rounds for report in row["sampled_reports"].values()):return False
+                if any(e["kind"] in ("STAT_REPORT","BANK_AGGREGATE","PEER_STAT_REPORT") for e in events):return False
+            elif not any(report is not None for row in rounds[1:] for report in row["sampled_reports"].values()):return False
             if entry["signal"]=="model_update_similarity":
                 for row in rounds:
                     for i,report in row["sampled_reports"].items():
@@ -107,7 +123,7 @@ def valid(job):
                         src=row["probe_cost"][i]["cached_update_source_round"]
                         if not 0<=src<row["round"] or not report["window"].startswith("cached_update:") or int(report["window"].split(":")[1])!=src:return False
                         if i not in [str(c) for c in rounds[src]["trained"]] or rounds[src]["task"]!=row["task"]:return False
-            if any("replay_loss_by_task" not in cost for row in rounds for cost in row["probe_cost"].values()):return False
+            if not baseline and any("replay_loss_by_task" not in cost for row in rounds for cost in row["probe_cost"].values()):return False
         n=job["config"].get("rounds",50);tasks=job["config"].get("tasks",5)
         if job["config"].get("campaign") in ("task_il_48","task_il_joint"):
             from hashlib import sha256
@@ -167,9 +183,11 @@ def dependency_order(jobs):
         seen.add(j["id"])
     return {j["id"]:j for j in jobs}
 
-def select_jobs(jobs,stages,job_id):
+def select_jobs(jobs,stages,job_id,settings=None,seeds=None,budgets=None,selectors=None):
     by_id=dependency_order(jobs)
     wanted={j["id"] for j in jobs if (not stages or j["stage"] in stages) and (not job_id or j["id"]==job_id)}
+    if settings or seeds or budgets or selectors:
+        wanted={key for key in wanted if by_id[key]["kind"]!="analysis" and (not settings or by_id[key]["config"].get("setting_id") in settings) and (not seeds or by_id[key]["config"].get("partition_seed") in seeds) and (not budgets or by_id[key]["config"].get("k") in budgets) and (not selectors or by_id[key]["config"].get("selector_id") in selectors)}
     if not wanted:raise ValueError("no matching jobs")
     stack=list(wanted)
     while stack:
@@ -184,7 +202,9 @@ def estimate(jobs):
     initial=sum(j["config"]["clients"] for j in training if j["config"].get("campaign") in ("task_il_48","task_il_joint"))
     cf_rounds=sum(len(j["config"].get("counterfactual_rounds",[])) for j in training)
     cf_candidates=sum(len(j["config"].get("counterfactual_rounds",[]))*j["config"]["clients"] for j in training)
-    return {"jobs":len(jobs),"training_jobs":len(training),"nominal_client_draws":draws,"counterfactual_checkpoints":cf_rounds,"counterfactual_candidate_local_trainings":cf_candidates,
+    from math import comb
+    cf_aggregates=sum(len(j["config"].get("counterfactual_rounds",[]))*(comb(j["config"]["clients"],j["config"]["k"])+int(j["config"]["k"]!=j["config"]["clients"])) for j in training)
+    return {"jobs":len(jobs),"training_jobs":len(training),"nominal_client_draws":draws,"counterfactual_checkpoints":cf_rounds,"counterfactual_candidate_local_trainings":cf_candidates,"counterfactual_aggregate_evaluations":cf_aggregates,
             "nominal_model_transfer_bytes_at_45MB":45000000*(2*draws+initial),
             "initial_task_il_downloads":initial,
             "task_il_local_training_rounds":sum(j["config"].get("local_training_rounds",0) for j in training),
@@ -200,6 +220,7 @@ def main():
     p=argparse.ArgumentParser()
     p.add_argument("--ledger",type=Path,default=ROOT/"experiments"/"job_ledger.jsonl")
     p.add_argument("--stage",action="append");p.add_argument("--job-id")
+    p.add_argument("--setting",action="append");p.add_argument("--seed",type=int,action="append");p.add_argument("--budget",type=int,action="append");p.add_argument("--selector",action="append")
     p.add_argument("--dry-run",action="store_true");p.add_argument("--estimate-only",action="store_true")
     p.add_argument("--resume",action="store_true");p.add_argument("--retry-failed",action="store_true")
     p.add_argument("--device",choices=["cpu","cuda"],default="cuda");p.add_argument("--gpu-id",default="0")
@@ -211,7 +232,7 @@ def main():
     jobs=[json.loads(x) for x in a.ledger.read_text().splitlines()]
     commit=subprocess.check_output(["git","rev-parse","HEAD"],cwd=ROOT,text=True).strip()
     if any(j.get("source_commit")!=commit for j in jobs):raise ValueError("ledger source commit differs; rebuild ledger")
-    jobs=select_jobs(jobs,a.stage,a.job_id)
+    jobs=select_jobs(jobs,a.stage,a.job_id,a.setting,a.seed,a.budget,a.selector)
     if a.estimate_only:print(json.dumps(estimate(jobs),indent=2));return 0
     if a.dry_run:
         for job in jobs:

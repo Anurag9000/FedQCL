@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
-# Core: 24 configurations on one independently validated controlled dynamic stream.
+# Core: 24 settings x 3 seeds x all nontrivial participation budgets, with baselines.
+# Former 24-run suite: SYNC_SUITE=pilot (diagnostic only).
 # Generation, ground truth, ten counterfactual checkpoints per run, analysis.
 # Historical combinatorial suite requires explicit opt-in.
 set -euo pipefail
@@ -8,6 +9,7 @@ python -m unittest discover -s tests -v
 suite="${SYNC_SUITE:-core}"
 case "$suite" in
   core) ledger=experiments/job_ledger.jsonl ;;
+  pilot) ledger=experiments/job_ledger_pilot.jsonl ;;
   extended) ledger=experiments/job_ledger_extended.jsonl ;;
   *) echo "Unknown SYNC_SUITE: $suite" >&2; exit 2 ;;
 esac

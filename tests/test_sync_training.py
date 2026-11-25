@@ -54,7 +54,7 @@ class Training(unittest.TestCase):
             def run(name,policy,extra=()):
                 out=tmp/name
                 run_base=base.copy()
-                if name.startswith("A0"):run_base[3]=str(controlled)
+                if name.startswith(("A0","B-")):run_base[3]=str(controlled)
                 result=subprocess.run(run_base+["--sync-policy",policy,"--sync-output",str(out),*extra],
                      cwd=root/"system",env=env,stdout=subprocess.PIPE,stderr=subprocess.STDOUT,text=True,timeout=300)
                 self.assertEqual(result.returncode,0,result.stdout[-12000:])
@@ -78,6 +78,8 @@ class Training(unittest.TestCase):
             sys.path.insert(0,str(root/"scripts"))
             from core_suite import read_core_signal_entries
             cases.extend((entry["id"],entry["policy"],[*entry["flags"],"--sync-windowed","--sync-audit-references","--sync-counterfactual","--sync-controlled-stream","--sync-eval-split","validation"]+ (["--sync-verify-branches"] if entry["id"]=="A01-M1" else [])) for entry in read_core_signal_entries())
+            for policy in ("full","random","oldest"):
+                cases.append(("B-"+policy,policy,["--sync-windowed","--sync-audit-references","--sync-counterfactual","--sync-controlled-stream","--sync-eval-split","validation","--sync-k",str(2 if policy=="full" else 1)]))
             for name,policy,extra in cases:
                 out=run(name,policy,extra)
                 if name=="aggregate_cka":
@@ -106,6 +108,10 @@ class Training(unittest.TestCase):
                         if name.startswith("A06"):
                             self.assertLessEqual(audit["summary"]["max_exact_js_error"] or 0.,1e-8)
                         self.assertEqual(len(audit["transitions"]),4)
+                if name.startswith("B-"):
+                    self.assertTrue(all(v is None for row in rounds for v in row["sampled_reports"].values()))
+                    self.assertEqual(len(json.loads((out/"analysis"/"ground_truth_comparison.json").read_text())["counterfactuals"]),2)
+                    self.assertTrue(all(len(row["selected"])==(2 if name=="B-full" or row["round"]==0 else 1) for row in rounds))
                 for row in rounds:
                     self.assertEqual(row["selected"],row["trained"])
                     self.assertEqual(row["accepted"],row["downloaded"])

@@ -363,6 +363,11 @@ def run_research(args):
             reports={}; population={}; probe_cost={}; update_starts={}
             for i in available:
                 c=clients[i]
+                if a.sync_controlled_stream and a.sync_policy in ("full","random","oldest"):
+                    # Research-only counts, not a baseline admission signal.
+                    population[i]=tuple(np.bincount([int(y)-t*a.num_classes for _,y in datasets[i]],minlength=a.num_classes).tolist())
+                    reports[i]=None;probe_cost[i]={"forward_examples":0,"backward_examples":0,"seconds":0.,"quantization_l2":0.}
+                    continue
                 histogram,population[c.id]=observe_local(c.research_args,c.id,t,r,datasets[c.id],ctl.local[c.id].model_version)
                 if histogram is not None and a.sync_windowed:
                     histogram=replace(histogram,window=f"task{t}:window{r%rpt}")

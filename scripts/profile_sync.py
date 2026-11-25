@@ -7,7 +7,8 @@ from run_campaign import ROOT,valid
 def main():
     p=argparse.ArgumentParser()
     p.add_argument("--ledger",type=Path,default=ROOT/"experiments/job_ledger.jsonl")
-    p.add_argument("--experiment",required=True,action="append",help="Experiment ID, or all; serial isolated prefixes")
+    p.add_argument("--experiment",required=True,action="append",help="Full experiment ID or selector ID, or all; serial isolated prefixes")
+    p.add_argument("--setting",action="append");p.add_argument("--seed",type=int,action="append");p.add_argument("--budget",type=int,action="append")
     p.add_argument("--stop-after-round",type=int,default=13,help="Zero-based round; must be before final round")
     p.add_argument("--device",choices=["cpu","cuda"],default="cuda")
     p.add_argument("--gpu-id",default="0")
@@ -17,9 +18,13 @@ def main():
     commit=subprocess.check_output(["git","rev-parse","HEAD"],cwd=ROOT,text=True).strip()
     if any(j["source_commit"]!=commit for j in jobs):raise ValueError("stale ledger")
     training=[j for j in jobs if j["kind"]=="train"]
-    chosen=[j for j in training if "all" in a.experiment or j["config"].get("experiment_id") in a.experiment]
-    if not chosen or ("all" not in a.experiment and set(a.experiment)!={j["config"]["experiment_id"] for j in chosen}):raise ValueError("unknown experiment")
-    if not all(valid(j) for j in jobs if j["kind"] in ("generate","validate")):raise ValueError("run data stage first")
+    chosen=[j for j in training if ("all" in a.experiment or j["config"].get("experiment_id") in a.experiment or j["config"].get("selector_id") in a.experiment) and (not a.setting or j["config"].get("setting_id") in a.setting) and (not a.seed or j["config"].get("partition_seed") in a.seed) and (not a.budget or j["config"].get("k") in a.budget)]
+    if not chosen:raise ValueError("unknown experiment")
+    from run_campaign import select_jobs
+    dependencies={dep for j in chosen for dep in j["dependencies"]}
+    by_id={j["id"]:j for j in jobs}
+    dependencies|={dep for key in list(dependencies) for dep in by_id[key]["dependencies"]}
+    if not all(valid(by_id[key]) for key in dependencies):raise ValueError("run selected data stage first")
     if not 0<=a.stop_after_round<min(j["config"]["rounds"]-1 for j in chosen):raise ValueError("profiling must stop before final round")
     out=a.output.resolve()
     if out==ROOT/"research_results" or ROOT/"research_results" in out.parents:raise ValueError("use separate scratch output")

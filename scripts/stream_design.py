@@ -180,9 +180,17 @@ def joint_allocate(spec,task,train_ids,raw_data,rng,allocate,client_rows,read_pi
         counts=np.zeros((w,n,c,d),dtype=int)
         for a in range(w):
             for i in range(5):
-                flat=parent[a,i].ravel();first=flat//2
-                odd=np.flatnonzero(flat%2);first[odd[:(int(flat.sum())+1)//2-int(first.sum())]]+=1
-                counts[a,2*i]=first.reshape(c,d);counts[a,2*i+1]=parent[a,i]-counts[a,2*i]
+                cells=parent[a,i];class_totals=cells.sum(1)
+                target_class=class_totals//2
+                odd_classes=np.flatnonzero(class_totals%2)
+                odd_classes=np.roll(odd_classes,(a+i)%max(1,len(odd_classes)))
+                target_class[odd_classes[:(int(cells.sum())+1)//2-int(target_class.sum())]]+=1
+                first=cells//2
+                for j in range(c):
+                    odd=np.flatnonzero(cells[j]%2)
+                    odd=np.roll(odd,(a+i+j)%max(1,len(odd)))
+                    first[j,odd[:int(target_class[j]-first[j].sum())]]+=1
+                counts[a,2*i]=first;counts[a,2*i+1]=cells-first
         if not np.array_equal(counts.sum((2,3)).ravel(),rows):raise ValueError("paired scale workload")
     else:counts=allocate_joint(rows,cols,targets.reshape(w*n,c,d),allocate).reshape(w,n,c,d)
     assigned=[[] for _ in range(n)];windows=[[] for _ in range(n)]

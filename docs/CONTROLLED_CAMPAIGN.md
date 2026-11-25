@@ -1,3 +1,54 @@
+# Active campaign: 101 primary + 22 targeted ten-client trajectories, seed 42
+
+The 101-run five-client research matrix remains intact. A targeted ten-client extension directly tests absolute versus fractional omission. Three validation-only learning-rate prefixes (20 rounds each, no held-out evaluation) precede screening. The complete default ledger has 179 jobs: 50 generation/validation jobs (25 streams), three calibration prefixes + one calibration selection, 123 production trajectories, one shortlist, and one consolidated analysis. Materialized phases: 54 jobs before calibration, 82 after calibration, 179 after shortlist. Only seed 42 is used.
+
+## Calibration
+
+Three common-backbone full-participation prefixes test LR .005, .01, .02 for the first two tasks. Select maximal equal-weight mean validation current-task and past-task accuracy over the prefix, then lower forgetting, then smaller LR. Freeze that LR for every statistical method and baseline, including the ten-client extension. Keep SGD, 5 local epochs, batch 13, replay batch 13, unit replay coefficient, full model state FedAvg. The actual best LR is unknown until execution. No held-out test selection. The prefix calibration does not establish global optimality over all five tasks.
+
+After the 27 five-client screening runs, select one finalist per M1/M2/M3 using the existing validation rank-sum rule. For each finalist, retain nominal thresholds .05/.10/.20/.35 if the four fixed-state predicted mean participation counts differ by at least .25 between adjacent levels; otherwise select four increasing grid points from 0 to 1 targeting mean counts 4,3,2,1 with greedy separation where possible. Store all grid points, predicted means, actual thresholds and nominal slot mapping. No guarantee of four distinct participation schedules; actual adaptive trajectories are required. The ten-client adaptive run reuses the exact threshold from the five-client nominal .20 slot (no retuning by fleet size).
+
+## Training suite
+
+| Phase | Five clients | Ten clients |
+|---|---:|---:|
+| Screening all 24 selectors + full/random/oldest | 27 | 0 |
+| Independent distribution anchors S01/S03/S04/S10/S13 | 26 | 0 |
+| Fixed count finalists + random, k=1/2/4 (five), 6/8/9 (ten) | 12 | 12 |
+| Full ten-client baseline | 0 | 1 |
+| Threshold finalists | 12 | 3 |
+| Matched-count random | 12 | 3 |
+| Matched cumulative-byte random | 12 | 3 |
+| Total | 101 | 22 |
+
+Five clients: 500 replay examples/client. Ten clients: 250/client to hold total capacity at 2,500. The S14N10 dataset is a disjoint integer-balanced split of every S14 client/window/class/brightness cell into two children. Allocation RNG is task-specific and independent of shard shuffle. Consolidated analysis verifies exact nested private sample IDs and windows. Total private data remains 44,600, validation 5,000, public 400, test 10,000. Workload per client approximately halves. Thus same total data and replay capacity, not same local data volume or optimizer steps; measure actual steps, samples and communication. Conditional brightness is a limited domain shift, not arbitrary concept drift.
+
+Compare 5/5 vs 10/10, 4/5 vs 8/10 (same 20% omitted), 4/5 vs 9/10 (same one omitted), 3/5 vs 6/10 (same 40% omitted), 3/5 vs 8/10 (same two omitted), and 1/5 vs 6/10 (same four omitted). Compare losses relative to each fleet's own full baseline, actual bytes and normalized savings, and same-threshold adaptive participation. Ten-client neural evidence is targeted, not all budgets, all mechanisms/signals or all distributions. Ten clients generate 90 directed peer reports vs 20 for five. More clients do not guarantee less omission harm; weights, novelty, redundancy and historical state matter.
+
+All 24 original datasets plus paired ten-client dataset are validated. All 32 five-client subsets at ten checkpoints per trajectory; ten-client neural counterfactuals at rounds 13/33 evaluate all actual-size subsets plus full (not all 1,024) to limit cost. Dataset-only subset analysis enumerates all 1,024 for the paired stream. Counterfactuals are one-round branches, not alternate 50-round trajectories.
+
+## Synchronization
+
+All clients bootstrap at round 0. Thereafter fixed k is exact, with due-client priority; k=1/2/3/4 for five, 6/8/9 for ten. Full is a separate baseline. In threshold mode no fixed count/cap: M1/M2 choose all due, missing-evidence or above-threshold clients; zero through N is possible when safeguards allow. M3 uses representative coverage and, with a nonempty roster, always seeds at least one representative (so 1..N). All clients receive round controls, selected clients alone train/upload/download, M3 peers exchange reports even if not selected; M2 piggybacks aggregate references. Max skip 4: due if r-last_sync>4; fixed cap can violate due deadlines, threshold serves all due. Exact per-event application bytes, not physical network bandwidth. Empty round means unchanged server model, not no communication.
+
+## Execute
+
+```bash
+bash run_all_sync.sh --estimate-only
+bash run_all_sync.sh --all
+# Or explicit phases:
+bash run_all_sync.sh --stage data --resume --device cpu
+bash run_all_sync.sh --stage calibration --resume
+python scripts/build_job_ledger.py
+bash run_all_sync.sh --stage screening --stage shortlist --resume
+python scripts/build_job_ledger.py --require-shortlist
+bash run_all_sync.sh --stage generalization --stage participation --stage adaptive --stage scale --stage matched --stage postprocess --resume
+```
+
+Unfiltered execution automatically expands each phase under the ledger lock. Filtered execution does not expand. All results and receipts carry commit identity. Additional outputs: calibration.json, shortlist.json, scale_comparisons.csv, decision_sensitivity.jsonl, all_subset_metrics.jsonl, distribution_subset_metrics.jsonl. Threshold ID labels are nominal slots, actual thresholds in resolved config and output. Single-seed results exploratory; no cross-seed CIs. Secondary client counts 20/50, resource heterogeneity, compression, and physical networks remain optional future studies. `SYNC_SUITE=exhaustive` preserves prior factorial.
+
+## Historical plan (superseded as default)
+
 # Active compact controlled campaign (101 training runs)
 
 The default `core` uses seed 42 for both partition and training. Five clients, five tasks, 50 rounds, sample-weighted complete FedAvg, uniform experience replay, pre-training admission, all existing statistical and communication instrumentation. No test metrics determine selection.

@@ -236,7 +236,8 @@ def generate(args):
                 raise ValueError("invalid client workload totals")
         if spec:
             from stream_design import joint_allocate
-            assigned,window_ids,joint,target_joint,schedule=joint_allocate(spec,t,train_ids,raw.data,rng,allocate,client_rows,read_pixels,np.random.default_rng(np.random.SeedSequence([args.seed,t,3])))
+            allocation_rng=np.random.default_rng(np.random.SeedSequence([args.seed,t,4])) if spec.get("setting_id") in ("S14","S14N10") else rng
+            assigned,window_ids,joint,target_joint,schedule=joint_allocate(spec,t,train_ids,raw.data,allocation_rng,allocate,client_rows,read_pixels,np.random.default_rng(np.random.SeedSequence([args.seed,t,3])))
             counts=joint.sum((0,3));rows=counts.sum(1)
             target=(target_joint.sum(3)*joint.sum((2,3))[:,:,None]).sum(0)/rows[:,None]
             requested_similarity=similarity(target)

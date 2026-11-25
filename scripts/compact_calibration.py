@@ -14,7 +14,7 @@ def prefix_valid(job):
         receipt=json.loads((Path(c["data_root"])/"validation_receipt.json").read_text())
         return (status=={"status":"paused","last_committed_round":19} and cfg["source_commit"]==job["source_commit"]
             and cfg["local_learning_rate"]==c["learning_rate"] and cfg["sync_policy"]=="full" and cfg["sync_eval_split"]=="validation"
-            and cfg["seed"]==42 and cfg["ground_truth_hash"]==receipt["ground_truth_hash"] and receipt["source_verified"]
+            and cfg["seed"]==42 and cfg["num_clients"]==5 and cfg["local_epochs"]==5 and cfg["memory_size"]==500 and cfg["batch_size"]==13 and cfg["memory_batch_size"]==13 and cfg["ground_truth_hash"]==receipt["ground_truth_hash"] and receipt["source_verified"]
             and verify_controlled_source(c["data_root"],c) and [x["round"] for x in rows]==list(range(20))
             and all(x["selected"]==list(range(5)) and x["accepted"]==x["downloaded"]==x["selected"] for x in rows)
             and len(metrics)==30 and {(x["round"],x["task"]) for x in metrics}=={(r,t) for r in range(20) for t in range(r//10+1)}
@@ -60,13 +60,16 @@ def calibrated_thresholds(root):
     means={t:expected(t) for t in grid}
     if all(means[a]-means[b]>=.25 for a,b in zip(nominal,nominal[1:])):chosen=nominal
     else:
-        # Dynamic search over increasing grid indices, minimize deviation from
-        # target 80/60/40/20% participation. Four distinct thresholds always.
-        # No dynamic programming: greedy target matching within remaining range.
+        # Greedy target matching over increasing grid indices, with four
+        # distinct thresholds. Attainable participation counts may coincide.
         chosen=[];start=0
         for index,target in enumerate((4,3,2,1)):
             stop=len(grid)-(3-index)
-            j=min(range(start,stop),key=lambda j:(abs(means[grid[j]]-target),abs(grid[j]-nominal[index]),j))
+            choices=list(range(start,stop))
+            if chosen:
+                separated=[j for j in choices if means[chosen[-1]]-means[grid[j]]>=.25]
+                if separated:choices=separated
+            j=min(choices,key=lambda j:(abs(means[grid[j]]-target),abs(grid[j]-nominal[index]),j))
             chosen.append(grid[j]);start=j+1
     return {str(t):v for t,v in zip(nominal,chosen)},{"nominal":list(nominal),"chosen":list(chosen),"predicted_mean_counts":[means[t] for t in chosen],"distinct_counts":len(set(means[t] for t in chosen)),"grid":[{"threshold":t,"mean_count":means[t]} for t in grid],"scope":"fixed actual screening states, excludes bootstrap; not adaptive trajectory"}
 def scale_comparisons(rows,deltas):
@@ -83,6 +86,15 @@ def scale_comparisons(rows,deltas):
             for key in ("final_accuracy_delta_vs_full","forgetting_delta_vs_full","byte_savings_fraction_vs_full","total_bytes_delta_vs_full"):
                 item["five_"+key]=b1.get(key);item["ten_"+key]=a1.get(key)
             out.append(item)
+    for r in rows:
+        if r["setting_id"]!="S14N10" or r.get("selection_mode")!="threshold":continue
+        b=next((x for x in rows if x["setting_id"]=="S14" and x.get("selection_mode")=="threshold" and x.get("threshold_slot")==r.get("threshold_slot") and x["selector_id"]==r["selector_id"]),None)
+        if b is None:raise ValueError("missing paired adaptive threshold")
+        a1=delta[r["experiment_id"]];b1=delta[b["experiment_id"]]
+        item={"comparison":"same_threshold","selector_id":r["selector_id"],"five_client_id":b["experiment_id"],"ten_client_id":r["experiment_id"],"five_participation":b["participation_fraction"],"ten_participation":r["participation_fraction"],"threshold":r["threshold"]}
+        for key in ("final_accuracy_delta_vs_full","forgetting_delta_vs_full","byte_savings_fraction_vs_full","total_bytes_delta_vs_full","final_accuracy_delta_vs_matched_byte_random","final_accuracy_delta_vs_matched_count_random"):
+            item["five_"+key]=b1.get(key);item["ten_"+key]=a1.get(key)
+        out.append(item)
     return out
 if __name__=="__main__":
     p=argparse.ArgumentParser();p.add_argument("--ledger",type=Path,required=True);p.add_argument("--output",type=Path,required=True);a=p.parse_args()

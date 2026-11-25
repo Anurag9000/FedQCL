@@ -257,7 +257,8 @@ def estimate(jobs):
             old=m*(comb(n,n//2)+1) if j in adaptive else m*(comb(n,c["k"])+int(c["k"]!=n))
             cf_max+=exact-old
             cf_aggregates+=exact-(0 if j in adaptive else old)
-    return {"jobs":len(jobs),"training_jobs":len(training),"threshold_jobs":sum(j["config"].get("selection_mode")=="threshold" for j in adaptive),"matched_control_jobs":sum(j["config"].get("selection_mode") in ("matched_count","matched_bytes") for j in adaptive),"nominal_client_draws":draws,"threshold_draw_upper_bound":adaptive_max,"counterfactual_aggregate_upper_bound":cf_max,"counterfactual_checkpoints":cf_rounds,"counterfactual_candidate_local_trainings":cf_candidates,"counterfactual_aggregate_evaluations":cf_aggregates,
+    calibration=[j for j in jobs if j["kind"]=="calibration"]
+    return {"jobs":len(jobs),"training_jobs":len(training),"calibration_prefixes":len(calibration),"calibration_rounds":sum(j["config"]["prefix_rounds"] for j in calibration),"threshold_jobs":sum(j["config"].get("selection_mode")=="threshold" for j in adaptive),"matched_control_jobs":sum(j["config"].get("selection_mode") in ("matched_count","matched_bytes") for j in adaptive),"nominal_client_draws":draws,"threshold_draw_upper_bound":adaptive_max,"counterfactual_aggregate_upper_bound":cf_max,"counterfactual_checkpoints":cf_rounds,"counterfactual_candidate_local_trainings":cf_candidates,"counterfactual_aggregate_evaluations":cf_aggregates,
             "nominal_model_transfer_upper_bound_at_45MB":45000000*(2*(draws+adaptive_max)+initial),
             "initial_downloads":initial,"initial_task_il_downloads":sum(j["config"]["clients"] for j in training if j["config"].get("campaign") in ("task_il_48","task_il_joint")),
             "task_il_local_training_rounds":sum(j["config"].get("local_training_rounds",0) for j in training),

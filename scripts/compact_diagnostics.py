@@ -19,6 +19,11 @@ def distribution_analysis(jobs,out,truths):
     data=[j for j in jobs if j["kind"]=="validate"]
     if len(data)!=25 or {j["config"]["partition_seed"] for j in data}!={42}:raise ValueError("compact dataset inventory")
     trained={j["config"]["setting_id"] for j in jobs if j["kind"]=="train"}
+    # Verify the actual ten-client source IDs exactly partition each five-client parent/window.
+    parents={j["config"]["setting_id"]:Path(j["artifacts"][0]).parent for j in data}
+    with np.load(parents["S14"]/"ground_truth/allocation_index.npz") as a,np.load(parents["S14N10"]/"ground_truth/allocation_index.npz") as b:
+        first=a["allocation"];second=b["allocation"].copy();second[:,2]//=2
+        if not np.array_equal(first,second):raise ValueError("scale split differs from parent sample/window assignment")
     with (out/"distribution_subset_metrics.jsonl").open("w") as handle:
         for job in data:
             if not valid(job):raise ValueError("unverified dataset "+job["semantic_id"])

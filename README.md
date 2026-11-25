@@ -1,6 +1,6 @@
 # Active comprehensive synchronization campaign
 
-The default ledger is the **101-training-run, 151-job staged single-seed campaign** (seed 42, 24 validated datasets, six neural streams). See [the current campaign specification](docs/CONTROLLED_CAMPAIGN.md). Before screening, the 76-job ledger contains 27 training runs; the runner expands automatically after validation-only shortlisting. The former exhaustive 35,208-run suite is opt-in (`SYNC_SUITE=exhaustive`); the 24-run historical pilot is `SYNC_SUITE=pilot`.
+The default ledger is **101 primary five-client runs + 22 paired ten-client scale runs (123 production trajectories, 179 jobs)**, seed 42, with three 20-round validation-only LR calibration prefixes. See [the current specification](docs/CONTROLLED_CAMPAIGN.md). Staged execution expands after calibration and screening. The exhaustive suite is opt-in (`SYNC_SUITE=exhaustive`).
 
 # Historical pilot: eight-signal research goal
 

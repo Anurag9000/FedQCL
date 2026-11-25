@@ -206,7 +206,7 @@ def analyze(ledger,out):
         from compact_calibration import scale_comparisons
         csv_rows(out/"scale_comparisons.csv",scale_comparisons(rows,deltas))
     threshold_rows=[x for x in summary if x["selection_mode"]=="threshold"]
-    csv_rows(out/"threshold_tradeoff.csv",threshold_rows);plot_threshold(out,threshold_rows)
+    csv_rows(out/"threshold_tradeoff.csv",threshold_rows);plot_threshold(out,[x for x in threshold_rows if x.get("clients",5)==5])
     (out/"matrix.json").write_text(json.dumps({"training_runs":len(rows),"matched_groups":len(hashes),"catalog_sha256":hashlib.sha256(CATALOG.read_bytes()).hexdigest(),"dataset_groups":len(truths),"design":"single seed 42; descriptive only; selected finalists; one-round counterfactuals" if compact else "fixed budget and threshold selection, three paired seeds; seed-level descriptive means/SD; one-round counterfactuals","results":rows},indent=2,allow_nan=False))
 
 if __name__=="__main__":

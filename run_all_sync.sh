@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Core: 101 staged trajectories, seed 42; all 24 datasets, six neural streams.
+# Core: 101 primary + 22 paired ten-client runs, seed 42; three LR prefixes.
 # Former 24-run suite: SYNC_SUITE=pilot (diagnostic only).
 # Generation, ground truth, ten counterfactual checkpoints per run, analysis.
 # Historical combinatorial suite requires explicit opt-in.

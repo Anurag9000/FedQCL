@@ -91,3 +91,30 @@ class ControlledStream(unittest.TestCase):
                                     if regime in ("clustered","reassigned","separated","four_groups"):
                                         if groups[i]==groups[j]:self.assertLessEqual(dist,tol["within_cluster_tv"])
                                         else:self.assertGreaterEqual(dist,tol["between_cluster_tv"] if regime in ("clustered","reassigned") else tol["separated_tv"])
+
+    def test_paired_ten_client_split(self):
+        p=json.loads((ROOT/"configs/sync/settings/S14.json").read_text())
+        s=json.loads((ROOT/"configs/sync/settings/S14N10.json").read_text())
+        validate_spec(s,10,5,10)
+        ids=[np.arange(j*446,(j+1)*446) for j in range(20)]
+        raw=np.random.default_rng(7).integers(0,256,(8920,4,4,3),dtype=np.uint8)
+        for t in range(5):
+            def make(spec):
+                return joint_allocate(spec,t,ids,raw,np.random.default_rng(np.random.SeedSequence([42,t,4])),allocate,client_rows,read_pixels)
+            pa,pw,pc,pt,ps=make(p);sa,sw,sc,st,ss=make(s)
+            self.assertTrue(np.array_equal(sc.reshape(10,5,2,20,5).sum(2),pc))
+            self.assertTrue(np.array_equal(st[:,::2],pt))
+            for i in range(5):
+                self.assertEqual(set(zip(pa[i],pw[i])),set(zip(sa[2*i],sw[2*i]))|set(zip(sa[2*i+1],sw[2*i+1])))
+            self.assertLessEqual(tv(normalize(sc.sum(-1)),st.sum(-1)).max(),s["tolerances"]["label_tv"])
+            self.assertLessEqual(tv(normalize(sc.reshape(10,10,-1)),st.reshape(10,10,-1)).max(),s["tolerances"]["joint_tv"])
+            for r,phase in enumerate(ss):
+                lab=normalize(sc[r].sum(-1));joint=normalize(sc[r].reshape(10,-1));tol=s["tolerances"]
+                for i in range(10):
+                    for j in range(i):
+                        d=float(tv(lab[i],lab[j]));same=phase["groups"][i]==phase["groups"][j]
+                        if phase["regime"] in ("similar","conditional"):self.assertLessEqual(d,tol["near_pair_tv"])
+                        if phase["regime"] in ("clustered","reassigned","separated"):
+                            if same:self.assertLessEqual(d,tol["within_cluster_tv"])
+                            else:self.assertGreaterEqual(d,tol["separated_tv"] if phase["regime"]=="separated" else tol["between_cluster_tv"])
+                        if phase["regime"]=="conditional" and i//2!=j//2:self.assertGreaterEqual(float(tv(joint[i],joint[j])),tol["conditional_joint_tv"])

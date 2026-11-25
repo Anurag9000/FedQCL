@@ -207,7 +207,8 @@ def generate(args):
         if any(getattr(args,k,None) for k in ("profiles","similarity","counts","window_profiles","client_counts","drift_pattern","workload_skew")):
             raise ValueError("controlled stream cannot mix legacy allocation overrides")
         manifest["controlled_stream"]=spec
-        manifest["regime"]="controlled_dynamic" if spec["mode"]=="balanced_dynamic" else "controlled_dirichlet"
+        manifest["controlled_stream_sha256"]=hashlib.sha256(Path(spec_path).read_bytes()).hexdigest()
+        manifest["regime"]="controlled_dynamic" if spec["mode"]=="balanced_dynamic" else "controlled_"+spec["mode"]
     elif not np.isfinite(getattr(args,"dirichlet_alpha",10.)) or getattr(args,"dirichlet_alpha",10.)<=0:
         raise ValueError("Dirichlet alpha must be positive")
     if args.regime=="dirichlet":manifest["dirichlet_alpha"]=getattr(args,"dirichlet_alpha",10.)
@@ -235,7 +236,7 @@ def generate(args):
                 raise ValueError("invalid client workload totals")
         if spec:
             from stream_design import joint_allocate
-            assigned,window_ids,joint,target_joint,schedule=joint_allocate(spec,t,train_ids,raw.data,rng,allocate,client_rows,read_pixels)
+            assigned,window_ids,joint,target_joint,schedule=joint_allocate(spec,t,train_ids,raw.data,rng,allocate,client_rows,read_pixels,np.random.default_rng(np.random.SeedSequence([args.seed,t,3])))
             counts=joint.sum((0,3));rows=counts.sum(1)
             target=(target_joint.sum(3)*joint.sum((2,3))[:,:,None]).sum(0)/rows[:,None]
             requested_similarity=similarity(target)

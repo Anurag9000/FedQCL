@@ -32,7 +32,7 @@ def valid(job):
                 from build_ground_truth import verify_bundle
                 import hashlib
                 if hashlib.sha256(json.dumps({k:v for k,v in manifest.items() if k!="manifest_id"},sort_keys=True).encode()).hexdigest()!=manifest["manifest_id"]:return False
-                if not verify_bundle(root,receipt):return False
+                if manifest["controlled_stream_sha256"]!=job["config"]["stream_spec_sha256"] or not verify_bundle(root,receipt):return False
             return receipt["valid"] and receipt["manifest_id"]==manifest["manifest_id"]
         if job["kind"]=="analysis" and job["config"].get("campaign")=="task_il_joint":
             receipt=json.loads(Path(job["artifacts"][0]).read_text())
@@ -77,7 +77,7 @@ def valid(job):
             source=Path(job["config"]["data_root"])
             source_receipt=json.loads((source/"validation_receipt.json").read_text())
             if receipt!=source_receipt or manifest["manifest_id"]!=receipt["manifest_id"] or manifest!=json.loads((source/"manifest.json").read_text()):return False
-            if not receipt["valid"] or resolved_config["dataset_manifest_id"]!=manifest["manifest_id"]:return False
+            if not receipt["valid"] or resolved_config["dataset_manifest_id"]!=manifest["manifest_id"] or manifest["controlled_stream_sha256"]!=job["config"]["stream_spec_sha256"]:return False
             if not (receipt["ground_truth_hash"]==summary["ground_truth_hash"]==resolved_config["ground_truth_hash"]==audit["ground_truth_hash"]==provenance["ground_truth_hash"]):return False
             if len(audit["rounds"])!=job["config"]["rounds"] or set(x["round"] for x in audit["counterfactuals"])!=set(job["config"]["counterfactual_rounds"]):return False
             if summary["counterfactual_checkpoints"]!=len(job["config"]["counterfactual_rounds"]):return False

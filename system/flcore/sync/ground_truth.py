@@ -10,7 +10,7 @@ def write(path,obj):
     tmp.write_text(json.dumps(obj,sort_keys=True,indent=2,allow_nan=False));tmp.replace(path)
 def verify(root,receipt):
     files=receipt["ground_truth_files"]
-    if set(files)!={"distributions.npz","specification.json"}:raise ValueError("ground truth inventory")
+    if set(files)!={"distributions.npz","specification.json","allocation_index.npz"}:raise ValueError("ground truth inventory")
     if not all(sha(root/name)==v for name,v in files.items()):raise ValueError("ground truth hash mismatch")
     if hashlib.sha256(json.dumps(files,sort_keys=True).encode()).hexdigest()!=receipt["ground_truth_hash"]:raise ValueError("bundle hash mismatch")
     return True
@@ -19,10 +19,11 @@ def install_bundle(dataset,out,manifest):
     receipt=json.loads((dataset/"validation_receipt.json").read_text())
     if not receipt["valid"] or receipt["manifest_id"]!=manifest["manifest_id"]:raise ValueError("unvalidated dataset")
     verify(dataset/"ground_truth",receipt)
-    dest=out/"ground_truth";dest.mkdir(exist_ok=True)
+    dest=out/"ground_truth";dest.mkdir(exist_ok=True,mode=0o700);dest.chmod(0o700)
     for name in receipt["ground_truth_files"]:
         shutil.copyfile(dataset/"ground_truth"/name,dest/name)
     write(dest/"dataset_manifest.json",manifest);write(dest/"validation_receipt.json",receipt)
+    for path in dest.iterdir():path.chmod(0o600)
     verify(dest,receipt)
     return receipt
 def tv(x,y):return float(.5*np.abs(x-y).sum())

@@ -33,9 +33,29 @@ class Training(unittest.TestCase):
                   "--sync-k","1","--sync-min-observation","1","--sync-observation-size","4",
                   "--sync-checkpoint","--sync-aggregation","complete"]
             env={**os.environ,"OMP_NUM_THREADS":"1","MKL_NUM_THREADS":"1"}
+            # Build a genuine miniature validated stream, not a fabricated receipt.
+            sys.path.insert(0,str(root/"scripts"))
+            from generate_streams import generate
+            from validate_streams import validate
+            from unittest.mock import patch
+            from types import SimpleNamespace
+            controlled=tmp/"controlled"
+            spec={"schema":1,"mode":"dirichlet","clients":2,"tasks":2,"windows":2,"domain_bins":2,"domain":"brightness","alpha":10.,
+                  "temporal_persistence":.5,"label_specialization":.9,"domain_specialization":.9,"regimes":[],
+                  "tolerances":{"label_tv":1.,"joint_tv":1.},"counterfactual_rounds":[1,3]}
+            sp=tmp/"stream.json";sp.write_text(json.dumps(spec))
+            raw=SimpleNamespace(data=rng.integers(0,256,(32,8,8,3),dtype=np.uint8),targets=np.repeat(np.arange(4),8))
+            test=SimpleNamespace(data=rng.integers(0,256,(16,8,8,3),dtype=np.uint8),targets=np.repeat(np.arange(4),4))
+            args=SimpleNamespace(output=str(controlled),dataset="cifar100",seed=42,clients=2,windows=2,validation_per_class=2,public_probe_per_class=2,
+                workload_skew=0.,client_counts=None,drift_pattern=None,window_profiles=None,conditional_domain="brightness",regime="clustered",
+                profiles=None,similarity_tolerance=None,similarity=None,counts=None,floor=1,controlled_stream=str(sp))
+            with patch("generate_streams.load_sources",return_value=(raw,test,2,2,([.5]*3,[.25]*3))):generate(args)
+            receipt=validate(controlled);(controlled/"validation_receipt.json").write_text(json.dumps(receipt))
             def run(name,policy,extra=()):
                 out=tmp/name
-                result=subprocess.run(base+["--sync-policy",policy,"--sync-output",str(out),*extra],
+                run_base=base.copy()
+                if name.startswith("A0"):run_base[3]=str(controlled)
+                result=subprocess.run(run_base+["--sync-policy",policy,"--sync-output",str(out),*extra],
                      cwd=root/"system",env=env,stdout=subprocess.PIPE,stderr=subprocess.STDOUT,text=True,timeout=300)
                 self.assertEqual(result.returncode,0,result.stdout[-12000:])
                 return out
@@ -57,7 +77,7 @@ class Training(unittest.TestCase):
             # Execute each active entry on the tiny two-task dataset.
             sys.path.insert(0,str(root/"scripts"))
             from core_suite import read_core_signal_entries
-            cases.extend((entry["id"],entry["policy"],[*entry["flags"],"--sync-windowed","--sync-audit-references"]) for entry in read_core_signal_entries())
+            cases.extend((entry["id"],entry["policy"],[*entry["flags"],"--sync-windowed","--sync-audit-references","--sync-counterfactual","--sync-controlled-stream"]+ (["--sync-verify-branches"] if entry["id"]=="A01-M1" else [])) for entry in read_core_signal_entries())
             for name,policy,extra in cases:
                 out=run(name,policy,extra)
                 if name=="aggregate_cka":
@@ -79,6 +99,10 @@ class Training(unittest.TestCase):
                                     self.assertEqual(report["window"],f"cached_update:{source}")
                     if name.startswith("A0"):
                         self.assertTrue(all(sum(hist)==2 for row in rounds for hist in row["population_histograms"].values()))
+                        audit=json.loads((out/"analysis"/"ground_truth_comparison.json").read_text())
+                        self.assertEqual(audit["ground_truth_hash"],receipt["ground_truth_hash"])
+                        self.assertEqual(len(audit["counterfactuals"]),2)
+                        self.assertEqual(len(audit["rounds"]),4)
                 for row in rounds:
                     self.assertEqual(row["selected"],row["trained"])
                     self.assertEqual(row["accepted"],row["downloaded"])

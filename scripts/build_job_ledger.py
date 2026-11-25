@@ -41,7 +41,7 @@ def build(output,tiny_root=None,suite="core"):
         if tag==CORE_REGIME:cfg.update(controlled_stream=True,stream_spec_sha256=hashlib.sha256(stream_spec.read_bytes()).hexdigest())
         d=add(stage,"generate",cfg,command,artifacts=[str(folder/"manifest.json")])
         receipt=folder/"validation_receipt.json"
-        v=add(stage,"validate",cfg,[sys.executable,"scripts/validate_streams.py",str(folder),"--receipt",str(receipt)],deps=[d],artifacts=[str(receipt)]+([str(folder/"ground_truth"/name) for name in ("distributions.npz","specification.json")] if tag==CORE_REGIME else []))
+        v=add(stage,"validate",cfg,[sys.executable,"scripts/validate_streams.py",str(folder),"--receipt",str(receipt)],deps=[d],artifacts=[str(receipt)]+([str(folder/"ground_truth"/name) for name in ("distributions.npz","specification.json","allocation_index.npz")] if tag==CORE_REGIME else []))
         data[tag,seed,n]=(folder,v);dimensions[tag,seed,n]=(dataset,tasks,classes)
     if suite=="core":
         register(CORE_REGIME,"clustered",42,gen_flags=("--public-probe-per-class",str(PUBLIC_PROBE_PER_CLASS),"--controlled-stream",str(stream_spec)),stage="data")
@@ -74,7 +74,7 @@ def build(output,tiny_root=None,suite="core"):
                  "-memory_size","500","-memory_batch_size","13","-seed",str(training_seed),
                  "--sync-er","--sync-memory-profile","uniform","--sync-aggregation","complete","--sync-weighting","current","--sync-local-capture","--sync-policy",policy,"--sync-k",str(cfg["k"]),"--sync-output",str(out),"--sync-checkpoint","--sync-eval-split",split,*flags]
         return add(stage,"train",cfg,command,[dep,*extra_deps],[str(out/"final_summary.json"),str(out/"status.json"),
-            str(out/"communication_events.jsonl"),str(out/"server_metrics.jsonl"),str(out/"server.pt"),str(out/"provenance.json"),str(out/"rounds.jsonl")]+([str(out/"config.json"),str(out/"decisions.jsonl"),str(out/"report_arrivals.jsonl"),str(out/"analysis"/"ground_truth_comparison.json"),*[str(out/"ground_truth"/name) for name in ("dataset_manifest.json","validation_receipt.json","distributions.npz","specification.json")]] if entry is not None else [])+([str(out/"counterfactuals.jsonl")] if "--sync-counterfactual" in flags else []))
+            str(out/"communication_events.jsonl"),str(out/"server_metrics.jsonl"),str(out/"server.pt"),str(out/"provenance.json"),str(out/"rounds.jsonl")]+([str(out/"config.json"),str(out/"decisions.jsonl"),str(out/"report_arrivals.jsonl"),str(out/"analysis"/"ground_truth_comparison.json"),*[str(out/"ground_truth"/name) for name in ("dataset_manifest.json","validation_receipt.json","distributions.npz","specification.json","allocation_index.npz")]] if entry is not None else [])+([str(out/"counterfactuals.jsonl")] if "--sync-counterfactual" in flags else []))
     if suite=="core":
         for entry in read_core_signal_entries():
             run("signals",entry["policy"],entry["regime"],entry["seed"],entry["k"],flags=[*entry["flags"],*CORE_RUNTIME_FLAGS],entry=entry)

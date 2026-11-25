@@ -46,6 +46,7 @@ class ControlledStream(unittest.TestCase):
             with np.load(path/"ground_truth"/"distributions.npz") as z:
                 self.assertEqual(z["spatiotemporal_joint"].shape,(250,250))
                 self.assertEqual(z["counts"].sum(),44600)
+                self.assertTrue(np.allclose(z["spatial_js"].diagonal(axis1=1,axis2=2),0))
                 self.assertTrue(np.allclose(np.diag(z["spatiotemporal_label"]),1))
             (path/"ground_truth"/"specification.json").write_text("{}")
             self.assertFalse(verify_bundle(path,receipt))

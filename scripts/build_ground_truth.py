@@ -11,6 +11,7 @@ def tv(p,q):return .5*np.abs(p-q).sum(axis=-1)
 def pairwise(p):
     return tv(p[:,None,:],p[None,:,:])
 def js(p,q):
+    p,q=np.broadcast_arrays(p,q)
     m=(p+q)/2
     def kl(a):
         ratio=np.divide(a,m,out=np.ones_like(a),where=(a>0)&(m>0))
@@ -28,7 +29,7 @@ def reconstruct(root,manifest):
     spec=manifest["controlled_stream"]
     n,t,c,w,d=manifest["clients"],manifest["tasks"],manifest["classes_per_task"],manifest["windows"],spec["domain_bins"]
     joint=np.zeros((t*w,n,t*c,d),dtype=np.int64);requested=np.zeros_like(joint,dtype=float)
-    schedule=[];errors=[];tol=spec["tolerances"]
+    schedule=[];allocation=[];tol=spec["tolerances"]
     for task in range(t):
         chunks=[]
         for i in range(n):
@@ -41,10 +42,15 @@ def reconstruct(root,manifest):
         for label in range(task*c,(task+1)*c):
             a=arr[arr[:,1]==label];order=np.lexsort((a[:,0],a[:,4]))
             for k,part in enumerate(np.array_split(order,d)):
-                for item in a[part]:joint[task*w+item[2],item[3],label,k]+=1
+                for item in a[part]:
+                    joint[task*w+item[2],item[3],label,k]+=1
+                    allocation.append([int(item[0]),task*w+int(item[2]),int(item[3]),label,k])
         m=manifest["tasks_data"][task];sl=slice(task*w,(task+1)*w);cs=slice(task*c,(task+1)*c)
         require(np.array_equal(joint[sl,:,cs,:],m["joint_counts"]),"joint count mismatch")
-        requested[sl,:,cs,:]=m["requested_joint"]
+        from stream_design import target_profiles
+        expected,expected_schedule=target_profiles(spec,task,c,np.random.default_rng(np.random.SeedSequence([manifest["seed"],task,3])))
+        require(np.allclose(expected,m["requested_joint"]) and expected_schedule==m["schedule"],"requested profile/schedule differs from prespecified design")
+        requested[sl,:,cs,:]=expected
         for entry in m["schedule"]:schedule.append(dict(entry,round=task*w+entry["window"],task=task))
     counts=joint.sum(-1);rows=counts.sum(-1);require(np.all(rows>0),"empty window")
     p=normalize(counts);q=normalize(joint.reshape(t*w,n,-1))
@@ -76,17 +82,21 @@ def reconstruct(root,manifest):
         federation_label=federation,federation_distance=tv(p,federation[:,None,:]),
         cumulative_counts=cumulative,temporal_change=tv(p[1:],p[:-1]),label_error=label_error,joint_error=joint_error)
     meta={"schema":1,"manifest_id":manifest["manifest_id"],"specification":spec,"schedule":schedule,
+          "allocation_index_columns":["source_sample_id","round","client","global_class","brightness_rank_bin"],
+          "stream_spec_sha256":manifest["controlled_stream_sha256"],
           "axes":{"counts":["round","client","global_class"],"joint_counts":["round","client","global_class","brightness_rank_bin"],"spatiotemporal":"round-major, client-minor"},
           "metrics":{"similarity":"1-total variation","spatial_js":"base-2 JS divergence (distance)","conditional":"overlap-weighted within-class TV; NaN if no shared classes"},
           "max_label_tv":float(label_error.max()),"max_joint_tv":float(joint_error.max())}
-    return arrays,meta
+    return arrays,meta,np.asarray(sorted(allocation),dtype=np.int64)
 
 def build(root,manifest):
-    root=Path(root);arrays,meta=reconstruct(root,manifest)
-    dest=root/"ground_truth";dest.mkdir(exist_ok=True)
+    root=Path(root);arrays,meta,allocation=reconstruct(root,manifest)
+    dest=root/"ground_truth";dest.mkdir(exist_ok=True,mode=0o700);dest.chmod(0o700)
     np.savez_compressed(dest/"distributions.npz",**arrays)
     (dest/"specification.json").write_text(json.dumps(meta,sort_keys=True,indent=2,allow_nan=False))
-    hashes={name:digest(dest/name) for name in ("distributions.npz","specification.json")}
+    np.savez_compressed(dest/"allocation_index.npz",allocation=allocation)
+    hashes={name:digest(dest/name) for name in ("distributions.npz","specification.json","allocation_index.npz")}
+    for name in hashes:(dest/name).chmod(0o600)
     return {"ground_truth_hash":hashlib.sha256(json.dumps(hashes,sort_keys=True).encode()).hexdigest(),"ground_truth_files":hashes}
 
 def verify_bundle(root,receipt):

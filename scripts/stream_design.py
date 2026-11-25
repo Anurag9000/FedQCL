@@ -6,13 +6,14 @@ def validate_spec(s,n,tasks,windows):
         raise ValueError("controlled stream dimensions")
     if s["domain"]!="brightness" or not 2<=s["domain_bins"]<=10:
         raise ValueError("unsupported domain")
-    if s["mode"] not in ("balanced_dynamic","dirichlet"):raise ValueError("stream mode")
+    if s["mode"] not in ("balanced_dynamic","dirichlet","custom"):raise ValueError("stream mode")
     if not np.isfinite(s["alpha"]) or s["alpha"]<=0 or not 0<=s["temporal_persistence"]<=1:
         raise ValueError("alpha/persistence")
     if any(not 0<=s[k]<=1 for k in ("label_specialization","domain_specialization")):
         raise ValueError("specialization")
     if s["mode"]=="balanced_dynamic" and (n!=5 or windows!=10 or s["domain_bins"]!=5 or s["regimes"]!=["similar","clustered","separated","reassigned","conditional"]):
         raise ValueError("balanced schedule contract")
+    if "alpha_schedule" in s and (len(s["alpha_schedule"]) not in (windows,tasks*windows) or any(not np.isfinite(x) or x<=0 for x in s["alpha_schedule"])):raise ValueError("alpha schedule")
     if len(set(s["counterfactual_rounds"]))!=len(s["counterfactual_rounds"]) or any(not 0<=r<tasks*windows for r in s["counterfactual_rounds"]):
         raise ValueError("counterfactual schedule")
 
@@ -28,11 +29,12 @@ def target_profiles(spec,task,c,rng):
     result=[];schedule=[];previous=None
     if spec["mode"]=="balanced_dynamic" and c%n:raise ValueError("classes must divide into five groups")
     for window in range(w):
-        regime=spec["regimes"][(window//2+task)%5] if spec["mode"]=="balanced_dynamic" else "dirichlet"
+        regime=spec["regimes"][(window//2+task)%5] if spec["mode"]=="balanced_dynamic" else spec["mode"]
         groups=list(range(n))
         p=uniform.copy();q=np.full((n,c,d),1/d)
         if regime=="dirichlet":
-            fresh=rng.dirichlet(np.full(c,spec["alpha"]),n)
+            alpha=spec.get("alpha_schedule",[spec["alpha"]]*w)
+            fresh=rng.dirichlet(np.full(c,alpha[(task*w+window)%len(alpha)]),n)
             rho=spec["temporal_persistence"]
             p=fresh if previous is None else rho*previous+(1-rho)*fresh
             previous=p.copy()
@@ -52,18 +54,22 @@ def target_profiles(spec,task,c,rng):
             for i in range(n):
                 q[i]=(1-spec["domain_specialization"])/d
                 q[i,:,i]+=spec["domain_specialization"]
-        result.append(p[:,:,None]*q)
+        if regime=="custom":
+            target=np.asarray(spec["target_joint"],dtype=float)[task,window]
+            if target.shape!=(n,c,d) or not np.isfinite(target).all() or np.any(target<0) or not np.allclose(target.sum((1,2)),1):raise ValueError("invalid custom joint profiles")
+            result.append(target)
+        else:result.append(p[:,:,None]*q)
         schedule.append({"window":window,"regime":regime,"groups":groups,
                          "transition":window%2==1 and regime=="reassigned"})
     return np.asarray(result),schedule
 
-def joint_allocate(spec,task,train_ids,raw_data,rng,allocate,client_rows,read_pixels):
+def joint_allocate(spec,task,train_ids,raw_data,rng,allocate,client_rows,read_pixels,target_rng=None):
     n,w,d=spec["clients"],spec["windows"],spec["domain_bins"]
     c=len(train_ids)
     sources=[domain_ids(ids,read_pixels(raw_data,ids),d) for ids in train_ids]
     cols=np.asarray([len(ids) for group in sources for ids in group])
     rows=client_rows(int(cols.sum()),w*n,0)
-    targets,schedule=target_profiles(spec,task,c,rng)
+    targets,schedule=target_profiles(spec,task,c,rng if target_rng is None else target_rng)
     counts=allocate(rows,cols,targets.reshape(w*n,c*d),0).reshape(w,n,c,d)
     assigned=[[] for _ in range(n)];windows=[[] for _ in range(n)]
     for j,group in enumerate(sources):

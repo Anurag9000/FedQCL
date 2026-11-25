@@ -5,21 +5,13 @@ from pathlib import Path
 from types import SimpleNamespace
 import numpy as np
 from generate_streams import load_sources
+from validate_streams import verify_source_inventory
 from run_campaign import valid,dependency_order,estimate,select_jobs
 
 def check_stream(root,raw,test):
     manifest=json.loads((root/"manifest.json").read_text())
     receipt=json.loads((root/"validation_receipt.json").read_text())
-    verified=0
-    for name in manifest["shards"]:
-        source=test if "/test/" in name else raw
-        with np.load(root/name,allow_pickle=True) as z:d=z["data"].item()
-        ids=d["ids"].astype(int)
-        if not np.array_equal(np.asarray(source.targets)[ids],d["y"]):raise ValueError("source label mismatch "+name)
-        x=np.rint((d["x"]*np.asarray(manifest["normalization"]["std"])[None,:,None,None]+np.asarray(manifest["normalization"]["mean"])[None,:,None,None])*255)
-        if not np.array_equal(x.astype(np.uint8).transpose(0,2,3,1),source.data[ids]):raise ValueError("source pixels mismatch "+name)
-        verified+=len(ids)
-    if verified!=60000:raise ValueError("incomplete real source inventory")
+    verified=verify_source_inventory(root,manifest,raw,test)
     meta=json.loads((root/"ground_truth/specification.json").read_text())
     with np.load(root/"ground_truth/distributions.npz") as z:
         counts=z["counts"];work=counts.sum(-1);regimes={}

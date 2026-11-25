@@ -45,6 +45,7 @@ def valid(job):
                 return (checked==receipt and checked["valid"]
                         and checked["plan_id"]==job["config"]["plan_id"])
             if job["config"].get("controlled_stream"):
+                if not receipt.get("source_verified") or receipt.get("verified_source_examples")!=60000:return False
                 from build_ground_truth import verify_bundle
                 import hashlib
                 if hashlib.sha256(json.dumps({k:v for k,v in manifest.items() if k!="manifest_id"},sort_keys=True).encode()).hexdigest()!=manifest["manifest_id"]:return False
@@ -106,6 +107,7 @@ def valid(job):
             audit=json.loads((out/"analysis"/"ground_truth_comparison.json").read_text())
             source=Path(job["config"]["data_root"])
             source_receipt=json.loads((source/"validation_receipt.json").read_text())
+            if not receipt.get("source_verified") or receipt.get("verified_source_examples")!=60000:return False
             if receipt!=source_receipt or manifest["manifest_id"]!=receipt["manifest_id"] or manifest!=json.loads((source/"manifest.json").read_text()):return False
             if not receipt["valid"] or resolved_config["dataset_manifest_id"]!=manifest["manifest_id"] or manifest["controlled_stream_sha256"]!=job["config"]["stream_spec_sha256"]:return False
             if not (receipt["ground_truth_hash"]==summary["ground_truth_hash"]==resolved_config["ground_truth_hash"]==audit["ground_truth_hash"]==provenance["ground_truth_hash"]):return False

@@ -8,7 +8,20 @@ from generate_streams import sha_file
 def require(condition,message):
     if not condition:raise ValueError(message)
 
-def validate(root):
+def verify_source_inventory(root,manifest,raw,test):
+    verified=0
+    for name in manifest["shards"]:
+        source=test if "/test/" in name else raw
+        with np.load(root/name,allow_pickle=True) as z:d=z["data"].item()
+        ids=d["ids"].astype(int)
+        if not np.array_equal(np.asarray(source.targets)[ids],d["y"]):raise ValueError("source label mismatch "+name)
+        x=np.rint((d["x"]*np.asarray(manifest["normalization"]["std"])[None,:,None,None]+np.asarray(manifest["normalization"]["mean"])[None,:,None,None])*255)
+        if not np.array_equal(x.astype(np.uint8).transpose(0,2,3,1),source.data[ids]):raise ValueError("source pixels mismatch "+name)
+        verified+=len(ids)
+    if verified!=60000:raise ValueError("incomplete real source inventory")
+    return verified
+
+def validate(root,raw_sources=None):
     manifest=json.loads((root/"manifest.json").read_text())
     payload={k:v for k,v in manifest.items() if k!="manifest_id"}
     require(hashlib.sha256(json.dumps(payload,sort_keys=True).encode()).hexdigest()==manifest["manifest_id"],"manifest hash mismatch")
@@ -46,13 +59,24 @@ def validate(root):
     require(train_seen==set(range(train_n)) and test_seen==set(range(test_n)),"incomplete inventory")
     if manifest.get("schema",1)>=2:require(set(manifest["shards"])==expected,"unexpected manifest shard list")
     result={"manifest_id":manifest["manifest_id"],"train_and_validation":len(train_seen)-manifest.get("public_probe_per_class",0)*c*manifest["tasks"],"test":len(test_seen),"valid":True,**({"public_probe":manifest["public_probe_per_class"]*c*manifest["tasks"]} if manifest.get("public_probe_per_class") else {})}
+    if raw_sources is not None:
+        result["verified_source_examples"]=verify_source_inventory(root,manifest,*raw_sources)
+        result["source_verified"]=True
     if manifest.get("controlled_stream"):
         from build_ground_truth import build
         result.update(build(root,manifest))
     return result
 if __name__=="__main__":
-    p=argparse.ArgumentParser();p.add_argument("root",type=Path);p.add_argument("--receipt",type=Path);a=p.parse_args()
-    result=validate(a.root)
+    p=argparse.ArgumentParser();p.add_argument("root",type=Path);p.add_argument("--receipt",type=Path);p.add_argument("--verify-source",action="store_true");p.add_argument("--raw-root",default="data/raw");a=p.parse_args()
+    sources=None
+    if a.verify_source:
+        from generate_streams import load_sources
+        from types import SimpleNamespace
+        manifest=json.loads((a.root/"manifest.json").read_text())
+        require(manifest["dataset"]=="cifar100","source verification requires CIFAR-100")
+        raw,test,_,_,_=load_sources(SimpleNamespace(dataset="cifar100",raw_root=a.raw_root,download=False))
+        sources=(raw,test)
+    result=validate(a.root,sources)
     if a.receipt:
         tmp=a.receipt.with_suffix(".tmp");tmp.write_text(json.dumps(result,indent=2));tmp.replace(a.receipt)
     print(json.dumps(result,indent=2))

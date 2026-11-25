@@ -46,7 +46,7 @@ def build(output,tiny_root=None,suite="core"):
         if tag==CORE_REGIME:cfg.update(controlled_stream=True,stream_spec_sha256=hashlib.sha256(stream_spec.read_bytes()).hexdigest())
         d=add(stage,"generate",cfg,command,artifacts=[str(folder/"manifest.json")])
         receipt=folder/"validation_receipt.json"
-        v=add(stage,"validate",cfg,[sys.executable,"scripts/validate_streams.py",str(folder),"--receipt",str(receipt)],deps=[d],artifacts=[str(receipt)]+([str(folder/"ground_truth"/name) for name in ("distributions.npz","specification.json","allocation_index.npz")] if tag==CORE_REGIME else []))
+        v=add(stage,"validate",cfg,[sys.executable,"scripts/validate_streams.py",str(folder),"--receipt",str(receipt)]+(["--verify-source"] if tag==CORE_REGIME else []),deps=[d],artifacts=[str(receipt)]+([str(folder/"ground_truth"/name) for name in ("distributions.npz","specification.json","allocation_index.npz")] if tag==CORE_REGIME else []))
         data[tag,seed,n]=(folder,v);dimensions[tag,seed,n]=(dataset,tasks,classes)
     if suite=="core":
         register(CORE_REGIME,"clustered",42,gen_flags=("--public-probe-per-class",str(PUBLIC_PROBE_PER_CLASS),"--controlled-stream",str(stream_spec)),stage="data")

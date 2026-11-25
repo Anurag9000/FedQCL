@@ -42,7 +42,14 @@ class ControlledStream(unittest.TestCase):
                 workload_skew=0.,client_counts=None,drift_pattern=None,window_profiles=None,conditional_domain="brightness",regime="clustered",
                 profiles=None,similarity_tolerance=None,similarity=None,counts=None,floor=1,controlled_stream=str(ROOT/"configs/sync/controlled_stream.json"))
             with patch("generate_streams.load_sources",return_value=(raw,test,5,20,([.5]*3,[.25]*3))):generate(args)
-            receipt=validate(path);self.assertTrue(verify_bundle(path,receipt))
+            receipt=validate(path,(raw,test));self.assertTrue(verify_bundle(path,receipt))
+            self.assertEqual(receipt["verified_source_examples"],60000)
+            self.assertTrue(receipt["source_verified"])
+            from validate_streams import verify_source_inventory
+            manifest=json.loads((path/"manifest.json").read_text())
+            raw.data[0,0,0,0]^=1
+            with self.assertRaisesRegex(ValueError,"source pixels mismatch"):verify_source_inventory(path,manifest,raw,test)
+            raw.data[0,0,0,0]^=1
             from run_campaign import valid
             manifest=json.loads((path/"manifest.json").read_text())
             job={"kind":"generate","artifacts":[str(path/"manifest.json")],"config":{"controlled_stream":True,"stream_spec_sha256":manifest["controlled_stream_sha256"],"dataset":"cifar100","partition_seed":42,"clients":5}}

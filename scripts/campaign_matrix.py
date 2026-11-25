@@ -52,7 +52,7 @@ def build(output):
         ident=f"{sid}-seed{seed}"
         d=add("data","generate",ident+"-generate",cfg,[sys.executable,"scripts/generate_streams.py","--regime","clustered","--dataset","cifar100","--seed",str(seed),"--clients","5","--output",str(folder),"--public-probe-per-class",str(PUBLIC_PROBE_PER_CLASS),"--controlled-stream",str(sp),"--download"],[],[folder/"manifest.json"])
         receipt=folder/"validation_receipt.json"
-        v=add("data","validate",ident+"-validate",cfg,[sys.executable,"scripts/validate_streams.py",str(folder),"--receipt",str(receipt)], [d],[receipt,*[folder/"ground_truth"/name for name in ("distributions.npz","specification.json","allocation_index.npz")]])
+        v=add("data","validate",ident+"-validate",cfg,[sys.executable,"scripts/validate_streams.py",str(folder),"--receipt",str(receipt),"--verify-source"], [d],[receipt,*[folder/"ground_truth"/name for name in ("distributions.npz","specification.json","allocation_index.npz")]])
         data[sid,seed]=(folder,v,cfg,spec)
     training=[]
     for setting,seed in product(c["settings"],c["seeds"]):

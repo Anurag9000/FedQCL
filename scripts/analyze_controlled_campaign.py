@@ -61,6 +61,13 @@ def baseline_deltas(rows):
             for key in ("final_accuracy","forgetting","worst_class_accuracy","backward_transfer","total_bytes","optimizer_steps","mean_joint_coverage_regret","model_bytes","statistics_bytes","control_bytes","upload_bytes","download_bytes","peer_bytes","participation_fraction"):
                 a,b=row.get(key),base.get(key)
                 v[key+"_delta_vs_"+name]=a-b if a is not None and b is not None else None
+        full=refs[0][1]
+        v["net_bytes_saved_vs_full"]=full["total_bytes"]-row["total_bytes"]
+        parts=("model_bytes","statistics_bytes","control_bytes")
+        if all(x.get(key) is not None for x in (full,row) for key in parts):
+            v["model_bytes_avoided_vs_full"]=full["model_bytes"]-row["model_bytes"]
+            v["extra_statistics_control_bytes_vs_full"]=sum(row[key]-full[key] for key in parts[1:])
+            if v["net_bytes_saved_vs_full"]!=v["model_bytes_avoided_vs_full"]-v["extra_statistics_control_bytes_vs_full"]:raise ValueError("net byte savings reconciliation failed")
         v["byte_savings_fraction_vs_full"]=1-row["total_bytes"]/refs[0][1]["total_bytes"] if refs[0][1]["total_bytes"] else None
         result.append(v)
     return result
@@ -72,7 +79,7 @@ def seed_summary(rows,deltas):
     for (setting,mode,tau,k,selector),items in sorted(grouped.items()):
         if {x["partition_seed"] for x in items}!={42,43,44} or len(items)!=3:raise ValueError("incomplete paired seeds")
         row={"setting_id":setting,"selection_mode":mode,"threshold":tau,"k":k,"selector_id":selector,"n_seeds":3}
-        keys=[key for key in items[0] if key in MEASURES or key in AUDIT or "_delta_vs_" in key or key=="byte_savings_fraction_vs_full" or key.endswith(("_spearman","_kendall")) or key.startswith("counterfactual_mean_")]
+        keys=[key for key in items[0] if key in MEASURES or key in AUDIT or "_delta_vs_" in key or key in ("byte_savings_fraction_vs_full","net_bytes_saved_vs_full","model_bytes_avoided_vs_full","extra_statistics_control_bytes_vs_full") or key.endswith(("_spearman","_kendall")) or key.startswith("counterfactual_mean_")]
         for key in keys:
             vals=[v[key] for v in items if v.get(key) is not None]
             row[key+"_mean"]=statistics.mean(vals) if vals else None

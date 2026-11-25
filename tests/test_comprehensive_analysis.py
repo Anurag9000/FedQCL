@@ -24,5 +24,14 @@ class ComprehensiveAnalysis(unittest.TestCase):
         self.assertAlmostEqual(s["final_accuracy_delta_vs_random_sd"],0.)
         self.assertEqual(s["n_seeds"],3)
         self.assertEqual(s["byte_savings_fraction_vs_full_n"],0)
+        for row in rows:
+            full=row["selector_id"]=="B-FULL"
+            row.update(model_bytes=1000 if full else 400,statistics_bytes=0 if full else 30,control_bytes=10 if full else 20)
+            row["total_bytes"]=sum(row[key] for key in ("model_bytes","statistics_bytes","control_bytes"))
+        measured=seed_summary(rows,baseline_deltas(rows))
+        s=next(x for x in measured if x["selector_id"]=="A01-M1")
+        self.assertEqual(s["net_bytes_saved_vs_full_mean"],560)
+        self.assertEqual(s["model_bytes_avoided_vs_full_mean"],600)
+        self.assertEqual(s["extra_statistics_control_bytes_vs_full_mean"],40)
         rows[0]["ground_truth_hash"]="invalid"
         with self.assertRaises(ValueError):baseline_deltas(rows)

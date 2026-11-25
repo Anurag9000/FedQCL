@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
-# Core: exactly 24 training configurations (8 signals x M1/M2/M3).
+# Core: 24 configurations on one independently validated controlled dynamic stream.
+# Generation, ground truth, ten counterfactual checkpoints per run, analysis.
 # Historical combinatorial suite requires explicit opt-in.
 set -euo pipefail
 cd "$(dirname "$0")"

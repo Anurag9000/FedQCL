@@ -207,6 +207,7 @@ def generate(args):
         if any(getattr(args,k,None) for k in ("profiles","similarity","counts","window_profiles","client_counts","drift_pattern","workload_skew")):
             raise ValueError("controlled stream cannot mix legacy allocation overrides")
         manifest["controlled_stream"]=spec
+        manifest["regime"]="controlled_dynamic" if spec["mode"]=="balanced_dynamic" else "controlled_dirichlet"
     elif not np.isfinite(getattr(args,"dirichlet_alpha",10.)) or getattr(args,"dirichlet_alpha",10.)<=0:
         raise ValueError("Dirichlet alpha must be positive")
     if args.regime=="dirichlet":manifest["dirichlet_alpha"]=getattr(args,"dirichlet_alpha",10.)

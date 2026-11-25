@@ -26,3 +26,26 @@ class ControlledStream(unittest.TestCase):
         spec["alpha"]=.1;spec["temporal_persistence"]=1.
         target,_=target_profiles(spec,0,20,np.random.default_rng(2))
         self.assertTrue(np.allclose(target,target[0]))
+    def test_independent_reconstruction(self):
+        import tempfile
+        from types import SimpleNamespace
+        from unittest.mock import patch
+        from generate_streams import generate
+        from validate_streams import validate
+        from build_ground_truth import verify_bundle
+        rng=np.random.default_rng(11)
+        raw=SimpleNamespace(data=rng.integers(0,256,(50000,4,4,3),dtype=np.uint8),targets=np.repeat(np.arange(100),500))
+        test=SimpleNamespace(data=rng.integers(0,256,(10000,4,4,3),dtype=np.uint8),targets=np.repeat(np.arange(100),100))
+        with tempfile.TemporaryDirectory() as temp:
+            path=Path(temp)
+            args=SimpleNamespace(output=temp,dataset="cifar100",seed=42,clients=5,windows=10,validation_per_class=50,public_probe_per_class=4,
+                workload_skew=0.,client_counts=None,drift_pattern=None,window_profiles=None,conditional_domain="brightness",regime="clustered",
+                profiles=None,similarity_tolerance=None,similarity=None,counts=None,floor=1,controlled_stream=str(ROOT/"configs/sync/controlled_stream.json"))
+            with patch("generate_streams.load_sources",return_value=(raw,test,5,20,([.5]*3,[.25]*3))):generate(args)
+            receipt=validate(path);self.assertTrue(verify_bundle(path,receipt))
+            with np.load(path/"ground_truth"/"distributions.npz") as z:
+                self.assertEqual(z["spatiotemporal_joint"].shape,(250,250))
+                self.assertEqual(z["counts"].sum(),44600)
+                self.assertTrue(np.allclose(np.diag(z["spatiotemporal_label"]),1))
+            (path/"ground_truth"/"specification.json").write_text("{}")
+            self.assertFalse(verify_bundle(path,receipt))

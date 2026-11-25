@@ -18,6 +18,8 @@ CORE_TASK_IL_IDS=(
 
 CORE_SIGNAL_COUNT=24
 PUBLIC_PROBE_PER_CLASS=4
+CORE_REGIME='controlled_dynamic'
+CORE_RUNTIME_FLAGS=('--sync-windowed','--sync-controlled-stream','--sync-audit-references','--sync-counterfactual')
 def read_core_signal_entries():
     import json
     from pathlib import Path
@@ -38,6 +40,6 @@ def read_core_signal_entries():
         extractor,options=signals[x["signal"]]
         if x["flags"]!=["--sync-signal",extractor,*options,*mechanism_flags[x["method"]]]:
             raise ValueError("core signal or mechanism flags differ from fixed contract")
-        if x["policy"]!=methods[x["method"]] or (x["regime"],x["seed"],x["k"])!=("clustered",42,3):
+        if x["policy"]!=methods[x["method"]] or (x["regime"],x["seed"],x["k"])!=(CORE_REGIME,42,3):
             raise ValueError("core matrix changes a fixed condition")
     return rows

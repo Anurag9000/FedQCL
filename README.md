@@ -1,6 +1,8 @@
 # Active eight-signal research goal
 
-**24 training runs, 27 total jobs**. Eight independent high-priority statistical
+**24 training runs, 27 total jobs** on a shared controlled dynamic stream.
+Five regimes recur within every task; exact researcher-only ground truth and ten
+counterfactual checkpoints are required for completion. Eight independent high-priority statistical
 signals crossed with M1 (last successful sync), M2 (server aggregate), M3
 (direct peer selection). See [ledger](configs/sync/core_signal_ledger.jsonl)
 and [runbook](docs/EXPERIMENT_LEDGER.md).

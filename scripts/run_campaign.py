@@ -28,6 +28,11 @@ def valid(job):
                 checked=validate_task_il(root,manifest["plan"])
                 return (checked==receipt and checked["valid"]
                         and checked["plan_id"]==job["config"]["plan_id"])
+            if job["config"].get("controlled_stream"):
+                from build_ground_truth import verify_bundle
+                import hashlib
+                if hashlib.sha256(json.dumps({k:v for k,v in manifest.items() if k!="manifest_id"},sort_keys=True).encode()).hexdigest()!=manifest["manifest_id"]:return False
+                if not verify_bundle(root,receipt):return False
             return receipt["valid"] and receipt["manifest_id"]==manifest["manifest_id"]
         if job["kind"]=="analysis" and job["config"].get("campaign")=="task_il_joint":
             receipt=json.loads(Path(job["artifacts"][0]).read_text())
@@ -37,7 +42,7 @@ def valid(job):
             result=json.loads(Path(job["artifacts"][1]).read_text())
             expected={x["id"]:(x["signal"],x["method"]) for x in read_core_signal_entries()}
             rows=result["results"]
-            return result["training_runs"]==len(rows)==CORE_SIGNAL_COUNT and {x["experiment_id"]:(x["signal"],x["mechanism"]) for x in rows}==expected
+            return len({x.get("ground_truth_hash") for x in rows})==1 and all(x.get("ground_truth_hash") for x in rows) and result["training_runs"]==len(rows)==CORE_SIGNAL_COUNT and {x["experiment_id"]:(x["signal"],x["mechanism"]) for x in rows}==expected
         if job["kind"]!="train":return True
         out=Path(job["artifacts"][0]).parent
         summary=json.loads((out/"final_summary.json").read_text())
@@ -54,7 +59,7 @@ def valid(job):
         resolved_config=json.loads((out/"config.json").read_text())
         if resolved_config.get("backbone")!=BACKBONE:return False
         if job["config"].get("mechanism"):
-            from core_suite import read_core_signal_entries
+            from core_suite import read_core_signal_entries,CORE_RUNTIME_FLAGS
             entry=next((x for x in read_core_signal_entries() if x["id"]==job["config"].get("experiment_id")),None)
             if entry is None:return False
             flags=entry["flags"];expected={"sync_policy":entry["policy"],"sync_mode":"fixed","sync_k":3,"seed":42,
@@ -63,7 +68,19 @@ def valid(job):
             for pos,flag in enumerate(flags):
                 if flag=="--sync-native-space":expected["sync_native_space"]=True
                 elif flag.startswith("--"):expected[flag[2:].replace("-","_")]=flags[pos+1]
+            expected.update({flag[2:].replace("-","_"):True for flag in CORE_RUNTIME_FLAGS})
             if any(resolved_config.get(k)!=v for k,v in expected.items()):return False
+            from flcore.sync.ground_truth import verify
+            truth=out/"ground_truth";receipt=json.loads((truth/"validation_receipt.json").read_text());verify(truth,receipt)
+            manifest=json.loads((truth/"dataset_manifest.json").read_text())
+            audit=json.loads((out/"analysis"/"ground_truth_comparison.json").read_text())
+            source=Path(job["config"]["data_root"])
+            source_receipt=json.loads((source/"validation_receipt.json").read_text())
+            if receipt!=source_receipt or manifest["manifest_id"]!=receipt["manifest_id"] or manifest!=json.loads((source/"manifest.json").read_text()):return False
+            if not receipt["valid"] or resolved_config["dataset_manifest_id"]!=manifest["manifest_id"]:return False
+            if not (receipt["ground_truth_hash"]==summary["ground_truth_hash"]==resolved_config["ground_truth_hash"]==audit["ground_truth_hash"]==provenance["ground_truth_hash"]):return False
+            if len(audit["rounds"])!=job["config"]["rounds"] or set(x["round"] for x in audit["counterfactuals"])!=set(job["config"]["counterfactual_rounds"]):return False
+            if summary["counterfactual_checkpoints"]!=len(job["config"]["counterfactual_rounds"]):return False
             if any(len(x["selected"])!=(5 if i==0 else 3) or x["selected"]!=x["accepted"] or x["accepted"]!=x["downloaded"] for i,x in enumerate(rounds)):return False
             if entry["method"]=="M2" and not any(e["kind"]=="BANK_AGGREGATE" for e in events):return False
             if not any(report is not None for row in rounds[1:] for report in row["sampled_reports"].values()):return False

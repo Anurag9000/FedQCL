@@ -273,7 +273,7 @@ def run_research(args):
         commit=subprocess.check_output(["git","rev-parse","HEAD"],text=True).strip()
     except (OSError,subprocess.CalledProcessError):
         commit="unknown"
-    atomic_json(out/"provenance.json",{"commit":commit,"torch":torch.__version__,"signature":signature,"backbone":BACKBONE})
+    atomic_json(out/"provenance.json",{"commit":commit,"torch":torch.__version__,"signature":signature,"backbone":BACKBONE,**({"ground_truth_hash":config["ground_truth_hash"],"dataset_manifest_id":config["dataset_manifest_id"]} if a.sync_controlled_stream else {})})
     atomic_json(out/"status.json",{"status":"running"})
     a.dataset_manifest=integrity_manifest
     a._verified_shards={}

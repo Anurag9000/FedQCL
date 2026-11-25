@@ -1,4 +1,11 @@
-# Active campaign — eight high-priority signal families
+# Active controlled-stream campaign
+
+The eight signals x three mechanisms remain exactly 24 training jobs, plus
+one generation, one independent validation/ground-truth construction and one
+consolidated analysis job. The previous static clustered stream is superseded.
+See [CONTROLLED_STREAM_SPEC.md](CONTROLLED_STREAM_SPEC.md).
+
+# Previous static campaign — eight high-priority signal families
 
 Exactly **24 training trajectories + 3 supporting jobs = 27 jobs**. No independent
 baselines, extra seeds, Task-IL, parameter sweeps or other statistical signals in

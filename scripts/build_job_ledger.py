@@ -10,7 +10,7 @@ import itertools
 import subprocess
 sys.path.insert(0,str(Path(__file__).resolve().parents[1]/"system"))
 from flcore.sync.backbone import BACKBONE
-from core_suite import read_core_signal_entries,CORE_SIGNAL_COUNT,PUBLIC_PROBE_PER_CLASS
+from core_suite import read_core_signal_entries,CORE_SIGNAL_COUNT,PUBLIC_PROBE_PER_CLASS,CORE_REGIME,CORE_RUNTIME_FLAGS
 ROOT=Path(__file__).resolve().parents[1]
 
 def build(output,tiny_root=None,suite="core"):
@@ -19,6 +19,9 @@ def build(output,tiny_root=None,suite="core"):
     jobs=[]; seen=set()
     commit=subprocess.check_output(["git","rev-parse","HEAD"],cwd=ROOT,text=True).strip()
     generator_digest=hashlib.sha256((ROOT/"scripts/generate_streams.py").read_bytes()).hexdigest()[:12]
+    stream_spec=ROOT/"configs/sync/controlled_stream.json"
+    if suite=="core":
+        generator_digest=hashlib.sha256(b"".join((ROOT/name).read_bytes() for name in ("scripts/generate_streams.py","scripts/stream_design.py","scripts/build_ground_truth.py","scripts/validate_streams.py","configs/sync/controlled_stream.json"))).hexdigest()[:12]
     def add(stage,kind,config,command,deps=(),artifacts=()):
         key=hashlib.sha256(json.dumps([kind,config,commit],sort_keys=True).encode()).hexdigest()[:16]
         if key in seen:
@@ -35,12 +38,13 @@ def build(output,tiny_root=None,suite="core"):
         cfg={"regime":regime,"tag":tag,"partition_seed":seed,"clients":n,"dataset":dataset,"generation_flags":list(gen_flags)}
         command=[sys.executable,"scripts/generate_streams.py","--regime",regime,"--dataset",dataset,"--seed",str(seed),"--clients",str(n),"--output",str(folder),*gen_flags]
         if dataset!="tinyimagenet":command.append("--download")
+        if tag==CORE_REGIME:cfg.update(controlled_stream=True,stream_spec_sha256=hashlib.sha256(stream_spec.read_bytes()).hexdigest())
         d=add(stage,"generate",cfg,command,artifacts=[str(folder/"manifest.json")])
         receipt=folder/"validation_receipt.json"
-        v=add(stage,"validate",cfg,[sys.executable,"scripts/validate_streams.py",str(folder),"--receipt",str(receipt)],deps=[d],artifacts=[str(receipt)])
+        v=add(stage,"validate",cfg,[sys.executable,"scripts/validate_streams.py",str(folder),"--receipt",str(receipt)],deps=[d],artifacts=[str(receipt)]+([str(folder/"ground_truth"/name) for name in ("distributions.npz","specification.json")] if tag==CORE_REGIME else []))
         data[tag,seed,n]=(folder,v);dimensions[tag,seed,n]=(dataset,tasks,classes)
     if suite=="core":
-        register("clustered","clustered",42,gen_flags=("--public-probe-per-class",str(PUBLIC_PROBE_PER_CLASS)),stage="data")
+        register(CORE_REGIME,"clustered",42,gen_flags=("--public-probe-per-class",str(PUBLIC_PROBE_PER_CLASS),"--controlled-stream",str(stream_spec)),stage="data")
     else:
         for n in (5,10,20,50):
             regimes_for_n=("near","separated","changing","clustered","dirichlet","conditional","drift") if n==5 else ("near","clustered","separated")
@@ -62,7 +66,7 @@ def build(output,tiny_root=None,suite="core"):
         total_rounds=tasks*10
         cfg={"backbone":BACKBONE,"memory":500,"replay_batch":13,"policy":policy,"regime":regime,"partition_seed":seed,"training_seed":training_seed,"evaluation_split":split,"dataset":dataset,"tasks":tasks,"rounds":total_rounds,
              "k":n if policy=="full" else k,"flags":list(flags),"clients":n}
-        if entry is not None:cfg.update(signal=entry["signal"],mechanism=entry["method"],experiment_id=entry["id"],selection_timing="pretrain",public_probe_per_class=PUBLIC_PROBE_PER_CLASS)
+        if entry is not None:cfg.update(signal=entry["signal"],mechanism=entry["method"],experiment_id=entry["id"],selection_timing="pretrain",public_probe_per_class=PUBLIC_PROBE_PER_CLASS,controlled_stream=True,stream_spec_sha256=hashlib.sha256(stream_spec.read_bytes()).hexdigest(),data_root=str(folder),counterfactual_rounds=json.loads(stream_spec.read_text())["counterfactual_rounds"])
         key=hashlib.sha256(json.dumps([cfg,commit],sort_keys=True).encode()).hexdigest()[:16]
         out=ROOT/"research_results"/key
         command=[sys.executable,"main.py","-data",str(folder),"-m","resnet18","-algo","FedAvg",
@@ -70,16 +74,16 @@ def build(output,tiny_root=None,suite="core"):
                  "-memory_size","500","-memory_batch_size","13","-seed",str(training_seed),
                  "--sync-er","--sync-memory-profile","uniform","--sync-aggregation","complete","--sync-weighting","current","--sync-local-capture","--sync-policy",policy,"--sync-k",str(cfg["k"]),"--sync-output",str(out),"--sync-checkpoint","--sync-eval-split",split,*flags]
         return add(stage,"train",cfg,command,[dep,*extra_deps],[str(out/"final_summary.json"),str(out/"status.json"),
-            str(out/"communication_events.jsonl"),str(out/"server_metrics.jsonl"),str(out/"server.pt"),str(out/"provenance.json"),str(out/"rounds.jsonl")]+([str(out/"config.json"),str(out/"decisions.jsonl")] if entry is not None else [])+([str(out/"counterfactuals.jsonl")] if "--sync-counterfactual" in flags else []))
+            str(out/"communication_events.jsonl"),str(out/"server_metrics.jsonl"),str(out/"server.pt"),str(out/"provenance.json"),str(out/"rounds.jsonl")]+([str(out/"config.json"),str(out/"decisions.jsonl"),str(out/"report_arrivals.jsonl"),str(out/"analysis"/"ground_truth_comparison.json"),*[str(out/"ground_truth"/name) for name in ("dataset_manifest.json","validation_receipt.json","distributions.npz","specification.json")]] if entry is not None else [])+([str(out/"counterfactuals.jsonl")] if "--sync-counterfactual" in flags else []))
     if suite=="core":
         for entry in read_core_signal_entries():
-            run("signals",entry["policy"],entry["regime"],entry["seed"],entry["k"],flags=entry["flags"],entry=entry)
+            run("signals",entry["policy"],entry["regime"],entry["seed"],entry["k"],flags=[*entry["flags"],*CORE_RUNTIME_FLAGS],entry=entry)
         training=[j["id"] for j in jobs if j["kind"]=="train"]
         if len(training)!=CORE_SIGNAL_COUNT:raise ValueError("core must contain exactly 24 training jobs")
         results=ROOT/"research_results"/("signal-matrix-"+commit[:12])
         add("postprocess","analysis",{"scope":"signal_matrix"},
             [sys.executable,"scripts/analyze_signal_matrix.py","--ledger",str(output.resolve()),"--output",str(results)],
-            training,[str(results/"matrix.csv"),str(results/"matrix.json")])
+            training,[str(results/"matrix.csv"),str(results/"matrix.json"),str(results/"regime_metrics.csv"),str(results/"round_metrics.csv"),str(results/"signal_comparisons.csv"),str(results/"counterfactual_metrics.csv"),str(results/"ground_truth_heatmap.png"),str(results/"coverage_by_regime.png")])
     else:
         policies=("full","random","oldest","own","server","peer")
         regimes=("near","separated","changing")

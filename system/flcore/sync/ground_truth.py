@@ -226,6 +226,6 @@ def analyze_run(out,rounds,decisions,metrics,counterfactuals,events=()):
     summary=summarize(list(by_round.values()))
     analysis=Path(out)/"analysis";analysis.mkdir(exist_ok=True)
     write(analysis/"ground_truth_comparison.json",{"ground_truth_hash":receipt["ground_truth_hash"],"summary":summary,
-        "regimes":{k:summarize(v) for k,v in regimes.items()},"rounds":list(by_round.values()),"comparisons":comparisons,"observations":observations,counterfactuals":cf,"transitions":transitions,"geometry_comparisons":geometry_comparisons,"omission_comparisons":omission_comparisons})
+        "regimes":{k:summarize(v) for k,v in regimes.items()},"rounds":list(by_round.values()),"comparisons":comparisons,"observations":observations,"counterfactuals":cf,"transitions":transitions,"geometry_comparisons":geometry_comparisons,"omission_comparisons":omission_comparisons})
     return {"ground_truth_hash":receipt["ground_truth_hash"],"ground_truth_audit":summary,
             "counterfactual_checkpoints":len(cf),"counterfactual_seconds":sum(x["counterfactual_seconds"] for x in by_round.values())}

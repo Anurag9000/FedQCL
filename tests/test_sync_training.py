@@ -119,6 +119,22 @@ class Training(unittest.TestCase):
                 self.assertEqual(summary["backbone"],"fedavg_uniform_er_v1")
                 self.assertEqual(summary["total_bytes"],sum(json.loads(l)["serialized_bytes"] for l in (out/"communication_events.jsonl").read_text().splitlines()))
 
+            # Counterfactual instrumentation must not perturb the actual model,
+            # decisions, logical communication or independent validation metrics.
+            entry=read_core_signal_entries()[0]
+            plain=run("A01-isolation",entry["policy"],[*entry["flags"],"--sync-windowed","--sync-audit-references","--sync-eval-split","validation"])
+            audited=tmp/entry["id"]
+            for file in ("decisions.jsonl","communication_events.jsonl","server_metrics.jsonl"):
+                self.assertEqual((plain/file).read_text(),(audited/file).read_text(),file)
+            left=torch.load(plain/"server.pt",map_location="cpu",weights_only=True)
+            right=torch.load(audited/"server.pt",map_location="cpu",weights_only=True)
+            self.assertTrue(all(torch.equal(left[k],right[k]) for k in left))
+            sys.path.insert(0,str(root/"system"))
+            state=torch.load(audited/"checkpoint.pt",map_location="cpu",weights_only=False)
+            self.assertIsNone(state["controller"].args.dataset_manifest)
+            self.assertEqual((audited/"checkpoint.pt").stat().st_mode&0o777,0o600)
+            self.assertEqual((audited/"ground_truth").stat().st_mode&0o777,0o700)
+
     def test_shared_backbone_math(self):
         import torch
         import random

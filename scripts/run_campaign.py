@@ -166,7 +166,9 @@ def estimate(jobs):
     # Architecture-scale approximations, not measured memory or wall time.
     draws=sum(j["config"].get("selected_draws",j["config"]["clients"]+(j["config"]["rounds"]-1)*j["config"]["k"]) for j in training)
     initial=sum(j["config"]["clients"] for j in training if j["config"].get("campaign") in ("task_il_48","task_il_joint"))
-    return {"jobs":len(jobs),"training_jobs":len(training),"nominal_client_draws":draws,
+    cf_rounds=sum(len(j["config"].get("counterfactual_rounds",[])) for j in training)
+    cf_candidates=sum(len(j["config"].get("counterfactual_rounds",[]))*j["config"]["clients"] for j in training)
+    return {"jobs":len(jobs),"training_jobs":len(training),"nominal_client_draws":draws,"counterfactual_checkpoints":cf_rounds,"counterfactual_candidate_local_trainings":cf_candidates,
             "nominal_model_transfer_bytes_at_45MB":45000000*(2*draws+initial),
             "initial_task_il_downloads":initial,
             "task_il_local_training_rounds":sum(j["config"].get("local_training_rounds",0) for j in training),

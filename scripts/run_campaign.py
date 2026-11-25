@@ -13,9 +13,25 @@ def sha_file(path):
 def artifact_digests(job):
     return {p:sha_file(p) for p in job["artifacts"]}
 
+def verify_controlled_source(root,config):
+    """Validate the entire immutable source, including shard bytes, on reuse."""
+    root=Path(root)
+    manifest=json.loads((root/"manifest.json").read_text())
+    payload={k:v for k,v in manifest.items() if k!="manifest_id"}
+    if hashlib.sha256(json.dumps(payload,sort_keys=True).encode()).hexdigest()!=manifest["manifest_id"]:return False
+    if manifest.get("controlled_stream_sha256")!=config["stream_spec_sha256"]:return False
+    if (manifest.get("dataset"),manifest.get("seed"),manifest.get("clients"))!=(config["dataset"],config["partition_seed"],config["clients"]):return False
+    spec=manifest["controlled_stream"]
+    expected={f"task_{t}/{split}/{i}.npz" for t in range(spec["tasks"]) for split in ("train","validation","test") for i in range(spec["clients"])}
+    if manifest.get("public_probe_per_class",0):expected.update(f"task_{t}/public_probe/0.npz" for t in range(spec["tasks"]))
+    if set(manifest["shards"])!=expected:return False
+    return all(sha_file(root/name)==h for name,h in manifest["shards"].items())
+
 def valid(job):
     if not all(Path(x).is_file() for x in job["artifacts"]):return False
     try:
+        if job["kind"]=="generate" and job["config"].get("controlled_stream"):
+            return verify_controlled_source(Path(job["artifacts"][0]).parent,job["config"])
         if job["kind"]=="validate":
             receipt=json.loads(Path(job["artifacts"][0]).read_text())
             root=Path(job["artifacts"][0]).parent
@@ -32,7 +48,7 @@ def valid(job):
                 from build_ground_truth import verify_bundle
                 import hashlib
                 if hashlib.sha256(json.dumps({k:v for k,v in manifest.items() if k!="manifest_id"},sort_keys=True).encode()).hexdigest()!=manifest["manifest_id"]:return False
-                if manifest["controlled_stream_sha256"]!=job["config"]["stream_spec_sha256"] or not verify_bundle(root,receipt):return False
+                if not verify_controlled_source(root,job["config"]) or not verify_bundle(root,receipt):return False
             return receipt["valid"] and receipt["manifest_id"]==manifest["manifest_id"]
         if job["kind"]=="analysis" and job["config"].get("campaign")=="task_il_joint":
             receipt=json.loads(Path(job["artifacts"][0]).read_text())

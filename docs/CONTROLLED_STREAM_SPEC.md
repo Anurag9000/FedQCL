@@ -62,3 +62,20 @@ report differences and selection delay are recorded separately from the actual
 scheduler score. Delays are censored at the next shift or task boundary.
 Full candidate update comparisons use current-round counterfactuals and
 retrospective report pairs, not privileged admission information.
+
+## Production preflight and isolated profiling
+
+Run `bash run_all_sync.sh --stage data --resume --device cpu`, then
+`python scripts/preflight_sync.py --output preflight_summary.json` to check
+all 60,000 source pixel/label identities against the official torchvision
+CIFAR-100 source and report realized regime statistics. The CI preflight
+runs the same data stage without launching training. Cached generation and
+validation dependencies recheck every shard fingerprint.
+
+On a production GPU, use `python scripts/profile_sync.py --experiment A08-M3 --stop-after-round 13 --gpu-id 0 --output sync_profiles/a08-m3`.
+Repeat for different signals/mechanisms or use `--experiment all` serially.
+Profiles use the exact production configuration and a separate scratch output;
+no production result is marked complete. They report per-round CUDA allocator
+peak allocated/reserved bytes, process high-water RSS and elapsed time. Prefix
+peaks are not full-trajectory or device-wide limits; account for CUDA context,
+other processes, startup/evaluation peaks and safety margin when admitting jobs.

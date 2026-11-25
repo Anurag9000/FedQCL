@@ -31,6 +31,23 @@ jobs:
       - run: python -m unittest discover -s tests -p test_core_ledgers.py -v
       - run: bash run_all_task_il_joint.sh --dry-run
       - run: bash run_all_task_il_joint.sh --estimate-only
+  real-data-preflight:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: pip install torch torchvision --index-url https://download.pytorch.org/whl/cpu
+      - run: pip install numpy scipy
+      - run: python scripts/build_job_ledger.py
+      - run: python scripts/run_campaign.py --stage data --device cpu --resume
+      - run: python scripts/preflight_sync.py --output preflight_summary.json
+      - uses: actions/upload-artifact@v4
+        with:
+          name: cifar100-preflight-summary
+          path: preflight_summary.json
   training:
     runs-on: ubuntu-latest
     timeout-minutes: 20

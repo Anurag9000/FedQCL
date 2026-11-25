@@ -39,6 +39,7 @@ def add_arguments(parser):
     p.add_argument("--sync-resume",action="store_true")
     p.add_argument("--sync-stop-after-round",type=int,help="Pause at committed round for restart verification")
     p.add_argument("--sync-checkpoint",action="store_true")
+    p.add_argument("--sync-profile",action="store_true",help="Diagnostic per-round CUDA allocator peaks and process high-water RSS")
     p.add_argument("--sync-counterfactual",action="store_true")
     p.add_argument("--sync-er",action="store_true",default=True,help="Mandatory vanilla replay in research runs")
     p.add_argument("--sync-memory-profile",choices=["uniform"],default="uniform")

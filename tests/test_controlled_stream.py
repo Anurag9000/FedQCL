@@ -43,6 +43,15 @@ class ControlledStream(unittest.TestCase):
                 profiles=None,similarity_tolerance=None,similarity=None,counts=None,floor=1,controlled_stream=str(ROOT/"configs/sync/controlled_stream.json"))
             with patch("generate_streams.load_sources",return_value=(raw,test,5,20,([.5]*3,[.25]*3))):generate(args)
             receipt=validate(path);self.assertTrue(verify_bundle(path,receipt))
+            from run_campaign import valid
+            manifest=json.loads((path/"manifest.json").read_text())
+            job={"kind":"generate","artifacts":[str(path/"manifest.json")],"config":{"controlled_stream":True,"stream_spec_sha256":manifest["controlled_stream_sha256"],"dataset":"cifar100","partition_seed":42,"clients":5}}
+            self.assertTrue(valid(job))
+            shard=path/"task_0/train/0.npz";original=shard.read_bytes()
+            shard.write_bytes(original+b"tampered")
+            self.assertFalse(valid(job))
+            shard.write_bytes(original)
+            self.assertTrue(valid(job))
             with np.load(path/"ground_truth"/"distributions.npz") as z:
                 self.assertEqual(z["spatiotemporal_joint"].shape,(250,250))
                 self.assertEqual(z["counts"].sum(),44600)

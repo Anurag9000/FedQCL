@@ -353,6 +353,9 @@ def run_research(args):
         for r in range(start,a.global_rounds+1):
             t=r//rpt
             tick=time.monotonic()
+            if getattr(a,"sync_profile",False) and device.type=="cuda":
+                torch.cuda.synchronize(device)
+                torch.cuda.reset_peak_memory_stats(device)
             available=tuple(c.id for c in clients if not fails(r,"unavailable",c.id))
             if r==0 and len(available)!=a.num_clients:raise RuntimeError("bootstrap availability incomplete")
             datasets={i:clients[i].reveal(t,r) for i in available}
@@ -542,6 +545,18 @@ def run_research(args):
                 write_jsonl(out/'counterfactuals.jsonl',counterfactual_rows)
             if a.sync_checkpoint:
                 save_checkpoint(ckpt,r,model,clients,ctl,metrics,rounds,signature,counterfactual_rows,extractor.anchor.state_dict() if a.sync_signal in ("tier_a_features","tier_a_prototypes") else None)
+            if getattr(a,"sync_profile",False):
+                import resource
+                profile={"round":r,"task":t,"seconds":time.monotonic()-tick,
+                         "process_peak_rss_bytes":resource.getrusage(resource.RUSAGE_SELF).ru_maxrss*1024,
+                         "counterfactual_seconds":counterfactual_seconds}
+                if device.type=="cuda":
+                    torch.cuda.synchronize(device)
+                    free,total=torch.cuda.mem_get_info(device)
+                    profile.update(cuda_peak_allocated_bytes=torch.cuda.max_memory_allocated(device),
+                                   cuda_peak_reserved_bytes=torch.cuda.max_memory_reserved(device),
+                                   cuda_free_bytes_at_end=free,cuda_total_bytes=total)
+                with (out/"resource_profile.jsonl").open("a") as handle:handle.write(json.dumps(profile)+"\n")
             if a.sync_stop_after_round is not None and r==a.sync_stop_after_round and r<a.global_rounds:
                 atomic_json(out/"status.json",{"status":"paused","last_committed_round":r})
                 return None

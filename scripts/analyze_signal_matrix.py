@@ -46,5 +46,5 @@ def main():
     with (a.output/"matrix.csv").open("w",newline="") as out:
         writer=csv.DictWriter(out,fieldnames=sorted(set().union(*(r.keys() for r in rows))))
         writer.writeheader();writer.writerows(rows)
-    (a.output/"matrix.json").write_text(json.dumps({"training_runs":CORE_SIGNAL_COUNT,"design":single-seed balanced dynamic stream; no independent full/random trajectory; one-round counterfactuals","results":rows},indent=2,allow_nan=False))
+    (a.output/"matrix.json").write_text(json.dumps({"training_runs":CORE_SIGNAL_COUNT,"design":"single-seed balanced dynamic stream; no independent full/random trajectory; one-round counterfactuals","results":rows},indent=2,allow_nan=False))
 if __name__=="__main__":main()

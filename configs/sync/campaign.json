@@ -162,5 +162,11 @@
     "oldest"
   ],
   "full_baseline": true,
-  "notes": "All 24 selectors and matched baselines at every non-full budget; full once per setting/seed; fixed FedAvg + ER."
+  "notes": "All 24 selectors and matched baselines at every non-full budget; full once per setting/seed; fixed FedAvg + ER. Also sweep threshold-driven admission at four prespecified distances, without a fixed participant cap.",
+  "thresholds": [
+    0.05,
+    0.1,
+    0.2,
+    0.35
+  ]
 }

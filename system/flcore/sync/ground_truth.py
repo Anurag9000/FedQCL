@@ -93,7 +93,7 @@ def analyze_run(out,rounds,decisions,metrics,counterfactuals,events=()):
         cond=1-conditional[r]
         # Undefined conditional comparisons are excluded, never fabricated.
         cond_cov=None
-        if np.isfinite(cond).all():
+        if selected and np.isfinite(cond).all():
             actual=coverage_error(cond,selected);best=min(coverage_error(cond,list(s)) for s in combinations(range(n),len(selected)))
             cond_cov={"coverage":actual,"coverage_oracle":best,"coverage_regret":max(0.,actual-best)}
         item={"round":r,"task":task,"regime":phase["regime"],"selected":selected,
@@ -198,9 +198,9 @@ def analyze_run(out,rounds,decisions,metrics,counterfactuals,events=()):
         shifts=[x for x in transitions if x["round"] in rr];known=[x for x in shifts if x["detected_shift"] is not None]
         tp=sum(x["true_joint_shift"] and x["detected_shift"] for x in known);fp=sum(not x["true_joint_shift"] and x["detected_shift"] for x in known);fn=sum(x["true_joint_shift"] and not x["detected_shift"] for x in known)
         geom=[x for x in geometry_comparisons if x["round"] in rr];omit=[x for x in omission_comparisons if x["round"] in rr and x["novelty_score"] is not None]
-        return {"rounds":len(items),"mean_label_coverage_regret":mean([x["label"]["coverage_regret"] for x in items]),
-                "mean_joint_coverage_regret":mean([x["joint"]["coverage_regret"] for x in items]),
-                "mean_joint_mass_regret":mean([x["joint"]["mass_regret"] for x in items]),
+        return {"rounds":len(items),"empty_rounds":sum(not x["selected"] for x in items),"mean_label_coverage_regret":mean([x["label"]["coverage_regret"] for x in items if x["label"] is not None]),
+                "mean_joint_coverage_regret":mean([x["joint"]["coverage_regret"] for x in items if x["joint"] is not None]),
+                "mean_joint_mass_regret":mean([x["joint"]["mass_regret"] for x in items if x["joint"] is not None]),
                 "mean_conditional_coverage_regret":mean([x["conditional"]["coverage_regret"] for x in items if x["conditional"] is not None]),
                 "mean_replay_coverage_regret":mean([x["replay_label"]["coverage_regret"] for x in items if x["replay_label"] is not None]),
                 "communication_bytes":sum(x["bytes"] for x in items),"optimizer_steps":sum(x["optimizer_steps"] for x in items),

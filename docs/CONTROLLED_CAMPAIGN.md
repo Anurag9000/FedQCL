@@ -83,3 +83,29 @@ The integer allocator first minimizes label allocation error subject to exact
 row and class margins, then realizes within-class domain allocations while
 preserving each allocated label count and the domain inventory. This is an
 explicit lexicographic allocation objective, not an unconstrained joint fit.
+
+## Statistical threshold and logical bandwidth extension
+
+Four prespecified thresholds .05, .10, .20, .35 are crossed with all 24 selectors,
+24 settings and three paired seeds. Threshold selection has no fixed cap; k=5
+is only a CLI placeholder. Due and unknown clients are admitted, M3 elects
+representatives until all valid peers are covered. Empty rounds preserve the
+server model; distribution coverage is undefined when no client participates.
+Counterfactuals enumerate subsets of the actual selected size, plus full.
+This adds 6,912 trajectories: 14,472 training and 14,617 total jobs. The
+fixed-count comparisons still use matched random/oldest/full. Threshold runs
+are compared with full and displayed on realized byte/accuracy curves; there
+is no claim of exact matched-count/byte random control for each threshold run.
+
+All primary runs charge initial dense model distribution and ACKs, common
+control, admission/election, statistics, model upload/download, download ACKs,
+and optional refresh. Each binary statistic is charged according to its
+actual encoded length. Model body size is exact dense native state tensor
+bytes under an agreed schema, not physical network or torch.save file bytes.
+Peer traffic counts once globally and at both endpoints. Per-event, round
+(including -1 initialization), client-round and whole-run accounting is
+reconciled by mandatory completion checks. No raw samples/replay items are
+transmitted; local optimization and offline counterfactuals have no FL traffic.
+Physical link throughput, packet overhead and hard-byte-cap variants are not
+measured by this audit. Use --selection-mode threshold --threshold 0.2 to
+filter threshold trajectories; --budget 3 selects only fixed-budget runs.

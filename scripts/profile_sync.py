@@ -9,6 +9,7 @@ def main():
     p.add_argument("--ledger",type=Path,default=ROOT/"experiments/job_ledger.jsonl")
     p.add_argument("--experiment",required=True,action="append",help="Full experiment ID or selector ID, or all; serial isolated prefixes")
     p.add_argument("--setting",action="append");p.add_argument("--seed",type=int,action="append");p.add_argument("--budget",type=int,action="append")
+    p.add_argument("--selection-mode",choices=["fixed","threshold"],action="append");p.add_argument("--threshold",type=float,action="append")
     p.add_argument("--stop-after-round",type=int,default=13,help="Zero-based round; must be before final round")
     p.add_argument("--device",choices=["cpu","cuda"],default="cuda")
     p.add_argument("--gpu-id",default="0")
@@ -18,7 +19,7 @@ def main():
     commit=subprocess.check_output(["git","rev-parse","HEAD"],cwd=ROOT,text=True).strip()
     if any(j["source_commit"]!=commit for j in jobs):raise ValueError("stale ledger")
     training=[j for j in jobs if j["kind"]=="train"]
-    chosen=[j for j in training if ("all" in a.experiment or j["config"].get("experiment_id") in a.experiment or j["config"].get("selector_id") in a.experiment) and (not a.setting or j["config"].get("setting_id") in a.setting) and (not a.seed or j["config"].get("partition_seed") in a.seed) and (not a.budget or j["config"].get("k") in a.budget)]
+    chosen=[j for j in training if ("all" in a.experiment or j["config"].get("experiment_id") in a.experiment or j["config"].get("selector_id") in a.experiment) and (not a.setting or j["config"].get("setting_id") in a.setting) and (not a.seed or j["config"].get("partition_seed") in a.seed) and (not a.budget or (j["config"].get("selection_mode","fixed")=="fixed" and j["config"].get("k") in a.budget)) and (not a.selection_mode or j["config"].get("selection_mode","fixed") in a.selection_mode) and (not a.threshold or (j["config"].get("selection_mode")=="threshold" and j["config"].get("threshold") in a.threshold))]
     if not chosen:raise ValueError("unknown experiment")
     from run_campaign import select_jobs
     dependencies={dep for j in chosen for dep in j["dependencies"]}

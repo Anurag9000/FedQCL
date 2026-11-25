@@ -1,6 +1,6 @@
 # Active comprehensive synchronization campaign
 
-The default ledger now covers 24 independent distribution settings × three paired seeds × all nontrivial participation budgets, with full, random and oldest-first references: **7,560 training trajectories, 7,705 jobs**. See [the comprehensive campaign specification](docs/CONTROLLED_CAMPAIGN.md). The former 24-run design below is a historical pilot (`SYNC_SUITE=pilot`).
+The default ledger now covers 24 independent distribution settings × three paired seeds × all nontrivial participation budgets, with full, random and oldest-first references: **14,472 training trajectories, 14,617 jobs** (including four threshold-driven admission levels). See [the comprehensive campaign specification](docs/CONTROLLED_CAMPAIGN.md). The former 24-run design below is a historical pilot (`SYNC_SUITE=pilot`).
 
 # Historical pilot: eight-signal research goal
 

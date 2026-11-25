@@ -67,7 +67,7 @@ def analyze(server,clients,datasets,task,r,ctl,actual,loaders,complete,device,cl
             c.train_round(r,task,datasets[i])
             candidates.append(c)
         ids=tuple(range(len(clients)))
-        k=min(ctl.args.sync_k,len(ids)) if getattr(ctl.args,"sync_controlled_stream",False) else min(3,len(ids))
+        k=len(actual) if getattr(ctl.args,"sync_controlled_stream",False) and ctl.args.sync_mode=="threshold" else min(ctl.args.sync_k,len(ids)) if getattr(ctl.args,"sync_controlled_stream",False) else min(3,len(ids))
         subsets=set(combinations(ids,k))
         if getattr(ctl.args,"sync_all_subsets",False):
             if len(ids)>10:raise ValueError("exhaustive counterfactual limit is 10 clients")

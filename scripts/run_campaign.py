@@ -90,7 +90,7 @@ def valid(job):
                 entry={"policy":cfg["policy"],"flags":[],"method":"baseline","signal":"none"}
             if entry is None:return False
             if (cfg["signal"],cfg["mechanism"],cfg["policy"])!=(entry["signal"],entry["method"],entry["policy"]):return False
-            flags=entry["flags"];expected={"sync_policy":entry["policy"],"sync_mode":"fixed","sync_k":cfg["k"],"seed":cfg["training_seed"],
+            flags=entry["flags"];expected={"sync_policy":entry["policy"],"sync_mode":cfg.get("selection_mode","fixed"),"sync_threshold":cfg.get("threshold",.1),"sync_k":cfg["k"],"seed":cfg["training_seed"],
                 "num_clients":5,"tasks":5,"num_classes":20,"global_rounds":49,"local_epochs":5,"batch_size":13,
                 "memory_size":500,"memory_batch_size":13,"local_learning_rate":.005,"sync_eval_split":"validation"}
             for pos,flag in enumerate(flags):
@@ -112,7 +112,17 @@ def valid(job):
             if len(audit["rounds"])!=job["config"]["rounds"] or set(x["round"] for x in audit["counterfactuals"])!=set(job["config"]["counterfactual_rounds"]):return False
             if summary["counterfactual_checkpoints"]!=len(job["config"]["counterfactual_rounds"]):return False
             if cfg.get("setting_id") and (manifest["controlled_stream"].get("setting_id")!=cfg["setting_id"] or manifest["seed"]!=cfg["partition_seed"]):return False
-            if any(len(x["selected"])!=(5 if i==0 else cfg["k"]) or x["selected"]!=x["accepted"] or x["accepted"]!=x["downloaded"] for i,x in enumerate(rounds)):return False
+            if any((len(x["selected"])!=(5 if i==0 else cfg["k"]) if cfg.get("selection_mode","fixed")=="fixed" else (i==0 and len(x["selected"])!=5)) or x["selected"]!=x["accepted"] or x["accepted"]!=x["downloaded"] for i,x in enumerate(rounds)):return False
+            if cfg.get("selection_mode")=="threshold":
+                decisions=[json.loads(l) for l in (out/"decisions.jsonl").read_text().splitlines()]
+                if len(decisions)!=len(rounds):return False
+                for row,d in zip(rounds,decisions):
+                    if d["selected"]!=row["selected"] or not set(d["due"])<=set(d["selected"]):return False
+                    if row["round"]==0:continue
+                    if entry["method"] in ("M1","M2"):
+                        expected_roster={int(i) for i,score in d["scores"].items() if score is None or score>d["threshold"]}|set(d["due"])
+                        if set(row["selected"])!=expected_roster:return False
+                    elif any(not v["covered"] for v in d["coverage"].values()):return False
             if entry["method"]=="M2" and not any(e["kind"]=="BANK_AGGREGATE" for e in events):return False
             if baseline:
                 if any(report is not None for row in rounds for report in row["sampled_reports"].values()):return False
@@ -185,11 +195,11 @@ def dependency_order(jobs):
         seen.add(j["id"])
     return {j["id"]:j for j in jobs}
 
-def select_jobs(jobs,stages,job_id,settings=None,seeds=None,budgets=None,selectors=None):
+def select_jobs(jobs,stages,job_id,settings=None,seeds=None,budgets=None,selectors=None,modes=None,thresholds=None):
     by_id=dependency_order(jobs)
     wanted={j["id"] for j in jobs if (not stages or j["stage"] in stages) and (not job_id or j["id"]==job_id)}
-    if settings or seeds or budgets or selectors:
-        wanted={key for key in wanted if by_id[key]["kind"]!="analysis" and (not settings or by_id[key]["config"].get("setting_id") in settings) and (not seeds or by_id[key]["config"].get("partition_seed") in seeds) and (not budgets or by_id[key]["config"].get("k") in budgets) and (not selectors or by_id[key]["config"].get("selector_id") in selectors)}
+    if settings or seeds or budgets or selectors or modes or thresholds:
+        wanted={key for key in wanted if by_id[key]["kind"]!="analysis" and (not settings or by_id[key]["config"].get("setting_id") in settings) and (not seeds or by_id[key]["config"].get("partition_seed") in seeds) and (not budgets or (by_id[key]["config"].get("selection_mode","fixed")=="fixed" and by_id[key]["config"].get("k") in budgets)) and (not selectors or by_id[key]["config"].get("selector_id") in selectors) and (not modes or by_id[key]["config"].get("selection_mode","fixed") in modes) and (not thresholds or (by_id[key]["config"].get("selection_mode")=="threshold" and by_id[key]["config"].get("threshold") in thresholds))}
     if not wanted:raise ValueError("no matching jobs")
     stack=list(wanted)
     while stack:
@@ -200,14 +210,18 @@ def select_jobs(jobs,stages,job_id,settings=None,seeds=None,budgets=None,selecto
 def estimate(jobs):
     training=[j for j in jobs if j["kind"]=="train"]
     # Architecture-scale approximations, not measured memory or wall time.
-    draws=sum(j["config"].get("selected_draws",j["config"]["clients"]+(j["config"]["rounds"]-1)*j["config"]["k"]) for j in training)
-    initial=sum(j["config"]["clients"] for j in training if j["config"].get("campaign") in ("task_il_48","task_il_joint"))
+    adaptive=[j for j in training if j["config"].get("selection_mode")=="threshold"]
+    fixed=[j for j in training if j["config"].get("selection_mode")!="threshold"]
+    draws=sum(j["config"].get("selected_draws",j["config"]["clients"]+(j["config"]["rounds"]-1)*j["config"]["k"]) for j in fixed)
+    adaptive_max=sum(j["config"]["clients"]*j["config"]["rounds"] for j in adaptive)
+    initial=sum(j["config"]["clients"] for j in training if j["config"].get("campaign") in ("task_il_48","task_il_joint") or "--sync-bandwidth-audit" in j["command"])
     cf_rounds=sum(len(j["config"].get("counterfactual_rounds",[])) for j in training)
     cf_candidates=sum(len(j["config"].get("counterfactual_rounds",[]))*j["config"]["clients"] for j in training)
     from math import comb
-    cf_aggregates=sum(len(j["config"].get("counterfactual_rounds",[]))*(comb(j["config"]["clients"],j["config"]["k"])+int(j["config"]["k"]!=j["config"]["clients"])) for j in training)
-    return {"jobs":len(jobs),"training_jobs":len(training),"nominal_client_draws":draws,"counterfactual_checkpoints":cf_rounds,"counterfactual_candidate_local_trainings":cf_candidates,"counterfactual_aggregate_evaluations":cf_aggregates,
-            "nominal_model_transfer_bytes_at_45MB":45000000*(2*draws+initial),
+    cf_aggregates=sum(len(j["config"].get("counterfactual_rounds",[]))*(comb(j["config"]["clients"],j["config"]["k"])+int(j["config"]["k"]!=j["config"]["clients"])) for j in fixed)
+    cf_max=cf_aggregates+sum(len(j["config"]["counterfactual_rounds"])*(comb(j["config"]["clients"],j["config"]["clients"]//2)+1) for j in adaptive)
+    return {"jobs":len(jobs),"training_jobs":len(training),"threshold_jobs":len(adaptive),"nominal_client_draws":draws,"threshold_draw_upper_bound":adaptive_max,"counterfactual_aggregate_upper_bound":cf_max,"counterfactual_checkpoints":cf_rounds,"counterfactual_candidate_local_trainings":cf_candidates,"counterfactual_aggregate_evaluations":cf_aggregates,
+            "nominal_model_transfer_bytes_at_45MB":45000000*(2*(draws+adaptive_max)+initial),
             "initial_task_il_downloads":initial,
             "task_il_local_training_rounds":sum(j["config"].get("local_training_rounds",0) for j in training),
             "note":"Adaptive, threshold, failures, duplicate draws and counterfactual continuation alter actual costs. No runtime or peak memory guarantee."}
@@ -223,6 +237,7 @@ def main():
     p.add_argument("--ledger",type=Path,default=ROOT/"experiments"/"job_ledger.jsonl")
     p.add_argument("--stage",action="append");p.add_argument("--job-id")
     p.add_argument("--setting",action="append");p.add_argument("--seed",type=int,action="append");p.add_argument("--budget",type=int,action="append");p.add_argument("--selector",action="append")
+    p.add_argument("--selection-mode",choices=["fixed","threshold"],action="append");p.add_argument("--threshold",type=float,action="append")
     p.add_argument("--dry-run",action="store_true");p.add_argument("--estimate-only",action="store_true")
     p.add_argument("--resume",action="store_true");p.add_argument("--retry-failed",action="store_true")
     p.add_argument("--device",choices=["cpu","cuda"],default="cuda");p.add_argument("--gpu-id",default="0")
@@ -234,7 +249,7 @@ def main():
     jobs=[json.loads(x) for x in a.ledger.read_text().splitlines()]
     commit=subprocess.check_output(["git","rev-parse","HEAD"],cwd=ROOT,text=True).strip()
     if any(j.get("source_commit")!=commit for j in jobs):raise ValueError("ledger source commit differs; rebuild ledger")
-    jobs=select_jobs(jobs,a.stage,a.job_id,a.setting,a.seed,a.budget,a.selector)
+    jobs=select_jobs(jobs,a.stage,a.job_id,a.setting,a.seed,a.budget,a.selector,a.selection_mode,a.threshold)
     if a.estimate_only:print(json.dumps(estimate(jobs),indent=2));return 0
     if a.dry_run:
         for job in jobs:

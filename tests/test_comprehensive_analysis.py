@@ -8,7 +8,7 @@ from analyze_controlled_campaign import baseline_deltas,seed_summary
 class ComprehensiveAnalysis(unittest.TestCase):
     def test_exact_matrix_and_paired_aggregation(self):
         ids=expected_ids()
-        self.assertEqual(len(ids),7560)
+        self.assertEqual(len(ids),14472)
         rows=[]
         for seed in (42,43,44):
             for k,selector in ((3,"A01-M1"),(3,"B-RANDOM"),(3,"B-OLDEST"),(5,"B-FULL")):

@@ -80,7 +80,11 @@ class Training(unittest.TestCase):
             cases.extend((entry["id"],entry["policy"],[*entry["flags"],"--sync-windowed","--sync-audit-references","--sync-counterfactual","--sync-controlled-stream","--sync-eval-split","validation"]+ (["--sync-verify-branches"] if entry["id"]=="A01-M1" else [])) for entry in read_core_signal_entries())
             for policy in ("full","random","oldest"):
                 cases.append(("B-"+policy,policy,["--sync-windowed","--sync-audit-references","--sync-counterfactual","--sync-controlled-stream","--sync-eval-split","validation","--sync-k",str(2 if policy=="full" else 1)]))
+            for entry in read_core_signal_entries():
+                if entry["signal"]=="current_historical_js":
+                    cases.append((entry["id"]+"-threshold",entry["policy"],[*entry["flags"],"--sync-windowed","--sync-audit-references","--sync-counterfactual","--sync-controlled-stream","--sync-eval-split","validation","--sync-mode","threshold","--sync-threshold","1.0"]))
             for name,policy,extra in cases:
+                if name.startswith(("A0","B-")):extra=[*extra,"--sync-charge-control","--sync-bandwidth-audit"]
                 out=run(name,policy,extra)
                 if name=="aggregate_cka":
                     self.assertTrue(any(json.loads(l)["kind"]=="BANK_AGGREGATE" for l in (out/"communication_events.jsonl").read_text().splitlines()))
@@ -108,6 +112,13 @@ class Training(unittest.TestCase):
                         if name.startswith("A06"):
                             self.assertLessEqual(audit["summary"]["max_exact_js_error"] or 0.,1e-8)
                         self.assertEqual(len(audit["transitions"]),4)
+                if name.startswith(("A0","B-")):
+                    sys.path.insert(0,str(root/"system"))
+                    from flcore.sync.bandwidth import verify_artifacts
+                    events=[json.loads(l) for l in (out/"communication_events.jsonl").read_text().splitlines()]
+                    verified=verify_artifacts(out,events,rounds,2,json.loads((out/"final_summary.json").read_text()))
+                    self.assertEqual(verified["initial_downloads"],2)
+                    if name=="A06-M1-threshold":self.assertTrue(any(not row["selected"] for row in rounds))
                 if name.startswith("B-"):
                     self.assertTrue(all(v is None for row in rounds for v in row["sampled_reports"].values()))
                     self.assertEqual(len(json.loads((out/"analysis"/"ground_truth_comparison.json").read_text())["counterfactuals"]),2)
@@ -130,7 +141,7 @@ class Training(unittest.TestCase):
             entry=read_core_signal_entries()[0]
             plain=run("A01-isolation",entry["policy"],[*entry["flags"],"--sync-windowed","--sync-audit-references","--sync-eval-split","validation"])
             audited=tmp/entry["id"]
-            for file in ("decisions.jsonl","communication_events.jsonl","server_metrics.jsonl"):
+            for file in ("decisions.jsonl","server_metrics.jsonl"):
                 self.assertEqual((plain/file).read_text(),(audited/file).read_text(),file)
             left=torch.load(plain/"server.pt",map_location="cpu",weights_only=True)
             right=torch.load(audited/"server.pt",map_location="cpu",weights_only=True)

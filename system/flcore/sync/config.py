@@ -108,6 +108,9 @@ def validate(a):
         raise ValueError("invalid byte cap")
     if getattr(a,"sync_bandwidth_audit",False) and (not a.sync_charge_control or a.sync_byte_cap or a.sync_campaign_byte_cap or a.sync_byte_schedule or a.sync_failures or a.sync_posttrain or not a.sync_controlled_stream):
         raise ValueError("audited traffic requires charged controls and reliable controlled pre-training; hard caps use a separate predictor")
+    if getattr(a,"sync_bandwidth_audit",False):
+        if a.sync_wire_format!="binary" or a.sync_dynamic_threshold or (a.sync_policy=="own" and a.sync_local_reference!="last_sync") or (a.sync_policy=="server" and (a.sync_bank_reference!="aggregate" or a.sync_delivery!="piggyback")) or (a.sync_policy=="peer" and (a.sync_peer_transport!="direct" or a.sync_peer_loss)):
+            raise ValueError("primary bandwidth/decision audit requires binary, last-sync, aggregate piggyback or reliable direct peer policy")
     if a.sync_budget_reserve and not a.sync_campaign_byte_cap:
         raise ValueError("future reserve requires campaign byte cap")
     if a.sync_bootstrap_byte_cap and not (a.sync_byte_cap or a.sync_campaign_byte_cap):

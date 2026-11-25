@@ -4,7 +4,7 @@ import json
 import random
 import hashlib
 from .advanced import cached_views, select_cached, update_match, combine_scores, peer_filter
-from .policies import (Report, distance, threshold_value, due_clients,
+from .policies import (Report, distance, threshold_value, due_clients, above_threshold,
                        local_reference, bank_score, novelty_admit, peer_select, pooled,
                        baseline_select, coverage)
 
@@ -53,6 +53,7 @@ class Transport:
                             "category":category(kind),"direction":direction(sender,receiver),
                             "tensor_bytes":tensor_bytes,"vector_bytes":vector_bytes,
                             "envelope_bytes":len(wire)-vector_bytes,"encoded_envelope_bytes":len(wire),
+                            "scalar_admission_score":kind=="ADMISSION_REQUEST" and isinstance(payload,dict) and payload.get("score") is not None,
                             "delivered_bytes":n if delivered else 0})
         if getattr(self,"audit",False):
             import base64
@@ -352,7 +353,7 @@ class Controller:
         if (own or server) and not peer and r!=0:
             for i in ids:
                 score = scores.get(i)
-                requested = i in due or score is None or score>threshold
+                requested = i in due or score is None or above_threshold(score,threshold)
                 if k is not None or requested:
                     self.transport.send(r,"admission",i,"server","ADMISSION_REQUEST",
                          {"requested":requested,"score":None if k is None or score is None else float(score),
@@ -376,7 +377,7 @@ class Controller:
              "references":refs,"bank_versions":versions,"coverage":assignments,"impact":impact,
              "reasons":{i:("bootstrap" if r==0 else "mandatory" if i in due and i in selected
                            else "deadline_cap" if i in due else "unknown" if i in scores and scores[i] is None
-                           else "fixed_count_fill" if i in selected and i in scores and scores[i]<=threshold
+                           else "fixed_count_fill" if i in selected and i in scores and not above_threshold(scores[i],threshold)
                            else "selected" if i in selected else "deferred") for i in ids}}
         if getattr(a,"sync_audit_references",False):
             d["reference_sources"]={i:self.local[i].audit_bank_sources.get(refs.get(i),[]) if server and isinstance(refs.get(i),str) else [] for i in ids}

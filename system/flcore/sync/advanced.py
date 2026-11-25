@@ -80,13 +80,14 @@ def combine_scores(local,server,rule="union"):
     return max(local,server) if rule=="union" else min(local,server)
 
 def peer_filter(ids,last,due,reports,scores,threshold,k,solver,objective):
+    from .policies import above_threshold
     """Sequential hybrid: request/unknown/due first; peer coverage resolves
     redundant requests. Fixed count fills unused slots by original novelty."""
     from .policies import peer_select
     ids=tuple(sorted(ids))
     mandatory=tuple(due)+tuple(i for i in sorted(ids,key=lambda x:priority(x,last))
                                if i not in due and scores.get(i) is None)
-    requests=tuple(i for i in ids if i in mandatory or scores.get(i) is None or scores[i]>threshold)
+    requests=tuple(i for i in ids if i in mandatory or scores.get(i) is None or above_threshold(scores[i],threshold))
     if k is None:
         return peer_select(requests,last,mandatory,reports,threshold,None,solver,objective) if requests else ()
     selected=peer_select(requests,last,mandatory,reports,threshold,min(k,len(requests)),solver,objective) if requests else ()

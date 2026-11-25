@@ -90,7 +90,7 @@ def valid(job):
                 entry={"policy":cfg["policy"],"flags":[],"method":"baseline","signal":"none"}
             if entry is None:return False
             if (cfg["signal"],cfg["mechanism"],cfg["policy"])!=(entry["signal"],entry["method"],entry["policy"]):return False
-            flags=entry["flags"];expected={"sync_policy":entry["policy"],"sync_mode":cfg.get("selection_mode","fixed"),"sync_threshold":cfg.get("threshold",.1),"sync_k":cfg["k"],"seed":cfg["training_seed"],
+            flags=entry["flags"];expected={"sync_policy":entry["policy"],"sync_mode":cfg.get("selection_mode","fixed"),"sync_threshold":cfg.get("threshold",.1),"sync_k":cfg["k"],"sync_max_skip":cfg.get("max_skip",4),"seed":cfg["training_seed"],
                 "num_clients":5,"tasks":5,"num_classes":20,"global_rounds":49,"local_epochs":5,"batch_size":13,
                 "memory_size":500,"memory_batch_size":13,"local_learning_rate":.005,"sync_eval_split":"validation"}
             for pos,flag in enumerate(flags):
@@ -113,16 +113,9 @@ def valid(job):
             if summary["counterfactual_checkpoints"]!=len(job["config"]["counterfactual_rounds"]):return False
             if cfg.get("setting_id") and (manifest["controlled_stream"].get("setting_id")!=cfg["setting_id"] or manifest["seed"]!=cfg["partition_seed"]):return False
             if any((len(x["selected"])!=(5 if i==0 else cfg["k"]) if cfg.get("selection_mode","fixed")=="fixed" else (i==0 and len(x["selected"])!=5)) or x["selected"]!=x["accepted"] or x["accepted"]!=x["downloaded"] for i,x in enumerate(rounds)):return False
-            if cfg.get("selection_mode")=="threshold":
-                decisions=[json.loads(l) for l in (out/"decisions.jsonl").read_text().splitlines()]
-                if len(decisions)!=len(rounds):return False
-                for row,d in zip(rounds,decisions):
-                    if d["selected"]!=row["selected"] or not set(d["due"])<=set(d["selected"]):return False
-                    if row["round"]==0:continue
-                    if entry["method"] in ("M1","M2"):
-                        expected_roster={int(i) for i,score in d["scores"].items() if score is None or score>d["threshold"]}|set(d["due"])
-                        if set(row["selected"])!=expected_roster:return False
-                    elif any(not v["covered"] for v in d["coverage"].values()):return False
+            from flcore.sync.decision_audit import verify_decisions
+            decisions=[json.loads(l) for l in (out/"decisions.jsonl").read_text().splitlines()]
+            verify_decisions(resolved_config,rounds,decisions,events)
             if entry["method"]=="M2" and not any(e["kind"]=="BANK_AGGREGATE" for e in events):return False
             if baseline:
                 if any(report is not None for row in rounds for report in row["sampled_reports"].values()):return False
@@ -214,7 +207,7 @@ def estimate(jobs):
     fixed=[j for j in training if j["config"].get("selection_mode")!="threshold"]
     draws=sum(j["config"].get("selected_draws",j["config"]["clients"]+(j["config"]["rounds"]-1)*j["config"]["k"]) for j in fixed)
     adaptive_max=sum(j["config"]["clients"]*j["config"]["rounds"] for j in adaptive)
-    initial=sum(j["config"]["clients"] for j in training if j["config"].get("campaign") in ("task_il_48","task_il_joint") or "--sync-bandwidth-audit" in j["command"])
+    initial=sum(j["config"]["clients"] for j in training if j["config"].get("campaign") in ("task_il_48","task_il_joint") or "--sync-bandwidth-audit" in j.get("command",[]))
     cf_rounds=sum(len(j["config"].get("counterfactual_rounds",[])) for j in training)
     cf_candidates=sum(len(j["config"].get("counterfactual_rounds",[]))*j["config"]["clients"] for j in training)
     from math import comb
@@ -222,7 +215,7 @@ def estimate(jobs):
     cf_max=cf_aggregates+sum(len(j["config"]["counterfactual_rounds"])*(comb(j["config"]["clients"],j["config"]["clients"]//2)+1) for j in adaptive)
     return {"jobs":len(jobs),"training_jobs":len(training),"threshold_jobs":len(adaptive),"nominal_client_draws":draws,"threshold_draw_upper_bound":adaptive_max,"counterfactual_aggregate_upper_bound":cf_max,"counterfactual_checkpoints":cf_rounds,"counterfactual_candidate_local_trainings":cf_candidates,"counterfactual_aggregate_evaluations":cf_aggregates,
             "nominal_model_transfer_upper_bound_at_45MB":45000000*(2*(draws+adaptive_max)+initial),
-            "initial_task_il_downloads":initial,
+            "initial_downloads":initial,"initial_task_il_downloads":sum(j["config"]["clients"] for j in training if j["config"].get("campaign") in ("task_il_48","task_il_joint")),
             "task_il_local_training_rounds":sum(j["config"].get("local_training_rounds",0) for j in training),
             "note":"Adaptive, threshold, failures, duplicate draws and counterfactual continuation alter actual costs. No runtime or peak memory guarantee."}
 

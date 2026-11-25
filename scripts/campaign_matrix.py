@@ -39,7 +39,8 @@ def build(output):
     generator=hashlib.sha256(b"".join((ROOT/p).read_bytes() for p in ("scripts/generate_streams.py","scripts/stream_design.py","scripts/validate_streams.py","scripts/build_ground_truth.py"))).hexdigest()[:12]
     jobs=[]
     def add(stage,kind,ident,cfg,cmd,deps,artifacts):
-        key=hashlib.sha256(json.dumps([kind,ident,commit,cfg],sort_keys=True).encode()).hexdigest()[:16]
+        identity={k:v for k,v in cfg.items() if k!="data_root"}
+        key=hashlib.sha256(json.dumps([kind,ident,commit,identity],sort_keys=True).encode()).hexdigest()[:16]
         jobs.append({"id":key,"semantic_id":ident,"stage":stage,"kind":kind,"config":cfg,"command":cmd,"dependencies":list(deps),"artifacts":[str(p) for p in artifacts],"source_commit":commit,"schema":2})
         return key
     data={}
@@ -60,12 +61,12 @@ def build(output):
         for mode,k,tau,selector,signal,mechanism,policy,options in cases:
             ident=experiment_id(sid,seed,k,selector) if mode=="fixed" else threshold_id(sid,seed,tau,selector)
             flags=[*options,*CORE_RUNTIME_FLAGS]
-            cfg={**dcfg,"experiment_id":ident,"selector_id":selector,"signal":signal,"mechanism":mechanism,"policy":policy,"k":k,"selection_mode":mode,"threshold":tau,
+            cfg={**dcfg,"experiment_id":ident,"selector_id":selector,"signal":signal,"mechanism":mechanism,"policy":policy,"k":k,"selection_mode":mode,"threshold":tau,"max_skip":4,
                  "backbone":BACKBONE,"memory":500,"replay_batch":13,"training_seed":seed,"evaluation_split":"validation",
                  "tasks":5,"rounds":50,"flags":flags,"selection_timing":"pretrain","public_probe_per_class":PUBLIC_PROBE_PER_CLASS,
                  "counterfactual_rounds":spec["counterfactual_rounds"]}
             out=ROOT/"research_results"/("comprehensive-"+commit[:12])/ident
-            cmd=[sys.executable,"main.py","-data",str(folder),"-m","resnet18","-algo","FedAvg","-tasks","5","-nb","20","-nc","5","-gr","49","-lbs","13","-lr","0.005","-ls","5","-memory_size","500","-memory_batch_size","13","-seed",str(seed),"--sync-er","--sync-memory-profile","uniform","--sync-aggregation","complete","--sync-weighting","current","--sync-local-capture","--sync-policy",policy,"--sync-k",str(k),"--sync-mode",mode,"--sync-threshold",str(tau),"--sync-output",str(out),"--sync-checkpoint","--sync-eval-split","validation",*flags]
+            cmd=[sys.executable,"main.py","-data",str(folder),"-m","resnet18","-algo","FedAvg","-tasks","5","-nb","20","-nc","5","-gr","49","-lbs","13","-lr","0.005","-ls","5","-memory_size","500","-memory_batch_size","13","-seed",str(seed),"--sync-er","--sync-memory-profile","uniform","--sync-aggregation","complete","--sync-weighting","current","--sync-local-capture","--sync-policy",policy,"--sync-k",str(k),"--sync-mode",mode,"--sync-threshold",str(tau),"--sync-max-skip","4","--sync-output",str(out),"--sync-checkpoint","--sync-eval-split","validation",*flags]
             artifacts=[out/name for name in ("final_summary.json","status.json","communication_events.jsonl","server_metrics.jsonl","server.pt","provenance.json","rounds.jsonl","config.json","decisions.jsonl","report_arrivals.jsonl","counterfactuals.jsonl","analysis/ground_truth_comparison.json",*COMM_ARTIFACTS,*[f"ground_truth/{name}" for name in ("dataset_manifest.json","validation_receipt.json","distributions.npz","specification.json","allocation_index.npz")])]
             training.append(add("baselines" if mechanism=="baseline" else "signals","train",ident,cfg,cmd,[dep],artifacts))
     result=ROOT/"research_results"/("comprehensive-"+commit[:12])/"analysis"

@@ -240,6 +240,7 @@ def run_research(args):
     if a.sync_policy=="legacy":raise ValueError("legacy is not a research policy")
     out=Path(a.sync_output).resolve()
     out.mkdir(parents=True,exist_ok=True)
+    if getattr(a,"sync_bandwidth_audit",False):out.chmod(0o700)
     config={k:v for k,v in vars(a).items() if k not in ("sync_resume","sync_stop_after_round","V","delta")}
     config["backbone"]=BACKBONE
     dataset_root=Path(a.dataset).resolve() if Path(a.dataset).is_absolute() else (Path('../dataset')/a.dataset).resolve()
@@ -596,6 +597,8 @@ def run_research(args):
             summary.update(analyze_run(out,rounds,ctl.decisions,metrics,counterfactual_rows,ctl.transport.events))
         if a.sync_bandwidth_audit:
             from .bandwidth import audit,write_artifacts
+            from .decision_audit import verify_decisions
+            verify_decisions(config,rounds,ctl.decisions,ctl.transport.events)
             comm,by_round,by_client=audit(ctl.transport.events,rounds,schema,a.num_clients,a.sync_policy)
             write_artifacts(out,comm,by_round,by_client)
             summary.update({k:comm[k] for k in ("model_bytes","statistics_bytes","control_bytes","upload_bytes","download_bytes","peer_bytes","model_tensor_bytes","statistic_vector_bytes","full_model_payload_bytes","model_uploads","model_downloads","initial_downloads","model_refreshes","skipped_client_rounds","no_aggregation_rounds","mean_participants","participation_fraction")})

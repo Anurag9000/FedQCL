@@ -29,3 +29,12 @@ class BandwidthAudit(unittest.TestCase):
         self.assertEqual(total["model_bytes"]+total["statistics_bytes"]+total["control_bytes"],total["total_bytes"])
         broken=copy.deepcopy(t.events);broken[-1]["encoded_envelope_b64"]="AAAA"
         with self.assertRaises(ValueError):audit(broken,rounds,schema,2)
+
+    def test_threshold_equality(self):
+        from flcore.sync.policies import above_threshold,threshold_value,novelty_admit
+        from fractions import Fraction
+        for v in (.05,.1,.2,.35):
+            tau=threshold_value(v)
+            self.assertFalse(above_threshold(v,tau))
+            self.assertFalse(above_threshold(Fraction(str(v)),tau))
+            self.assertEqual(novelty_admit([0,1],{0:0,1:0},(),{0:v,1:v+.001},tau), (1,))

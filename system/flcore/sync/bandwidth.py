@@ -4,7 +4,7 @@ from .wire import unpack,binary_vector_bytes
 from pathlib import Path
 MODEL={"MODEL_INITIAL","MODEL_UPLOAD","MODEL_DOWNLOAD","MODEL_REFRESH"}
 STAT={"STAT_REPORT","BANK_AGGREGATE","BANK_DELTA","BANK_SNAPSHOT","PEER_STAT_REPORT","PEER_ROSTER","PEER_RECOVERY_REPORT","PEER_RECOVERY_ROSTER","GRADIENT_PROBE"}
-ARTIFACTS=("model_wire_schema.json","communication_summary.json","communication_rounds.jsonl","communication_clients.jsonl")
+ARTIFACTS=("model_wire_schema.json","communication_summary.json","communication_rounds.jsonl","communication_clients.jsonl","participation_schedule.json")
 def category(kind):
     return "model" if kind in MODEL else "statistics" if kind in STAT else "control"
 def direction(sender,receiver):
@@ -20,12 +20,13 @@ def model_schema(state):
 def bucket():
     return {"total_bytes":0,"delivered_bytes":0,"model_bytes":0,"statistics_bytes":0,"control_bytes":0,
             "upload_bytes":0,"download_bytes":0,"peer_bytes":0,"model_tensor_bytes":0,"statistic_vector_bytes":0,
-            "envelope_bytes":0,"transactions":0,"bytes_by_kind":{},"bytes_by_phase":{}}
+            "envelope_bytes":0,"transactions":0,"bytes_by_kind":{},"bytes_by_phase":{},"scalar_admission_score_message_bytes":0}
 def add(b,e):
     n=e["serialized_bytes"];b["total_bytes"]+=n;b["delivered_bytes"]+=e["delivered_bytes"]
     b[e["category"]+"_bytes"]+=n;b[e["direction"]+"_bytes"]+=n
     b["model_tensor_bytes"]+=e["tensor_bytes"];b["statistic_vector_bytes"]+=e["vector_bytes"]
     b["envelope_bytes"]+=e["envelope_bytes"];b["transactions"]+=1
+    if e.get("scalar_admission_score",False):b["scalar_admission_score_message_bytes"]+=n
     for key,field in (("bytes_by_kind","kind"),("bytes_by_phase","phase")):
         name=e[field];b[key][name]=b[key].get(name,0)+n
 def audit(events,rounds,schema,clients,policy=None):
@@ -53,8 +54,10 @@ def audit(events,rounds,schema,clients,policy=None):
         if e["vector_bytes"]!=(0 if e["wire_format"]=="json" else binary_vector_bytes(wire)):raise ValueError("serialized vector bytes")
         if kind in MODEL and decoded["payload"].get("schema")!=schema["id"]:raise ValueError("model schema reference mismatch")
         if kind=="MODEL_UPLOAD":
-            row=rounds[r];i=e["sender"];counts=row["supplied_samples"]
-            if decoded["payload"]["sample_count"]!=counts.get(i,counts.get(str(i))):raise ValueError("aggregation mass mismatch")
+            row=rounds[r];i=e["sender"];counts=row["supplied_samples"];versions=row.get("start_versions",{})
+            if decoded["payload"]["sample_count"]!=counts.get(i,counts.get(str(i))) or decoded["payload"]["start_version"]!=versions.get(i,versions.get(str(i))) or not decoded["payload"]["accepted"]:raise ValueError("model upload metadata")
+        if kind=="MODEL_DOWNLOAD" and decoded["payload"]["version"]!=rounds[r]["version"]:raise ValueError("download version")
+        if kind=="ADMISSION_REQUEST" and e.get("scalar_admission_score",False)!=(decoded["payload"].get("score") is not None):raise ValueError("scalar score accounting")
         for endpoint in ("sender","receiver"):
             i=e[endpoint]
             if i!="server":
@@ -65,6 +68,7 @@ def audit(events,rounds,schema,clients,policy=None):
         controls[r].setdefault(kind,[]).append((e["sender"],e["receiver"]))
     if sorted(models[-1]["MODEL_INITIAL"])!=sorted(ids) or sorted(models[-1]["MODEL_ACK"])!=sorted(ids) or any(models[-1][k] for k in MODEL-{"MODEL_INITIAL"}):raise ValueError("initial model/ack roster")
     rows=[];clientrows=[];cumulative=0;participants=0;skipped=0;empty=0
+    histogram={str(k):0 for k in range(clients+1)};skip_types={"statistics_only":0,"control_only":0,"common_control_only":0,"silent":0}
     for r,b in per.items():
         row=rounds[r] if r>=0 else None
         selected=set(row["selected"]) if row else set()
@@ -87,28 +91,34 @@ def audit(events,rounds,schema,clients,policy=None):
                 expected=[(i,"server") for i in selected if reports.get(i,reports.get(str(i))) is not None]
                 if sorted(controls[r].get("STAT_REPORT",[]))!=sorted(expected):raise ValueError("server report roster")
                 if sorted(controls[r].get("BANK_AGGREGATE",[]))!=sorted(("server",i) for i in selected):raise ValueError("aggregate report roster")
-            participants+=len(selected);skipped+=clients-len(selected);empty+=not selected
+            participants+=len(selected);skipped+=clients-len(selected);empty+=not selected;histogram[str(len(selected))]+=1
         cumulative+=b["total_bytes"]
         rows.append({"round":r,**b,"participants":len(selected) if row else None,"cumulative_bytes":cumulative})
         for i in sorted(ids):
             v=local[r,i]
-            clientrows.append({"round":r,"client":i,"selected":i in selected if row else None,
+            common=sum(v["bytes_by_kind"].get(k,0) for k in ("ROUND_CLOCK","AVAILABILITY","AVAILABLE_ROSTER"))
+            traffic_type=("initialization" if row is None else "full_sync" if i in selected else "statistics_only" if v["statistics_bytes"] else "control_only" if v["total_bytes"]>common else "common_control_only" if common else "silent")
+            if traffic_type in skip_types:skip_types[traffic_type]+=1
+            clientrows.append({"round":r,"client":i,"selected":i in selected if row else None,"traffic_type":traffic_type,"common_control_bytes":common,
                                "model_uploads":models[r]["MODEL_UPLOAD"].count(i),"model_downloads":models[r]["MODEL_DOWNLOAD"].count(i),
                                "initial_downloads":models[r]["MODEL_INITIAL"].count(i),"model_refreshes":models[r]["MODEL_REFRESH"].count(i),**v})
     if sum(x["total_bytes"] for x in rows)!=total["total_bytes"] or sum(x["total_bytes"] for x in clientrows)!=total["total_bytes"]+total["peer_bytes"]:raise ValueError("aggregate conservation")
     total.update(schema=1,full_model_payload_bytes=schema["tensor_bytes"],model_uploads=sum(len(v["MODEL_UPLOAD"]) for v in models.values()),
                  model_downloads=sum(len(v["MODEL_DOWNLOAD"]) for v in models.values()),model_refreshes=sum(len(v["MODEL_REFRESH"]) for v in models.values()),
                  initial_downloads=clients,mean_participants=participants/nrounds,participation_fraction=participants/(nrounds*clients),
+                 participant_count_histogram=histogram,skipped_traffic_types=skip_types,
+                 mean_participants_after_bootstrap=(participants-len(rounds[0]["selected"]))/(nrounds-1) if nrounds>1 else None,
                  skipped_client_rounds=skipped,no_aggregation_rounds=empty,accounting="logical application bytes, per-recipient, no packet/IP/TLS overhead")
     return total,rows,clientrows
 def write_artifacts(out,total,rounds,clients):
     out=Path(out)
-    for name,content in (("communication_summary.json",json.dumps(total,sort_keys=True,indent=2)),("communication_rounds.jsonl","".join(json.dumps(x,sort_keys=True)+"\n" for x in rounds)),("communication_clients.jsonl","".join(json.dumps(x,sort_keys=True)+"\n" for x in clients))):
+    for name,content in (("participation_schedule.json",json.dumps([row["participants"] for row in rounds if row["round"]>=0])),("communication_summary.json",json.dumps(total,sort_keys=True,indent=2)),("communication_rounds.jsonl","".join(json.dumps(x,sort_keys=True)+"\n" for x in rounds)),("communication_clients.jsonl","".join(json.dumps(x,sort_keys=True)+"\n" for x in clients))):
         tmp=out/(name+".tmp");tmp.write_text(content);tmp.replace(out/name)
 def verify_artifacts(out,events,rounds,clients,summary,policy=None):
     out=Path(out);schema=json.loads((out/"model_wire_schema.json").read_text())
     total,rr,cc=audit(events,rounds,schema,clients,policy)
     if total!=json.loads((out/"communication_summary.json").read_text()) or rr!=[json.loads(x) for x in (out/"communication_rounds.jsonl").read_text().splitlines()] or cc!=[json.loads(x) for x in (out/"communication_clients.jsonl").read_text().splitlines()]:raise ValueError("communication artifacts disagree with events")
+    if json.loads((out/"participation_schedule.json").read_text())!=[len(row["selected"]) for row in rounds]:raise ValueError("participation schedule mismatch")
     for k,v in total.items():
         if k in summary and k not in ("schema","accounting") and summary[k]!=v:raise ValueError("communication summary disagreement: "+k)
     return total

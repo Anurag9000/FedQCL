@@ -78,6 +78,11 @@ def distance(a, b):
 def threshold_value(value):
     return Fraction(str(value))
 
+def above_threshold(score,threshold):
+    """Exact rational TV comparisons; equality for floating score scales."""
+    if score is None:raise ValueError("unknown score is not a distance")
+    return score>threshold if isinstance(score,Fraction) else float(score)>float(threshold)
+
 def priority(i, last):
     return (last.get(i, -1), i)
 
@@ -158,7 +163,7 @@ def novelty_admit(ids, last, due, scores, threshold, k=None):
                                  -(scores.get(i) or 0),priority(i,last)))
     if k is None:
         chosen = mandatory+[i for i in remaining
-                            if scores.get(i) is None or scores[i]>threshold]
+                            if scores.get(i) is None or above_threshold(scores[i],threshold)]
     else:
         chosen = mandatory+remaining[:max(0,k-len(mandatory))]
     return tuple(sorted(chosen))
@@ -174,7 +179,7 @@ def coverage(ids, selected, reports, threshold):
         if i not in selected:
             d,j = nearest(i,selected,reports)
             result[i] = {"representative":j,"distance":None if d is None else float(d),
-                         "covered":d is not None and d<=threshold}
+                         "covered":d is not None and not above_threshold(d,threshold)}
     return result
 
 def peer_select(ids, last, due, reports, threshold, k=None, solver="exact", objective="distance", weighted=False):
@@ -184,7 +189,7 @@ def peer_select(ids, last, due, reports, threshold, k=None, solver="exact", obje
         for i in sorted(ids,key=lambda i:priority(i,last)):
             if i not in selected:
                 d,_ = nearest(i,selected,reports)
-                if d is None or d>threshold:
+                if d is None or above_threshold(d,threshold):
                     selected.append(i)
         return tuple(sorted(selected))
     k = min(k,len(ids))
@@ -201,7 +206,7 @@ def peer_select(ids, last, due, reports, threshold, k=None, solver="exact", obje
                 continue
             d,_ = nearest(i,s,reports)
             weight=reports[i].importance if weighted else 1
-            total += weight*(int(d is None or d>threshold) if objective=="coverage"
+            total += weight*(int(d is None or above_threshold(d,threshold)) if objective=="coverage"
                       else 1 if d is None else d)
         return missing,total,tuple(sorted(priority(i,last) for i in s))
     if solver == "greedy":

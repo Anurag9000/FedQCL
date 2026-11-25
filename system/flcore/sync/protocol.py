@@ -41,10 +41,17 @@ class Transport:
             decoded=json.loads(wire)
             payload_size=len(encoded(payload))
         n = len(wire)+tensor_bytes
+        from .bandwidth import category,direction
+        from .wire import binary_vector_bytes
+        vector_bytes=binary_vector_bytes(wire) if self.wire_format!="json" else 0
+        if type(tensor_bytes) is not int or tensor_bytes<0:raise ValueError("invalid tensor payload bytes")
         self.events.append({"event_id":len(self.events),"round":r,"phase":phase,
                             "sender":sender,"receiver":receiver,"kind":kind,
                             "payload_bytes":tensor_bytes+payload_size,"wire_format":self.wire_format,
                             "serialized_bytes":n,"delivered":delivered,
+                            "category":category(kind),"direction":direction(sender,receiver),
+                            "tensor_bytes":tensor_bytes,"vector_bytes":vector_bytes,
+                            "envelope_bytes":len(wire)-vector_bytes,"encoded_envelope_bytes":len(wire),
                             "delivered_bytes":n if delivered else 0})
         return decoded["payload"] if delivered else None
 
@@ -348,6 +355,8 @@ class Controller:
                           "mandatory":i in due,"unknown":score is None})
                 if i in selected:
                     self.transport.send(r,"admission","server",i,"ADMISSION_RESPONSE",{"admitted":True})
+        if getattr(a,"sync_bandwidth_audit",False) and (policy in ("full","random","oldest") or (r==0 and not peer)):
+            for i in selected:self.transport.send(r,"admission","server",i,"ADMISSION_RESPONSE",{"admitted":True})
         if getattr(a,"sync_dynamic_threshold",False):
             for i in ids:
                 msg=self.transport.send(r,"admission",i,"server","THRESHOLD_CALIBRATION_SCORE",{"score":None if scores.get(i) is None else float(scores[i])})

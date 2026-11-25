@@ -19,7 +19,7 @@ CORE_TASK_IL_IDS=(
 CORE_SIGNAL_COUNT=24
 PUBLIC_PROBE_PER_CLASS=4
 CORE_REGIME='controlled_dynamic'
-CORE_RUNTIME_FLAGS=('--sync-windowed','--sync-controlled-stream','--sync-audit-references','--sync-counterfactual')
+CORE_RUNTIME_FLAGS=('--sync-windowed','--sync-controlled-stream','--sync-audit-references','--sync-counterfactual','--sync-charge-control','--sync-bandwidth-audit')
 def read_core_signal_entries():
     import json
     from pathlib import Path

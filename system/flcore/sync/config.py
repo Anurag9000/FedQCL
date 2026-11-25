@@ -19,6 +19,7 @@ def add_arguments(parser):
     p.add_argument("--sync-dynamic-topology",action="store_true")
     p.add_argument("--sync-gossip-fault",choices=["none","delay","duplicate","reorder","corrupt"],default="none")
     p.add_argument("--sync-charge-control",action="store_true")
+    p.add_argument("--sync-bandwidth-audit",action="store_true",help="Charge initial state and acknowledgements; reconcile logical traffic")
     p.add_argument("--sync-histogram-rr-epsilon",type=float,default=0.,help="Per-observation randomized response; not full training DP")
     p.add_argument("--sync-peer-degree",type=int,default=1)
     p.add_argument("--sync-peer-loss",type=float,default=0.)
@@ -105,6 +106,8 @@ def validate(a):
         raise ValueError("legacy dropout, early stopping, DP and new-client options not supported by research engine")
     if min(a.sync_byte_cap,a.sync_campaign_byte_cap,a.sync_bootstrap_byte_cap)<0:
         raise ValueError("invalid byte cap")
+    if getattr(a,"sync_bandwidth_audit",False) and (not a.sync_charge_control or a.sync_byte_cap or a.sync_campaign_byte_cap or a.sync_byte_schedule or a.sync_failures or a.sync_posttrain or not a.sync_controlled_stream):
+        raise ValueError("audited traffic requires charged controls and reliable controlled pre-training; hard caps use a separate predictor")
     if a.sync_budget_reserve and not a.sync_campaign_byte_cap:
         raise ValueError("future reserve requires campaign byte cap")
     if a.sync_bootstrap_byte_cap and not (a.sync_byte_cap or a.sync_campaign_byte_cap):

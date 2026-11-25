@@ -346,6 +346,15 @@ def run_research(args):
     rpt=(a.global_rounds+1)//a.tasks
     complete_state=True
     payload=model_bytes(model,complete_state)
+    if getattr(a,"sync_bandwidth_audit",False):
+        from .bandwidth import model_schema
+        schema=model_schema(model.state_dict())
+        if schema["tensor_bytes"]!=payload:raise ValueError("model schema size mismatch")
+        atomic_json(out/"model_wire_schema.json",schema)
+        if start==0:
+            for i in ctl.ids:
+                ctl.transport.send(-1,"initialization","server",i,"MODEL_INITIAL",{"version":0,"schema":schema["id"]},payload)
+                ctl.transport.send(-1,"initialization",i,"server","MODEL_ACK",{"version":0})
     failures=json.loads(Path(a.sync_failures).read_text()) if a.sync_failures else {}
     def fails(r,kind,i):
         return i in failures.get(str(r),{}).get(kind,[])
@@ -418,8 +427,9 @@ def run_research(args):
                 c=clients[i]
                 starts[i]=ctl.local[i].model_version
                 if a.sync_refresh and ctl.local[i].model_version!=ctl.model_version:
-                    ctl.transport.send(r,"refresh","server",i,"MODEL_REFRESH",{"version":ctl.model_version},payload)
+                    ctl.transport.send(r,"refresh","server",i,"MODEL_REFRESH",{"version":ctl.model_version,**({"schema":schema["id"]} if a.sync_bandwidth_audit else {})},payload)
                     download(c,model,complete_state)
+                    if a.sync_bandwidth_audit:ctl.transport.send(r,"refresh",i,"server","MODEL_ACK",{"version":ctl.model_version})
                     ctl.local[i].model_version=ctl.model_version
                     ctl.local[i].local_revision=0
                     starts[i]=ctl.model_version
@@ -447,7 +457,7 @@ def run_research(args):
                     delivered=not fails(r,"upload",i)
                     admitted=delivered and not fails(r,"reject",i)
                     ctl.transport.send(r,"upload",i,"server","MODEL_UPLOAD",
-                                       {"start_version":starts[i],"accepted":admitted},payload,delivered)
+                                       {"start_version":starts[i],"accepted":admitted,**({"schema":schema["id"],"sample_count":len(datasets[i])} if a.sync_bandwidth_audit else {})},payload,delivered)
                     if delivered: uploaded.append(i)
                     if admitted: accepted.append(i)
                 outcomes.append({"client":i,"optimizer_steps":c.optimizer_steps,
@@ -493,10 +503,11 @@ def run_research(args):
             downloaded=[]
             for i in accepted:
                 delivered=not fails(r,"download",i)
-                ctl.transport.send(r,"download","server",i,"MODEL_DOWNLOAD",{"version":ctl.model_version},payload,delivered)
+                ctl.transport.send(r,"download","server",i,"MODEL_DOWNLOAD",{"version":ctl.model_version,**({"schema":schema["id"]} if a.sync_bandwidth_audit else {})},payload,delivered)
                 if delivered:
                     download(clients[i],model,complete_state)
                     downloaded.append(i)
+                    if a.sync_bandwidth_audit:ctl.transport.send(r,"download",i,"server","MODEL_ACK",{"version":ctl.model_version})
             ctl.complete(r,reports,accepted,downloaded,uploaded,ingested=True)
             if budget_record is not None:
                 actual_bytes=sum(x["serialized_bytes"] for x in ctl.transport.events)-before_bytes
@@ -583,6 +594,12 @@ def run_research(args):
         if a.sync_controlled_stream:
             from .ground_truth import analyze_run
             summary.update(analyze_run(out,rounds,ctl.decisions,metrics,counterfactual_rows,ctl.transport.events))
+        if a.sync_bandwidth_audit:
+            from .bandwidth import audit,write_artifacts
+            comm,by_round,by_client=audit(ctl.transport.events,rounds,schema,a.num_clients)
+            write_artifacts(out,comm,by_round,by_client)
+            summary.update({k:comm[k] for k in ("model_bytes","statistics_bytes","control_bytes","upload_bytes","download_bytes","peer_bytes","model_tensor_bytes","statistic_vector_bytes","full_model_payload_bytes","model_uploads","model_downloads","initial_downloads","model_refreshes","skipped_client_rounds","no_aggregation_rounds","mean_participants","participation_fraction")})
+            summary["accounting"]="audited dense native tensor bytes plus serialized envelopes; initialization, controls and per-recipient deliveries included; no physical network"
         atomic_json(out/"final_summary.json",summary)
         torch.save(model.state_dict(),out/"server.pt")
         atomic_json(out/"status.json",{"status":"completed"})

@@ -79,3 +79,13 @@ def unpack(wire):
         if isinstance(x,list):return [visit(v) for v in x]
         return x
     return visit(metadata)
+
+def binary_vector_bytes(wire):
+    """Exact bytes in binary vector blocks, excluding framing."""
+    if wire[:4]!=MAGIC or len(wire)<12:raise ValueError("invalid wire")
+    size,n=struct.unpack_from("<II",wire,4);cursor=12+size
+    total=0
+    for _ in range(n):
+        m=struct.unpack_from("<I",wire,cursor)[0];cursor+=4+m;total+=m
+    if cursor!=len(wire):raise ValueError("invalid wire length")
+    return total

@@ -26,7 +26,8 @@ def summarize(metrics,rounds,decisions,events,tasks,rounds_per_task,clients):
         for end in ("sender","receiver"):
             i=event[end]
             if type(i) is int and i in by_client:
-                by_client[i]+=n;traffic.add((r,i))
+                by_client[i]+=n
+                if r>=0:traffic.add((r,i))
     return {"backward_transfer":statistics.mean(bwt) if bwt else 0.,
             "retention_auc_mean":statistics.mean(old) if old else None,
             "acquisition_auc_mean":statistics.mean(current) if current else None,

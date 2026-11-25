@@ -31,6 +31,7 @@ def expected_ids():
 
 def build(output):
     from flcore.sync.backbone import BACKBONE
+    from flcore.sync.bandwidth import ARTIFACTS as COMM_ARTIFACTS
     c=read_catalog();commit=subprocess.check_output(["git","rev-parse","HEAD"],cwd=ROOT,text=True).strip()
     generator=hashlib.sha256(b"".join((ROOT/p).read_bytes() for p in ("scripts/generate_streams.py","scripts/stream_design.py","scripts/validate_streams.py","scripts/build_ground_truth.py"))).hexdigest()[:12]
     jobs=[]
@@ -62,7 +63,7 @@ def build(output):
                  "counterfactual_rounds":spec["counterfactual_rounds"]}
             out=ROOT/"research_results"/("comprehensive-"+commit[:12])/ident
             cmd=[sys.executable,"main.py","-data",str(folder),"-m","resnet18","-algo","FedAvg","-tasks","5","-nb","20","-nc","5","-gr","49","-lbs","13","-lr","0.005","-ls","5","-memory_size","500","-memory_batch_size","13","-seed",str(seed),"--sync-er","--sync-memory-profile","uniform","--sync-aggregation","complete","--sync-weighting","current","--sync-local-capture","--sync-policy",policy,"--sync-k",str(k),"--sync-output",str(out),"--sync-checkpoint","--sync-eval-split","validation",*flags]
-            artifacts=[out/name for name in ("final_summary.json","status.json","communication_events.jsonl","server_metrics.jsonl","server.pt","provenance.json","rounds.jsonl","config.json","decisions.jsonl","report_arrivals.jsonl","counterfactuals.jsonl","analysis/ground_truth_comparison.json",*[f"ground_truth/{name}" for name in ("dataset_manifest.json","validation_receipt.json","distributions.npz","specification.json","allocation_index.npz")])]
+            artifacts=[out/name for name in ("final_summary.json","status.json","communication_events.jsonl","server_metrics.jsonl","server.pt","provenance.json","rounds.jsonl","config.json","decisions.jsonl","report_arrivals.jsonl","counterfactuals.jsonl","analysis/ground_truth_comparison.json",*COMM_ARTIFACTS,*[f"ground_truth/{name}" for name in ("dataset_manifest.json","validation_receipt.json","distributions.npz","specification.json","allocation_index.npz")])]
             training.append(add("baselines" if mechanism=="baseline" else "signals","train",ident,cfg,cmd,[dep],artifacts))
     result=ROOT/"research_results"/("comprehensive-"+commit[:12])/"analysis"
     add("postprocess","analysis","comprehensive-analysis",{"scope":"controlled_comprehensive","expected_training":len(training),"catalog_sha256":hashlib.sha256(CATALOG.read_bytes()).hexdigest()},[sys.executable,"scripts/analyze_controlled_campaign.py","--ledger",str(output.resolve()),"--output",str(result)],training,[result/name for name in OUTPUTS])

@@ -98,6 +98,8 @@ def valid(job):
                 elif flag.startswith("--"):expected[flag[2:].replace("-","_")]=flags[pos+1]
             expected.update({flag[2:].replace("-","_"):True for flag in CORE_RUNTIME_FLAGS})
             if any(resolved_config.get(k)!=v for k,v in expected.items()):return False
+            from flcore.sync.bandwidth import verify_artifacts
+            verify_artifacts(out,events,rounds,cfg["clients"],summary)
             from flcore.sync.ground_truth import verify
             truth=out/"ground_truth";receipt=json.loads((truth/"validation_receipt.json").read_text());verify(truth,receipt)
             manifest=json.loads((truth/"dataset_manifest.json").read_text())

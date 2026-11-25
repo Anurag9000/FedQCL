@@ -47,7 +47,8 @@ class Report:
 
 def distance(a, b):
     if (a is None or b is None or not a.valid() or not b.valid()
-            or (a.task,a.labels,a.schema,a.kind,a.space,a.metric,a.histogram_distance) != (b.task,b.labels,b.schema,b.kind,b.space,b.metric,b.histogram_distance)):
+            or (a.task!=b.task and a.kind!="replay_composition")
+            or (a.labels,a.schema,a.kind,a.space,a.metric,a.histogram_distance) != (b.labels,b.schema,b.kind,b.space,b.metric,b.histogram_distance)):
         return None
     if a.metric=="channels":
         from .multichannel import channel_distance
@@ -111,6 +112,9 @@ def bank_score(report, bank, round_id, age=5, include_self=False, kind="latest")
                and 0 <= round_id-x.round <= age and distance(report,x) is not None]
     if kind=="aggregate":
         records=[x for x in records if x.client==-1]
+        if not records:return None,None
+        ref=max(records,key=lambda x:(x.task==report.task,x.round,x.task))
+        return distance(report,ref),ref.id
     if kind == "prior":
         records = [x for x in records if x.round == round_id-1]
     if kind == "latest":

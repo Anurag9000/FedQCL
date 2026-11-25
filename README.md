@@ -1,3 +1,24 @@
+# Active signal × synchronization research goal
+
+**Exactly 27 training runs (30 ledger jobs including preparation/analysis).**
+Nine signals × M1 previous local observation, M2 server aggregate, M3 direct
+peer comparison. One clustered CIFAR-100 partition and seed 42, fixed plain
+FedAvg + vanilla ER. No additional baselines, Task-IL runs or sweeps in this
+goal. See [active ledger](configs/sync/core_signal_ledger.jsonl) and
+[runbook](docs/EXPERIMENT_LEDGER.md).
+
+```bash
+python scripts/build_job_ledger.py
+bash run_all_sync.sh --dry-run
+bash run_all_sync.sh --estimate-only
+bash run_all_sync.sh --all
+```
+
+The material below describes legacy and optional research; it does not expand
+the active 27-run goal.
+
+---
+
 # Federated Continual Learning as a Distributed Drift-Plus-Penalty Control Problem
 
 Official code for our paper published at the **5th Conference on Lifelong Learning Agents (CoLLAs), 2026**:
@@ -163,7 +184,7 @@ From the repository root:
 python -m unittest discover -s tests -v
 python scripts/build_job_ledger.py
 bash run_all_sync.sh --dry-run
-bash run_all_sync.sh --stage pilot --resume
+bash run_all_sync.sh --all
 # Explicitly execute all core jobs (still requires GPU time):
 bash run_all_sync.sh --all
 python scripts/aggregate_results.py
@@ -175,7 +196,7 @@ test on the target environment before launching all training jobs.
 
 The expanded campaign includes cached/combined/adaptive selectors, binary reports,
 rich statistics, sparse and lossy peer variants, counterfactual continuations,
-rate matching and scaling to 10/20/50 clients. The default core synchronization ledger has 67 jobs (50 training configurations); the default Task-IL core selects 22 training configurations plus their preparation and analysis jobs. The historical 3,934-job and 86-job matrices are available only through explicit `--suite extended` (launcher variables `SYNC_SUITE=extended` and `TASK_IL_SUITE=extended`). Do not expand the core campaign automatically. The exact matrix and remaining
+rate matching and scaling to 10/20/50 clients. The active default synchronization ledger has 30 jobs (27 training configurations); separate Task-IL launchers are optional and outside this goal. The historical 3,934-job and 86-job matrices are available only through explicit `--suite extended` (launcher variables `SYNC_SUITE=extended` and `TASK_IL_SUITE=extended`). Do not expand the core campaign automatically. The exact matrix and remaining
 limitations are documented in the runbook above. Parallel execution: bash run_all_sync.sh --stage pilot --resume --workers 2 --gpu-ids 0,1. Use --estimate-only to inspect the scope without training. Development uses validation;
 held-out adaptive jobs use separate partition seeds. Do not use --all before
 validating the full-data pilot.
@@ -200,4 +221,4 @@ For consecutive local class overlap (e.g. {0,1} -> {1,2}), run
 `bash run_all_task_il_joint.sh --dry-run` or `bash run_all_task_il_joint.sh`.
 The separate [44-entry mirror specification](docs/TASK_IL_JOINT_SPEC.md) and
 [portable ledger](configs/task_il_joint/job_ledger.jsonl) exclude existing E08
-interventions and reuse the width-five baseline. The default core suite is unchanged.
+interventions and reuse the width-five baseline. The temporal-overlap mirror is outside the active 27-run goal.

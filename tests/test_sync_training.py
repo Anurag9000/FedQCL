@@ -40,8 +40,14 @@ class Training(unittest.TestCase):
                 self.assertEqual((full/file).read_text(),(resumed/file).read_text(),file)
             for key,value in torch.load(full/"server.pt",map_location="cpu",weights_only=True).items():
                 self.assertTrue(torch.equal(value,torch.load(resumed/"server.pt",map_location="cpu",weights_only=True)[key]),key)
-            for policy in ("server","peer","cached","combined123"):
-                out=run(policy,policy)
+            cases=[(policy,policy,()) for policy in ("server","peer","cached","combined123")]
+            cases.extend([("aggregate_cka","server",("--sync-bank-reference","aggregate","--sync-signal","cka")),
+                          ("local_replay","own",("--sync-local-reference","previous","--sync-signal","replay_composition")),
+                          ("peer_mi","peer",("--sync-signal","mutual_information","--sync-native-space"))])
+            for name,policy,extra in cases:
+                out=run(name,policy,extra)
+                if name=="aggregate_cka":
+                    self.assertTrue(any(json.loads(l)["kind"]=="BANK_AGGREGATE" for l in (out/"communication_events.jsonl").read_text().splitlines()))
                 rounds=[json.loads(l) for l in (out/"rounds.jsonl").read_text().splitlines()]
                 self.assertEqual(rounds[0]["selected"],[0,1])
                 self.assertEqual(len(rounds),4)

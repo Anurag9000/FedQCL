@@ -32,6 +32,12 @@ def valid(job):
         if job["kind"]=="analysis" and job["config"].get("campaign")=="task_il_joint":
             receipt=json.loads(Path(job["artifacts"][0]).read_text())
             return receipt["completed"]==receipt["expected"]==job["config"]["expected_training"] and receipt["incomplete"]==0
+        if job["kind"]=="analysis" and job["config"].get("scope")=="signal_matrix":
+            from core_suite import read_core_signal_entries
+            result=json.loads(Path(job["artifacts"][1]).read_text())
+            expected={x["id"]:(x["signal"],x["method"]) for x in read_core_signal_entries()}
+            rows=result["results"]
+            return result["training_runs"]==len(rows)==27 and {x["experiment_id"]:(x["signal"],x["mechanism"]) for x in rows}==expected
         if job["kind"]!="train":return True
         out=Path(job["artifacts"][0]).parent
         summary=json.loads((out/"final_summary.json").read_text())
@@ -45,7 +51,21 @@ def valid(job):
         if system_path not in import_path:import_path.insert(0,system_path)
         from flcore.sync.backbone import BACKBONE
         if summary.get("backbone")!=BACKBONE or provenance.get("backbone")!=BACKBONE:return False
-        if json.loads((out/"config.json").read_text()).get("backbone")!=BACKBONE:return False
+        resolved_config=json.loads((out/"config.json").read_text())
+        if resolved_config.get("backbone")!=BACKBONE:return False
+        if job["config"].get("mechanism"):
+            from core_suite import read_core_signal_entries
+            entry=next((x for x in read_core_signal_entries() if x["id"]==job["config"].get("experiment_id")),None)
+            if entry is None:return False
+            flags=entry["flags"];expected={"sync_policy":entry["policy"],"sync_mode":"fixed","sync_k":3,"seed":42,
+                "num_clients":5,"tasks":5,"num_classes":20,"global_rounds":49,"local_epochs":5,"batch_size":13,
+                "memory_size":500,"memory_batch_size":13,"local_learning_rate":.005,"sync_eval_split":"validation"}
+            for pos,flag in enumerate(flags):
+                if flag=="--sync-native-space":expected["sync_native_space"]=True
+                elif flag.startswith("--"):expected[flag[2:].replace("-","_")]=flags[pos+1]
+            if any(resolved_config.get(k)!=v for k,v in expected.items()):return False
+            if any(len(x["selected"])!=(5 if i==0 else 3) or x["selected"]!=x["accepted"] or x["accepted"]!=x["downloaded"] for i,x in enumerate(rounds)):return False
+            if entry["method"]=="M2" and not any(e["kind"]=="BANK_AGGREGATE" for e in events):return False
         n=job["config"].get("rounds",50);tasks=job["config"].get("tasks",5)
         if job["config"].get("campaign") in ("task_il_48","task_il_joint"):
             from hashlib import sha256

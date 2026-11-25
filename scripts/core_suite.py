@@ -20,11 +20,19 @@ def read_core_signal_entries():
     import json
     from pathlib import Path
     rows=[json.loads(line) for line in (Path(__file__).resolve().parents[1]/"configs/sync/core_signal_ledger.jsonl").read_text().splitlines() if line.strip()]
-    signals={"replay","gradients","activations","jensen_shannon","mutual_information","bayesian","cka","gradient_variance","fisher"}
+    signals={"replay":("replay_composition",[]),"gradients":("gradient",["--sync-native-space"]),
+             "activations":("feature",[]),"jensen_shannon":("histogram",["--sync-histogram-distance","js"]),
+             "mutual_information":("mutual_information",["--sync-native-space"]),
+             "bayesian":("bayesian_head",["--sync-native-space"]),"cka":("cka",[]),
+             "gradient_variance":("gradient_variance_only",["--sync-native-space"]),"fisher":("fisher",["--sync-native-space"])}
     methods={"M1":"own","M2":"server","M3":"peer"}
     if len(rows)!=27 or len({x["id"] for x in rows})!=27 or {(x["signal"],x["method"]) for x in rows}!={(s,m) for s in signals for m in methods}:
         raise ValueError("core requires exactly nine signals crossed with three mechanisms")
+    mechanism_flags={"M1":["--sync-local-reference","previous"],"M2":["--sync-bank-reference","aggregate"],"M3":["--sync-peer-transport","direct"]}
     for x in rows:
+        extractor,options=signals[x["signal"]]
+        if x["flags"]!=["--sync-signal",extractor,*options,*mechanism_flags[x["method"]]]:
+            raise ValueError("core signal or mechanism flags differ from fixed contract")
         if x["policy"]!=methods[x["method"]] or (x["regime"],x["seed"],x["k"])!=("clustered",42,3):
             raise ValueError("core matrix changes a fixed condition")
     return rows

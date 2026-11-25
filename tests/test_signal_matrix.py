@@ -18,6 +18,10 @@ class SignalMatrix(unittest.TestCase):
         b=Report(1,0,0,(0,1,2,3),(0.,0.,0.,1.),kind="cka",space="common",sample_count=32,metric="cka")
         self.assertAlmostEqual(distance(a,a),0.)
         self.assertAlmostEqual(distance(a,b),1.)
+    def test_replay_composition_across_task_boundary(self):
+        a=Report(0,1,9,(0,1,2),(5,5,0),kind="replay_composition")
+        b=Report(0,2,10,(0,1,2),(2,2,6),kind="replay_composition")
+        self.assertAlmostEqual(float(distance(a,b)),.6)
     def test_aggregate_bank_not_raw_reports(self):
         args=SimpleNamespace(sync_wire_format="binary",sync_policy="server",sync_bank_reference="aggregate",
             sync_bank_transfer="snapshot",sync_include_self=False,sync_bank_age=5,sync_history=5)

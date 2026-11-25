@@ -1,3 +1,10 @@
+# Active goal override
+
+Only the 27 signal × mechanism configurations in
+configs/sync/core_signal_ledger.jsonl are in the active default campaign.
+Historical expanded and Task-IL catalogs below are optional and out of scope.
+See EXPERIMENT_LEDGER.md for the updated exact signal definitions and caveats.
+
 # Campaign scope update
 
 The default campaign now selects a prespecified economical subset: 50 sync and

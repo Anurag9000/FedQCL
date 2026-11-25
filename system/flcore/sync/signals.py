@@ -195,7 +195,9 @@ class SignalExtractor:
                     torch.nn.functional.cross_entropy(model(xx,t),yy).backward()
                     sketches.append(self.sketch((name,p.grad) for name,p in model.named_parameters() if p.grad is not None))
                 z=np.asarray(sketches)
-                if kind=="gradient_variance_only" and len(z)<2:return None,cost
+                if kind=="gradient_variance_only" and len(z)<2:
+                    cost.update(forward_examples=len(x),backward_examples=len(x),seconds=time.monotonic()-start)
+                    return None,cost
                 v=(z.var(0) if kind=="gradient_variance_only" else np.r_[z.mean(0),z.var(0)]).tolist()
             else:
                 for xx,yy in zip(x.split(c.batch_size),y.split(c.batch_size)):

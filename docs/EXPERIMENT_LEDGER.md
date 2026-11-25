@@ -1,73 +1,66 @@
-# Default core campaign — targeted mechanism tests
+# Active research campaign: exactly 27 training configurations
 
-The production default is now **core**, not the old 3,934-job synchronization
-matrix. Both suites use fixed `fedavg_uniform_er_v1` (plain FedAvg, SGD and
-500 private exemplars/client, uniform task quotas, one pooled replay batch of 13).
-No FEDQCL queue training, FedBuff, alternative learning objective or replay policy.
+The only default campaign is the prespecified 9 signal × 3 mechanism matrix in
+[configs/sync/core_signal_ledger.jsonl](../configs/sync/core_signal_ledger.jsonl).
+It has **30 executable jobs**: one shared dataset generation, one dataset
+validation, 27 training trajectories and one dependency-gated final analysis.
+Do not run Task-IL, full/random baselines, seed sweeps, other signals or the
+extended catalog for this goal. Those separate historical studies remain opt-in.
 
-## Synchronization core: 50 training entries
+| Signal | Extractor / distance | M1 | M2 | M3 |
+|---|---|---|---|---|
+| Replay | Prior-task exemplar class counts / TV | S01-M1 | S01-M2 | S01-M3 |
+| Gradients | Mean gradient CountSketch / cosine | S02-M1 | S02-M2 | S02-M3 |
+| Activations | Fixed common anchor feature means and variances / bounded L2 | S03-M1 | S03-M2 | S03-M3 |
+| Jensen–Shannon | Current label histogram / normalized JS | S04-M1 | S04-M2 | S04-M3 |
+| Mutual information | Plug-in MI between current labels and predictions / bounded L2 | S05-M1 | S05-M2 | S05-M3 |
+| Bayesian | Diagonal empirical-Fisher/Laplace head statistics / bounded L2 | S06-M1 | S06-M2 | S06-M3 |
+| CKA | Aligned public synthetic probe centered Gram / 1 − linear CKA | S07-M1 | S07-M2 | S07-M3 |
+| Gradient variance | Between-minibatch gradient-sketch variance / bounded L2 | S08-M1 | S08-M2 | S08-M3 |
+| Fisher | Empirical diagonal task-head Fisher sketch / bounded L2 | S09-M1 | S09-M2 | S09-M3 |
 
-| Stage | Runs | Design |
-|---|---:|---|
-| Pilot | 29 | Full/random/oldest/own/server/peer on near and separated distributions, seeds 42/43; five policies on changing data, seed 42 |
-| Participant budget | 2 | Random and peer at k=2; reuse k=3 and full pilot |
-| Threshold | 3 | M1/M2/M3 at 0.1 |
-| Protocol ablation | 3 | Own previous, server mean, peer relay |
-| Refresh | 1 | Peer refresh versus original peer |
-| Counterfactual | 1 | Peer single-round omission analysis at the existing sampled rounds |
-| Signals | 3 | Peer with replay, feature and gradient signals |
-| Advanced | 2 | Cached coverage and combined123 |
-| Robustness | 2 | Peer relay under failures with/without fallback |
-| Hard bytes | 2 | Random and peer with 280 MB round cap, 500 MB bootstrap cap |
-| Count matched | 1 | Random with predeclared peer-threshold count schedule |
-| Byte matched | 1 | Random with predeclared peer-threshold byte caps |
-| Total | 50 | All targeted ablations use near, seed 42 |
+M1 compares against its most recent valid local observation, not only its
+last synchronization. M2 receives a server-computed sample-count-weighted
+aggregate of latest compatible accepted reports from other clients, piggybacked
+on downloads; age is conservatively the oldest contributing round. M3
+exchanges reports directly and performs exact representative selection.
+All use fixed k=3, with five clients at bootstrap and deadline priority.
 
-Five datasets and their five validation jobs, two schedule extraction jobs, one
-counterfactual analysis and four final analyses produce 67 ledger entries.
-All training settings and source configurations are inherited from the extended
-catalog. Core is a fixed prespecified subset, not a new training algorithm.
-The core comparison is exploratory: two seeds for primary comparisons, one for
-mechanism checks. Do not claim statistical power, exact matched-byte equality,
-or calibrated harm guarantees. No adaptive predictor fitting, large-scale client
-sweep, full advanced-statistics sweep, or TinyImageNet by default. They remain
-available for explicit follow-up, not automatic scheduling.
+Fixed settings: one shared clustered non-IID CIFAR-100 partition, seed 42
+(partition/training), 5 clients, 5 tasks of 20 classes, 10 rounds/task,
+5 local epochs/round, ResNet-18, plain sample-weighted full-state FedAvg,
+SGD learning rate .005, current batch 13, private 500-example task-balanced
+uniform replay, one pooled replay batch of 13 and mean CE + mean replay CE.
+Selection is pre-training. Model and report information remain as in the
+existing simulator; no new privacy guarantee is claimed. Validation evaluation.
 
-## Task-IL core: 22 training entries
+Replay reports are unavailable before the first memory capture and mostly
+unchanged within a task; allow cross-task comparisons in common replay-label
+coordinates. Other reports remain task-specific. CKA uses 32 aligned public
+synthetic probes, not unpaired private examples; M2 compares to a pooled
+normalized centered Gram reference, not the actual global model's CKA.
+Bayesian inference is head-only approximate; Fisher is head-only empirical;
+gradient variance is between minibatches of projected gradients. The MI
+estimate is finite-sample and scalar. Gradients are compared in shared native
+parameter coordinates, not claimed to be invariant to learned model differences.
 
-All ten original study families are represented. Selective omission of
-intermediate levels is deliberate. Keep the original 48-entry portable matrix
-as an extended catalog. E10-02 is not rerun in core: reuse E05-05 for the width-5
-reference. The core analysis is a dependency-gated ledger job. See
-TASK_IL_EXPERIMENT_SPEC.md for the exact chosen IDs.
-
-## Commands
+Single seed, no full/random baselines: this is a descriptive comparison of
+signals and mechanisms, not a powered confirmatory test or absolute savings
+claim versus full participation. All 27 are required, no automatic expansions.
 
 ```bash
-# Default reduced ledgers
 python scripts/build_job_ledger.py
-python scripts/build_task_il_ledger.py
-# Default reduced campaigns
-bash run_all_sync.sh --all --workers 2 --gpu-ids 0,1
-bash run_all_task_il.sh --workers 2 --gpu-ids 0,1
-# Inspect without training
-bash run_all_sync.sh --dry-run
-bash run_all_task_il.sh --dry-run
-# Extended catalog: explicit opt-in ONLY
-python scripts/build_job_ledger.py --suite extended
-python scripts/build_task_il_ledger.py --suite extended
-SYNC_SUITE=extended bash run_all_sync.sh --all
-TASK_IL_SUITE=extended bash run_all_task_il.sh
+python scripts/run_campaign.py --dry-run
+python scripts/run_campaign.py --estimate-only
+bash run_all_sync.sh --all
 ```
 
-Core resolved ledgers: experiments/job_ledger.jsonl and
-experiments/task_il_core/job_ledger.jsonl. Extended ledgers use separate paths.
-Do not run both profiles concurrently: overlapping scientific runs intentionally
-have the same output identities. Use one authoritative coordinator and reconcile
-existing verified results before adding extensions. The core is the default
-campaign scope; do not expand it automatically. The two-server execution
-framework still requires external coordination and measured resource admission.
-No full production training is implied by ledger validation.
+The no-argument launcher also executes the complete 30-job default ledger.
+Machine-specific resolved ledger: experiments/job_ledger.jsonl.
+Output: research_results/signal-matrix-<commit>/matrix.csv and matrix.json.
+Old checkpoints/results are commit-bound and cannot be blindly reused.
+The separate old Task-IL scripts and explicit extended profile are NOT part
+of the active goal. A multi-host coordinator must still prevent duplicate jobs.
 
 ---
 

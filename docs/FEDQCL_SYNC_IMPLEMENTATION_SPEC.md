@@ -1,3 +1,5 @@
+> **Current executable campaign:** [101-run compact single-seed design](CONTROLLED_CAMPAIGN.md). This document preserves historical methodology and optional extensions; where counts, default suite names, or execution instructions differ, the compact campaign specification and generated ledger are authoritative. All 24 datasets remain independently validated; only six receive full neural trajectories. The former 35,208-run matrix is opt-in `exhaustive`.
+
 # Implementation specification for the three synchronization methods
 
 This is the proposed first implementation for the five-client CIFAR-100 simulator. The [protocol design](FEDQCL_CLIENT_SYNC_PROTOCOLS.md) describes the research variants and the [experiment roadmap](FEDQCL_SYNC_EXPERIMENT_ROADMAP.md) defines how to evaluate them. The defaults below are starting settings for a pilot, not tuned values.

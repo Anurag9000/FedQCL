@@ -115,6 +115,8 @@ def plot(out,summary):
     idx={(r["setting_id"],r["k"],r["selector_id"]):r["final_accuracy_delta_vs_random_mean"] for r in summary if r["selector_id"].startswith("A") and r["selection_mode"]=="fixed"}
     values=[np.array([[idx.get((s,k,a),np.nan) for s in settings] for a in selectors]) for k in (1,2,3,4)]
     scale=max(1e-9,max(float(np.nanmax(np.abs(x))) if np.isfinite(x).any() else 0. for x in values))
+    # Unobserved factorial cells must never look like measured zero effects.
+    values=[np.ma.masked_invalid(x) for x in values]
     fig,axes=plt.subplots(2,2,figsize=(19,16),layout="constrained")
     for k,ax,m in zip((1,2,3,4),axes.ravel(),values):
         im=ax.imshow(m,vmin=-scale,vmax=scale,cmap="RdBu",aspect="auto");ax.set(title=f"k={k}/5: mean accuracy difference vs matched random")
@@ -171,7 +173,11 @@ def analyze(ledger,out):
             summary=json.loads((root/"final_summary.json").read_text());audit=json.loads((root/"analysis/ground_truth_comparison.json").read_text())
             h=summary["ground_truth_hash"]
             if group in hashes and hashes[group]!=h:raise ValueError("mismatched ground truth in "+str(group))
-            if group not in hashes:hashes[group]=h;truths[group]={"setting_id":group[0],"partition_seed":group[1],"ground_truth_hash":h,**truth_stats(root/"ground_truth")}
+            if group not in hashes:
+                hashes[group]=h
+                if compact:
+                    if truths[group]["ground_truth_hash"]!=h:raise ValueError("run differs from independently verified source")
+                else:truths[group]={"setting_id":group[0],"partition_seed":group[1],"ground_truth_hash":h,**truth_stats(root/"ground_truth")}
             row=flatten(job,summary,audit,{k:v for k,v in truths[group].items() if k not in ("setting_id","partition_seed","ground_truth_hash")})
             rows.append(row)
             common={k:row[k] for k in ("experiment_id","selector_id","setting_id","partition_seed","k","selection_mode","threshold","signal","mechanism","ground_truth_hash")}

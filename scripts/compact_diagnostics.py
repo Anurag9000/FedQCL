@@ -32,15 +32,20 @@ def distribution_analysis(jobs,out,truths):
                         handle.write(json.dumps(row,allow_nan=False)+"\n")
 
 def run_diagnostics(root,c,common,subset_file,sensitivity_file):
-    from sys import path
-    path.insert(0,str(Path(__file__).resolve().parents[1]/"system")) if str(Path(__file__).resolve().parents[1]/"system") not in path else None
+    import sys
+    system=str(Path(__file__).resolve().parents[1]/"system")
+    if system not in sys.path:sys.path.insert(0,system)
     from flcore.sync.decision_audit import report
     from flcore.sync.policies import novelty_admit,peer_select,threshold_value,distance
     raw=read_rows(root/"counterfactuals.jsonl");cf={(x["round"],tuple(x["subset"])):x for x in raw}
     cfg=json.loads((root/"config.json").read_text())
     schema=json.loads((root/"model_wire_schema.json").read_text())
-    for x in raw:
-        subset_file.write(json.dumps({**common,**x,"hypothetical_model_tensor_bytes":2*x["size"]*schema["tensor_bytes"],"byte_scope":"model tensors only; actual total logical bytes are in communication logs"},allow_nan=False)+"\n")
+    with np.load(root/"ground_truth/distributions.npz") as z:
+        counts=z["counts"];joint=z["joint_counts"].reshape(*counts.shape[:2],-1)
+        label_dist=1-z["spatial_label"];joint_dist=1-z["spatial_joint"]
+        for x in raw:
+            r=x["round"];s=tuple(x["subset"])
+            subset_file.write(json.dumps({**common,**x,"label_distribution":subset_distribution(counts[r],label_dist[r],s),"joint_distribution":subset_distribution(joint[r],joint_dist[r],s),"hypothetical_model_tensor_bytes":2*x["size"]*schema["tensor_bytes"],"byte_scope":"model tensors only; actual total logical bytes are in communication logs"},allow_nan=False)+"\n")
     if c["mechanism"]=="baseline":return
     rounds=read_rows(root/"rounds.jsonl");decisions=read_rows(root/"decisions.jsonl")
     ids=tuple(range(c["clients"]))

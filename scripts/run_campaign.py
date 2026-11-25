@@ -283,6 +283,7 @@ def main():
         if compact_pending and unfiltered:result.update(planned_training_jobs=101,planned_jobs=151,planned_counterfactual_checkpoints=1010,planned_counterfactual_aggregate_evaluations=32320,note="Current ledger is screening phase; validation shortlist expands to 101 training runs. Estimates above describe currently materialized jobs.")
         print(json.dumps(result,indent=2));return 0
     if a.dry_run:
+        if compact_pending and unfiltered:print("# Screening ledger only: 27 of 101 training runs; the remaining IDs require a verified shortlist. Planned total: 151 jobs.")
         for job in jobs:
             command=job["command"]+(["-dev",a.device,"-did",a.gpu_id] if job["kind"]=="train" else [])
             print(job["id"],job["stage"],shlex.join(command))

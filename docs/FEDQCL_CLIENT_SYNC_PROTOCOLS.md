@@ -1,3 +1,5 @@
+> **Current executable campaign:** [101-run compact single-seed design](CONTROLLED_CAMPAIGN.md). This document preserves historical methodology and optional extensions; where counts, default suite names, or execution instructions differ, the compact campaign specification and generated ledger are authoritative. All 24 datasets remain independently validated; only six receive full neural trajectories. The former 35,208-run matrix is opt-in `exhaustive`.
+
 # Client decisions for selective synchronization
 
 The [first implementation specification](FEDQCL_SYNC_IMPLEMENTATION_SPEC.md) fixes the round sequence, state, message formats, policy rules, and expected behavior for all three methods.

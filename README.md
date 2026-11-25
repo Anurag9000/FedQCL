@@ -199,7 +199,7 @@ test on the target environment before launching all training jobs.
 The expanded campaign includes cached/combined/adaptive selectors, binary reports,
 rich statistics, sparse and lossy peer variants, counterfactual continuations,
 rate matching and scaling to 10/20/50 clients. The historical pilot synchronization ledger has 27 jobs (24 training configurations); separate Task-IL launchers are optional and outside this goal. The historical 3,934-job and 86-job matrices are available only through explicit `--suite extended` (launcher variables `SYNC_SUITE=extended` and `TASK_IL_SUITE=extended`). The active compact campaign automatically expands only after verified screening. The exact matrix and remaining
-limitations are documented in the runbook above. Parallel execution: bash run_all_sync.sh --stage pilot --resume --workers 2 --gpu-ids 0,1. Use --estimate-only to inspect the scope without training. Development uses validation;
+limitations are documented in the runbook above. Parallel execution: bash run_all_sync.sh --stage screening --resume --workers 2 --gpu-ids 0,1. Use --estimate-only to inspect the scope without training. Development uses validation;
 held-out adaptive jobs use separate partition seeds. Do not use --all before
 validating the full-data pilot.
 

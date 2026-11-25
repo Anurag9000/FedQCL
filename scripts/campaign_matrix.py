@@ -13,6 +13,9 @@ def read_catalog():
     c=json.loads(CATALOG.read_text())
     if c["schema"]!=1 or [x["id"] for x in c["settings"]]!=[f"S{i:02d}" for i in range(1,25)] or c["seeds"]!=[42,43,44] or c["budgets"]!=[1,2,3,4] or c["baselines"]!=["random","oldest"] or not c["full_baseline"] or c["thresholds"]!=[.05,.1,.2,.35] or c["matched_controls"]!=["matched_count","matched_bytes"]:
         raise ValueError("comprehensive campaign catalog contract")
+    compact=c.get("compact",{})
+    if compact.get("seed")!=42 or compact.get("screening")!="S14" or compact.get("anchors")!=["S01","S03","S04","S10","S13"] or compact.get("oldest_anchor")!="S04" or compact.get("training_runs")!=101 or compact.get("counterfactual_all_subsets") is not True:
+        raise ValueError("compact campaign catalog contract")
     for entry in c["settings"]:
         s=json.loads((ROOT/entry["path"]).read_text())
         if s["setting_id"]!=entry["id"] or s["setting"]!=entry["kind"]:raise ValueError("setting mismatch")
@@ -83,7 +86,7 @@ def build(output,compact=False,require_shortlist=False):
             if mechanism!="baseline":sources.append((key,ident,cfg,out,cmd,artifacts,dep))
     finalists=None
     if compact:
-        from compact_campaign import compact_cases,choose,shortlist_valid
+        from compact_campaign import compact_cases,shortlist_valid
         for sid,mode,k,tau,x in compact_cases(None):
             add_case(sid,42,mode,k,tau,*x,stage="screening")
         screen=[j for j in jobs if j["kind"]=="train"]
@@ -110,7 +113,7 @@ def build(output,compact=False,require_shortlist=False):
             for flag,value in (("--sync-policy","random"),("--sync-mode","fixed"),("--sync-output",str(out))):cmd[cmd.index(flag)+1]=value
             cmd += ["--sync-count-schedule",str(source_out/("participation_schedule.json" if mode=="matched_count" else "matched_byte_count_schedule.json"))]
             artifacts=[out/p.relative_to(source_out) for p in source_artifacts if p.name not in ("matched_byte_plan.json","matched_byte_count_schedule.json")]
-            training.append(add("baselines","train",ident,cfg,cmd,[dep,key],artifacts))
+            training.append(add("matched" if compact else "baselines","train",ident,cfg,cmd,[dep,key],artifacts))
     result=result_root/"analysis"
     if not compact or finalists is not None:
         if compact:
@@ -124,7 +127,7 @@ def build(output,compact=False,require_shortlist=False):
             cfg={"scope":"controlled_comprehensive","expected_training":35208,"catalog_sha256":hashlib.sha256(CATALOG.read_bytes()).hexdigest()}
         add("postprocess","analysis","compact-analysis" if compact else "comprehensive-analysis",cfg,[sys.executable,"scripts/analyze_controlled_campaign.py","--ledger",str(output.resolve()),"--output",str(result)],deps,[result/name for name in outputs])
         assert len(training)==len(expected)==(101 if compact else 35208) and {j["semantic_id"] for j in jobs if j["kind"]=="train"}==expected
-    assert len(jobs)==(151 if finalists is not None else 76) if compact else len(jobs)==35353
+    assert len(jobs)==((151 if finalists is not None else 76) if compact else 35353)
     assert len({j["id"] for j in jobs})==len(jobs)
     from run_campaign import dependency_order
     dependency_order(jobs)

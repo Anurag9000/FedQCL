@@ -77,7 +77,7 @@ class Training(unittest.TestCase):
             # Execute each active entry on the tiny two-task dataset.
             sys.path.insert(0,str(root/"scripts"))
             from core_suite import read_core_signal_entries
-            cases.extend((entry["id"],entry["policy"],[*entry["flags"],"--sync-windowed","--sync-audit-references","--sync-counterfactual","--sync-controlled-stream","--sync-eval-split","validation"]+ (["--sync-verify-branches"] if entry["id"]=="A01-M1" else [])) for entry in read_core_signal_entries())
+            cases.extend((entry["id"],entry["policy"],[*entry["flags"],"--sync-windowed","--sync-audit-references","--sync-counterfactual","--sync-controlled-stream","--sync-eval-split","validation"]+ (["--sync-verify-branches","--sync-all-subsets"] if entry["id"]=="A01-M1" else [])) for entry in read_core_signal_entries())
             for policy in ("full","random","oldest"):
                 cases.append(("B-"+policy,policy,["--sync-windowed","--sync-audit-references","--sync-counterfactual","--sync-controlled-stream","--sync-eval-split","validation","--sync-k",str(2 if policy=="full" else 1)]))
             for entry in read_core_signal_entries():
@@ -108,6 +108,9 @@ class Training(unittest.TestCase):
                         audit=json.loads((out/"analysis"/"ground_truth_comparison.json").read_text())
                         self.assertEqual(audit["ground_truth_hash"],receipt["ground_truth_hash"])
                         self.assertEqual(len(audit["counterfactuals"]),2)
+                        if name=="A01-M1":
+                            cf=[json.loads(l) for l in (out/"counterfactuals.jsonl").read_text().splitlines()]
+                            for rr in (1,3):self.assertEqual({tuple(x["subset"]) for x in cf if x["round"]==rr},{(),(0,),(1,),(0,1)})
                         self.assertEqual(len(audit["rounds"]),4)
                         if name.startswith("A06"):
                             self.assertLessEqual(audit["summary"]["max_exact_js_error"] or 0.,1e-8)

@@ -1,3 +1,5 @@
+> **Current executable campaign:** [101-run compact single-seed design](CONTROLLED_CAMPAIGN.md). This document preserves historical methodology and optional extensions; where counts, default suite names, or execution instructions differ, the compact campaign specification and generated ledger are authoritative. All 24 datasets remain independently validated; only six receive full neural trajectories. The former 35,208-run matrix is opt-in `exhaustive`.
+
 > The default campaign has been expanded. See [CONTROLLED_CAMPAIGN.md](CONTROLLED_CAMPAIGN.md). This document describes the original single-stream pilot and shared ground-truth infrastructure.
 
 # Controlled-stream experiment contract

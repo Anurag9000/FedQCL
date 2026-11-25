@@ -28,8 +28,6 @@ class CoreLedgers(unittest.TestCase):
         self.assertIn(len(sync),(76,151))
         self.assertTrue(all(j["config"]["controlled_stream"] and "--sync-windowed" in j["command"] and "--sync-counterfactual" in j["command"] for j in train(sync)))
         from compact_campaign import compact_ids
-        from unittest.mock import patch
-        from campaign_matrix import build
         self.assertEqual({j["config"]["training_seed"] for j in train(sync)},{42})
         self.assertEqual(len([j for j in sync if j["kind"]=="validate"]),24)
         self.assertTrue(all("--sync-all-subsets" in j["command"] for j in train(sync)))
@@ -38,8 +36,7 @@ class CoreLedgers(unittest.TestCase):
         if len(train(sync))==27:self.assertEqual({j["semantic_id"] for j in train(sync)},compact_ids(None))
         finalists={"M1":"A06-M1","M2":"A08-M2","M3":"A01-M3"}
         self.assertEqual(len(compact_ids(finalists)),101)
-        # A synthetic shortlist exercises full materialization without training or test leakage.
-        import tempfile
+        # Full expansion is exercised in test_compact_campaign.py.
         from compact_campaign import compact_cases
         self.assertEqual(len(compact_cases(finalists)),77)
         self.assertEqual(len({s for s,*_ in compact_cases(finalists)}),6)

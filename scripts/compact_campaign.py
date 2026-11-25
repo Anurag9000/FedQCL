@@ -58,10 +58,18 @@ def choose(screen,verify=True):
         root=Path(job["artifacts"][0]).parent
         summary=json.loads((root/"final_summary.json").read_text())
         audit=json.loads((root/"analysis/ground_truth_comparison.json").read_text())
-        fingerprints[job["semantic_id"]]={str(p.relative_to(root)):sha_file(p) for p in (root/"server_metrics.jsonl",root/"analysis/ground_truth_comparison.json")}
+        metrics=[json.loads(l) for l in (root/"server_metrics.jsonl").read_text().splitlines()]
+        if summary["evaluation_split"]!="validation" or any(x.get("evaluation_split","validation")!="validation" for x in metrics):raise ValueError("screening requires validation metrics")
+        final=[x for x in metrics if x["round"]==job["config"]["rounds"]-1]
+        if len(final)!=job["config"]["tasks"]:raise ValueError("incomplete screening final tasks")
+        accuracy=sum(x["accuracy"] for x in final)/len(final)
+        old=[max(x["accuracy"] for x in metrics if x["task"]==v["task"])-v["accuracy"] for v in final if v["task"]<job["config"]["tasks"]-1]
+        forgetting=sum(old)/len(old) if old else 0.
+        if not math.isclose(summary["final_accuracy"],accuracy,abs_tol=1e-12) or not math.isclose(summary["forgetting"],forgetting,abs_tol=1e-12):raise ValueError("screening summary differs from validation")
+        fingerprints[job["semantic_id"]]={str(p.relative_to(root)):sha_file(p) for p in (root/"server_metrics.jsonl",root/"analysis/ground_truth_comparison.json",root/"communication_summary.json")}
         selector=job["config"]["selector_id"]
         if selector.startswith("A"):
-            evidence.append({"selector_id":selector,"final_accuracy":summary["final_accuracy"],"forgetting":summary["forgetting"],"total_bytes":summary["total_bytes"],"mean_joint_coverage_regret":audit["summary"]["mean_joint_coverage_regret"]})
+            evidence.append({"selector_id":selector,"final_accuracy":accuracy,"forgetting":forgetting,"total_bytes":summary["total_bytes"],"mean_joint_coverage_regret":audit["summary"]["mean_joint_coverage_regret"]})
     finalists,scores=rank(evidence)
     return {"schema":1,"source_commit":screen[0]["source_commit"],"catalog_sha256":sha_file(CATALOG),"selection_rule":"within-mechanism equal rank sum of validation final accuracy, forgetting, total bytes, joint coverage regret; ties by selector ID; no held-out metrics","finalists":finalists,"scores":scores,"source_validation_hashes":fingerprints}
 

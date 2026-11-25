@@ -29,3 +29,53 @@ class CompactCampaign(unittest.TestCase):
         a=next(x for x in summary if x["selector_id"]=="A01-M1")
         self.assertEqual(a["n_seeds"],1);self.assertIsNone(a["final_accuracy_delta_vs_random_sd"]);self.assertIsNone(a["final_accuracy_delta_vs_random_ci95_low"])
         self.assertNotIn("final_accuracy_delta_vs_oldest_mean",a)
+
+    def test_full_ledger_materialization(self):
+        from unittest.mock import patch
+        from tempfile import TemporaryDirectory
+        from campaign_matrix import build
+        from run_campaign import dependency_order,estimate
+        import json
+        finalists={"M1":"A06-M1","M2":"A08-M2","M3":"A01-M3"}
+        original=Path.read_text
+        def fake_receipt(path,*a,**kw):
+            if path.name=="shortlist.json":return json.dumps({"finalists":finalists})
+            return original(path,*a,**kw)
+        with TemporaryDirectory() as tmp:
+            dest=Path(tmp)/"ledger.jsonl"
+            with patch("compact_campaign.shortlist_valid",return_value=False):
+                initial=build(dest,compact=True)
+                with self.assertRaises(ValueError):build(dest,compact=True,require_shortlist=True)
+            with patch("compact_campaign.shortlist_valid",return_value=True),patch.object(Path,"read_text",fake_receipt):
+                expanded=build(dest,compact=True,require_shortlist=True)
+            self.assertEqual(len(initial),76);self.assertEqual(len(expanded),151)
+            self.assertEqual(expanded[:len(initial)],initial)
+            train=[j for j in expanded if j["kind"]=="train"]
+            self.assertEqual({j["semantic_id"] for j in train},compact_ids(finalists))
+            self.assertEqual({j["config"]["training_seed"] for j in train},{42})
+            self.assertTrue(all("--sync-all-subsets" in j["command"] for j in train))
+            by_id=dependency_order(expanded)
+            shortlist=initial[-1]["id"]
+            for j in train:
+                if j["config"]["selection_mode"].startswith("matched_"):
+                    source=by_id[j["dependencies"][1]]
+                    self.assertEqual(source["semantic_id"],j["config"]["source_experiment_id"])
+                    self.assertEqual(source["config"]["selection_mode"],"threshold")
+                    self.assertIn(shortlist,source["dependencies"])
+                elif j["stage"]!="screening":self.assertIn(shortlist,j["dependencies"])
+            self.assertEqual(len(expanded[-1]["dependencies"]),126)
+            work=estimate(expanded)
+            self.assertEqual(work["training_jobs"],101)
+            self.assertEqual(work["counterfactual_checkpoints"],1010)
+            self.assertEqual(work["counterfactual_aggregate_evaluations"],32320)
+
+    def test_distribution_subset_diagnostics(self):
+        import numpy as np
+        from compact_diagnostics import subset_distribution,subsets
+        counts=np.eye(5)
+        dist=1-np.eye(5)
+        self.assertEqual(len(subsets(5)),32)
+        self.assertEqual(subset_distribution(counts,dist,()),{"coverage_error":None,"mass_error":None})
+        self.assertAlmostEqual(subset_distribution(counts,dist,(0,1))["coverage_error"],.6)
+        self.assertAlmostEqual(subset_distribution(counts,dist,(0,1))["mass_error"],.6)
+        self.assertEqual(subset_distribution(counts,dist,tuple(range(5))),{"coverage_error":0.,"mass_error":0.})

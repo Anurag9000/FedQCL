@@ -16,19 +16,24 @@ CORE_TASK_IL_IDS=(
     "E10-01","E10-03",
 )
 
-CORE_SIGNAL_COUNT=9
+CORE_SIGNAL_COUNT=24
 PUBLIC_PROBE_PER_CLASS=4
 def read_core_signal_entries():
     import json
     from pathlib import Path
     rows=[json.loads(line) for line in (Path(__file__).resolve().parents[1]/"configs/sync/core_signal_ledger.jsonl").read_text().splitlines() if line.strip()]
-    signals={"class_conditional_features":("tier_a_features",[]),
-             "replay_aware_gradients":("tier_a_gradients",["--sync-native-space"]),
-             "functional_predictions":("tier_a_functional",[])}
+    signals={"activation_distribution":("tier_a_features",[]),
+             "functional_predictions":("tier_a_functional",[]),
+             "replay_loss_forgetting":("tier_a_replay_loss",[]),
+             "gradient_interference":("tier_a_interference",["--sync-native-space"]),
+             "class_conditional_prototypes":("tier_a_prototypes",[]),
+             "current_historical_js":("tier_a_distributions",[]),
+             "model_update_similarity":("tier_a_cached_update",["--sync-native-space"]),
+             "replay_aware_gradients":("tier_a_gradients",["--sync-native-space"])}
     methods={"M1":"own","M2":"server","M3":"peer"}
     mechanism_flags={"M1":["--sync-local-reference","last_sync"],"M2":["--sync-bank-reference","aggregate"],"M3":["--sync-peer-transport","direct"]}
     if len(rows)!=CORE_SIGNAL_COUNT or len({x["id"] for x in rows})!=CORE_SIGNAL_COUNT or {(x["signal"],x["method"]) for x in rows}!={(s,m) for s in signals for m in methods}:
-        raise ValueError("core requires exactly three merged Tier-A signal families crossed with three mechanisms")
+        raise ValueError("core requires exactly eight high-priority signal families crossed with three mechanisms")
     for x in rows:
         extractor,options=signals[x["signal"]]
         if x["flags"]!=["--sync-signal",extractor,*options,*mechanism_flags[x["method"]]]:

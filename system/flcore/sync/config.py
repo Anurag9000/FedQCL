@@ -46,7 +46,7 @@ def add_arguments(parser):
     p.add_argument("--sync-posttrain",action="store_true")
     p.add_argument("--sync-bank-transfer",choices=["snapshot","delta"],default="snapshot")
     p.add_argument("--sync-failures",help="JSON mapping round to upload/reject/download client IDs")
-    p.add_argument("--sync-signal",choices=["histogram","replay","feature","gradient","update","replay_histogram","prototypes","feature_covariance","spectral","parameter_norms","normalization","predictions","loss","uncertainty","entropy","jacobian","fisher","gradient_variance","multichannel","gradient_conflict","information","temporal","bayesian_head","representation_anchor","replay_diagnostics","fisher_full","parameter_jacobian","head_hessian","conditional_moments","replay_composition","mutual_information","cka","gradient_variance_only","tier_a_features","tier_a_gradients","tier_a_functional"],default="histogram")
+    p.add_argument("--sync-signal",choices=["histogram","replay","feature","gradient","update","replay_histogram","prototypes","feature_covariance","spectral","parameter_norms","normalization","predictions","loss","uncertainty","entropy","jacobian","fisher","gradient_variance","multichannel","gradient_conflict","information","temporal","bayesian_head","representation_anchor","replay_diagnostics","fisher_full","parameter_jacobian","head_hessian","conditional_moments","replay_composition","mutual_information","cka","gradient_variance_only","tier_a_features","tier_a_gradients","tier_a_functional","tier_a_replay_loss","tier_a_interference","tier_a_prototypes","tier_a_distributions","tier_a_cached_update"],default="histogram")
     p.add_argument("--sync-histogram-distance",choices=["tv","js","hellinger"],default="tv")
     p.add_argument("--sync-sketch-dim",type=int,default=128)
     p.add_argument("--sync-byte-cap",type=int,default=0,help="Hard logical bytes per round including bootstrap")
@@ -151,8 +151,8 @@ def validate(a):
     if a.sync_signal.startswith("tier_a_"):
         if a.sync_wire_format not in ("binary","json") or a.sync_posttrain:
             raise ValueError("Tier-A reports require full-precision pre-training selection")
-        if a.sync_signal=="tier_a_gradients" and not a.sync_native_space:
-            raise ValueError("Tier-A gradient sketches explicitly compare native coordinates")
+        if a.sync_signal in ("tier_a_gradients","tier_a_interference","tier_a_cached_update") and not a.sync_native_space:
+            raise ValueError("gradient and update sketches explicitly compare native coordinates")
     if a.sync_bank_reference=="aggregate" and (a.sync_bank_transfer!="snapshot" or a.sync_signal=="multichannel"):
         raise ValueError("aggregate reference requires snapshot transfer and poolable signal")
     if a.sync_signal=="multichannel" and (a.sync_local_reference=="window" or a.sync_bank_reference in ("mean","weighted_mean","envelope")):

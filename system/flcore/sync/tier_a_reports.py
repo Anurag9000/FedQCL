@@ -20,8 +20,9 @@ def valid_layout(report):
         for name,group,n,metric,support,v in blocks(report):
             if name in names or group not in ("current","past") or type(n)!=int or n<1 or len(v)!=n or support<0 or not math.isfinite(support):return False
             names.add(name)
-            if metric not in ("relative","moments","js") or (metric=="moments" and n%2):return False
+            if metric not in ("relative","moments","js","unit_l1") or (metric=="moments" and n%2):return False
             if support==0 and any(v):return False
+            if support and metric=="unit_l1" and any(x<0 or x>1 for x in v):return False
             if support and metric=="js" and (min(v)<0 or sum(v)<=0):return False
             available|=support>0
         return available
@@ -40,6 +41,7 @@ def report_distance(a,b):
         if not sa and not sb:continue
         if not sa or not sb:d=1.
         elif metric=="relative":d=relative(x,y)
+        elif metric=="unit_l1":d=sum(abs(u-v) for u,v in zip(x,y))/n
         elif metric=="js":
             from .statistics import js
             d=js(x,y) # equal-mass ordered probability rows => mean row JS

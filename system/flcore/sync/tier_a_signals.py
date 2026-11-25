@@ -1,10 +1,10 @@
-"""Merged Tier-A extractors; private replay never leaves client observation."""
+"""Eight high-priority extractors; private replay never leaves client observation."""
 import copy,math,random,time,hashlib
 from pathlib import Path
 import numpy as np
 import torch
 from torch.utils.data import default_collate
-from .backbone import sample_replay,replay_ce
+from .backbone import sample_replay
 from .signals import seed
 from .tier_a_reports import make_layout
 
@@ -70,6 +70,35 @@ def extract(ex,c,data,t,r,version,kind):
         cost["seconds"]=time.monotonic()-start
         if not support_total:return None,cost
         return ex._vector(c,t,r,version,kind,make_layout(layout,coordinate),values,support_total,"tier_a"),cost
+    if kind=="tier_a_cached_update":
+        cache=c.signal_history.get("tier_a_update_cache")
+        age=r-cache["round"] if cache is not None else None
+        usable=cache is not None and cache["task"]==t and 1<=age<=ex.args.sync_bank_age
+        cost["cached_update_age"]=age if usable else None
+        cost["cached_update_source_round"]=cache["round"] if usable else None
+        if usable:
+            put("completed_update","current",len(cache["values"]),"relative",cache["samples"],cache["values"])
+            from dataclasses import replace
+            return replace(finish("cached_native_parameter_update")[0],window=f"cached_update:{cache['round']}",model_version=cache["start_version"]),cost
+        return finish("cached_native_parameter_update")
+    if kind=="tier_a_replay_loss":
+        for k in range(t):
+            loss=cost["replay_loss_by_task"].get(k)
+            change=cost["replay_loss_change_by_task"].get(k,0.)
+            v=[loss/(1+loss),.5*(1+change/(1+abs(change)))] if loss is not None else []
+            put(f"past_loss_{k}","past",2,"unit_l1",min(32,len(c.task_memories.get(k,[]))) if loss is not None else 0,v)
+        return finish("fixed_within_task_replay_loss_v1")
+    if kind=="tier_a_distributions":
+        current=[0]*c.classes_per_task
+        for _,label in data:current[int(label)%c.classes_per_task]+=1
+        put("current_labels","current",c.classes_per_task,"js",sum(current),
+            [v/sum(current) for v in current] if sum(current) else [])
+        past=[0]*(c.num_tasks*c.classes_per_task)
+        for k,items in c.task_memories.items():
+            if k<t:
+                for _,label in items:past[k*c.classes_per_task+int(label)%c.classes_per_task]+=1
+        put("historical_labels","past",len(past),"js",sum(past),[v/sum(past) for v in past] if sum(past) else [])
+        return finish("current_and_pooled_replay_label_distributions_v1")
     if kind=="tier_a_functional":
         for k in range(t+1):
             x=public_inputs(ex,c,k)
@@ -81,14 +110,34 @@ def extract(ex,c,data,t,r,version,kind):
     probe=ex._probe(c,data,t,r)
     if probe is None:return finish("unavailable")
     x,y=probe
-    if kind=="tier_a_gradients":
+    if kind in ("tier_a_gradients","tier_a_interference"):
         model.zero_grad(set_to_none=True)
         for xx,yy in zip(x.split(c.batch_size),y.split(c.batch_size)):
             (torch.nn.functional.cross_entropy(model(xx,t),yy,reduction="sum")/len(x)).backward()
-        current=ex.sketch((n,p.grad) for n,p in model.named_parameters() if p.grad is not None)
+        current=ex.sketch((n,p.grad) for n,p in model.named_parameters() if p.grad is not None) if kind=="tier_a_gradients" else None
         current_shared=ex.sketch((n,p.grad) for n,p in model.named_parameters() if p.grad is not None and not n.startswith("heads."))
-        put("current_gradient","current",len(current),"relative",len(x),current)
+        if kind=="tier_a_gradients":put("current_gradient","current",len(current),"relative",len(x),current)
         cost["forward_examples"]+=len(x);cost["backward_examples"]+=len(x)
+        if kind=="tier_a_interference":
+            details={}
+            for k in range(t):
+                if k not in groups:
+                    put(f"interference_{k}","past",2,"unit_l1",0,[])
+                    continue
+                xx,yy=groups[k]
+                model.zero_grad(set_to_none=True)
+                for bx,by in zip(xx.split(c.batch_size),yy.split(c.batch_size)):
+                    (torch.nn.functional.cross_entropy(model(bx,k),by,reduction="sum")/len(xx)).backward()
+                old=ex.sketch((n,p.grad) for n,p in model.named_parameters() if p.grad is not None and not n.startswith("heads."))
+                dot=sum(a*b for a,b in zip(current_shared,old))
+                den=math.sqrt(sum(v*v for v in current_shared)*sum(v*v for v in old))
+                cosine=max(-1.,min(1.,dot/den)) if den else 0.
+                risk=max(0.,-dot)
+                details[k]={"cosine":cosine,"negative_inner_product":risk}
+                put(f"interference_{k}","past",2,"unit_l1",len(xx),[(1-cosine)/2,risk/(1+risk)])
+                cost["forward_examples"]+=len(xx);cost["backward_examples"]+=len(xx)
+            cost["gradient_interference_by_task"]=details
+            return finish("per_past_task_shared_gradient_interference_v1")
         model.zero_grad(set_to_none=True)
         count=sum(len(yy) for _,yy in groups.values())
         if count:
@@ -103,7 +152,7 @@ def extract(ex,c,data,t,r,version,kind):
         else:replay=[];cost["gradient_interference_cosine"]=None
         put("replay_gradient","past",len(current),"relative",count,replay)
         return finish("shared_native_parameter_coordinates")
-    if kind!="tier_a_features":raise ValueError("unknown Tier-A signal")
+    if kind not in ("tier_a_features","tier_a_prototypes"):raise ValueError("unknown high-priority signal")
     # Every client already receives the same bootstrap global model at round 0.
     # Freeze its backbone as a learned, common coordinate system for later probes.
     if ex.anchor is None or not getattr(ex,"tier_a_anchor_ready",False):
@@ -123,6 +172,14 @@ def extract(ex,c,data,t,r,version,kind):
         for label in range(c.classes_per_task):
             q=z[labels==label] if z is not None else None
             n=len(q) if q is not None else 0
-            v=torch.cat((q.mean(0),q.square().mean(0))).tolist() if n else []
-            put(f"task_{k}_class_{label}","current" if k==t else "past",2*dim,"moments",n,v)
+            moments=kind=="tier_a_features"
+            v=(torch.cat((q.mean(0),q.square().mean(0))) if moments else q.mean(0)).tolist() if n else []
+            put(f"task_{k}_class_{label}","current" if k==t else "past",2*dim if moments else dim,"moments" if moments else "relative",n,v)
     return finish(f"frozen_bootstrap_encoder:{ex.args.seed}:{dim}")
+
+def cache_completed_update(ex,c,start,t,r,version):
+    """Cache actual completed local parameter delta BEFORE model download."""
+    delta=ex.after(c,start,t,r,version)[0]
+    if not delta.valid():raise ValueError("invalid completed local update")
+    c.signal_history["tier_a_update_cache"]={"round":r,"task":t,"start_version":version,
+        "samples":c.current_samples,"values":delta.counts}

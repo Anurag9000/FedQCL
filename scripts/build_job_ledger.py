@@ -62,7 +62,7 @@ def build(output,tiny_root=None,suite="core"):
         total_rounds=tasks*10
         cfg={"backbone":BACKBONE,"memory":500,"replay_batch":13,"policy":policy,"regime":regime,"partition_seed":seed,"training_seed":training_seed,"evaluation_split":split,"dataset":dataset,"tasks":tasks,"rounds":total_rounds,
              "k":n if policy=="full" else k,"flags":list(flags),"clients":n}
-        if entry is not None:cfg.update(signal=entry["signal"],mechanism=entry["method"],experiment_id=entry["id"])
+        if entry is not None:cfg.update(signal=entry["signal"],mechanism=entry["method"],experiment_id=entry["id"],selection_timing="pretrain",public_probe_per_class=PUBLIC_PROBE_PER_CLASS)
         key=hashlib.sha256(json.dumps([cfg,commit],sort_keys=True).encode()).hexdigest()[:16]
         out=ROOT/"research_results"/key
         command=[sys.executable,"main.py","-data",str(folder),"-m","resnet18","-algo","FedAvg",
@@ -75,7 +75,7 @@ def build(output,tiny_root=None,suite="core"):
         for entry in read_core_signal_entries():
             run("signals",entry["policy"],entry["regime"],entry["seed"],entry["k"],flags=entry["flags"],entry=entry)
         training=[j["id"] for j in jobs if j["kind"]=="train"]
-        if len(training)!=CORE_SIGNAL_COUNT:raise ValueError("core must contain exactly nine training jobs")
+        if len(training)!=CORE_SIGNAL_COUNT:raise ValueError("core must contain exactly 24 training jobs")
         results=ROOT/"research_results"/("signal-matrix-"+commit[:12])
         add("postprocess","analysis",{"scope":"signal_matrix"},
             [sys.executable,"scripts/analyze_signal_matrix.py","--ledger",str(output.resolve()),"--output",str(results)],

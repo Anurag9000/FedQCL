@@ -118,9 +118,10 @@ class Controller:
             local=self.local[i]
             if self.args.sync_bank_reference=="aggregate":
                 from dataclasses import replace
+                from .policies import evidence_round
                 groups={}
                 for x in records:
-                    if (not self.args.sync_include_self and x.client==i) or not x.valid() or not 0<=r-x.round<=self.args.sync_bank_age:continue
+                    if (not self.args.sync_include_self and x.client==i) or not x.valid() or not 0<=r-evidence_round(x)<=self.args.sync_bank_age:continue
                     key=(x.task,x.labels,x.schema,x.kind,x.space,x.metric,x.histogram_distance)
                     group=groups.setdefault(key,{})
                     if x.client not in group or group[x.client].round<x.round:group[x.client]=x
@@ -128,7 +129,7 @@ class Controller:
                 for group in groups.values():
                     members=list(group.values())
                     aggregate=pooled(members,members[0],weighted=True)
-                    aggregates.append(replace(aggregate,round=min(x.round for x in members)))
+                    aggregates.append(replace(aggregate,round=min(evidence_round(x) for x in members)))
                 payload=self.transport.send(r,phase,"server",i,"BANK_AGGREGATE",
                     {"version":self.bank_version,"records":[asdict(x) for x in aggregates]})
                 local.bank=tuple(Report(**{**x,"labels":tuple(x["labels"]),"counts":tuple(x["counts"])}) for x in payload["records"])

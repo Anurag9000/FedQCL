@@ -54,6 +54,10 @@ class Training(unittest.TestCase):
                           ("tier_a_features","server",("--sync-signal","tier_a_features","--sync-bank-reference","aggregate")),
                           ("tier_a_gradients","own",("--sync-signal","tier_a_gradients","--sync-native-space")),
                           ("tier_a_functional","peer",("--sync-signal","tier_a_functional"))])
+            # Execute each active entry on the tiny two-task dataset.
+            sys.path.insert(0,str(root/"scripts"))
+            from core_suite import read_core_signal_entries
+            cases.extend((entry["id"],entry["policy"],entry["flags"]) for entry in read_core_signal_entries())
             for name,policy,extra in cases:
                 out=run(name,policy,extra)
                 if name=="aggregate_cka":
@@ -61,10 +65,17 @@ class Training(unittest.TestCase):
                 rounds=[json.loads(l) for l in (out/"rounds.jsonl").read_text().splitlines()]
                 self.assertEqual(rounds[0]["selected"],[0,1])
                 self.assertEqual(len(rounds),4)
-                if name.startswith("tier_a_"):
+                if name.startswith("tier_a_") or name.startswith("A0"):
                     self.assertTrue(any(v is not None for row in rounds[1:] for v in row["sampled_reports"].values()))
                     self.assertTrue(all("replay_loss_by_task" in v for row in rounds for v in row["probe_cost"].values()))
                     self.assertTrue(any(v["replay_loss_by_task"] for v in rounds[-1]["probe_cost"].values()))
+                    if "tier_a_cached_update" in extra:
+                        for row in rounds:
+                            for i,report in row["sampled_reports"].items():
+                                if report is not None:
+                                    source=row["probe_cost"][i]["cached_update_source_round"]
+                                    self.assertLess(source,row["round"]);self.assertEqual(rounds[source]["task"],row["task"])
+                                    self.assertIn(int(i),rounds[source]["trained"])
                 for row in rounds:
                     self.assertEqual(row["selected"],row["trained"])
                     self.assertEqual(row["accepted"],row["downloaded"])

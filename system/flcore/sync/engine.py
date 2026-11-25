@@ -277,7 +277,7 @@ def run_research(args):
     device=torch.device(a.device)
     model=copy.deepcopy(a.model).to(device)
     from .signals import SignalExtractor
-    extractor=SignalExtractor(a,copy.deepcopy(a.model) if a.sync_signal in ("feature","prototypes","feature_covariance","spectral","multichannel","representation_anchor","conditional_moments","tier_a_features") else None)
+    extractor=SignalExtractor(a,copy.deepcopy(a.model) if a.sync_signal in ("feature","prototypes","feature_covariance","spectral","multichannel","representation_anchor","conditional_moments","tier_a_features","tier_a_prototypes") else None)
     clients=[]
     for i in range(a.num_clients):
         task0=os.path.join(a.dataset,"task_0")
@@ -305,7 +305,7 @@ def run_research(args):
         if state["signature"]!=signature:
             raise ValueError("checkpoint configuration mismatch")
         model.load_state_dict(state["server"])
-        if a.sync_signal=="tier_a_features":
+        if a.sync_signal in ("tier_a_features","tier_a_prototypes"):
             if state.get("tier_a_anchor") is None:raise ValueError("missing learned feature anchor in checkpoint")
             extractor.anchor.load_state_dict(state["tier_a_anchor"]);extractor.tier_a_anchor_ready=True
         for c,s in zip(clients,state["clients"]):
@@ -390,11 +390,18 @@ def run_research(args):
                     ctl.local[i].local_revision=0
                     starts[i]=ctl.model_version
                 begin=time.monotonic()
-                if a.sync_signal=="update":
+                if a.sync_signal in ("update","tier_a_cached_update"):
+                    snapshot_started=time.monotonic()
                     update_starts[i]=extractor.snapshot(c)
+                    if a.sync_signal=="tier_a_cached_update":probe_cost[i]["update_cache_seconds"]=time.monotonic()-snapshot_started
                 c.train_round(r,t,datasets[i])
                 ctl.local[i].local_revision+=1
                 trained.append(i)
+                if a.sync_signal=="tier_a_cached_update":
+                    from .tier_a_signals import cache_completed_update
+                    cache_started=time.monotonic()
+                    cache_completed_update(extractor,c,update_starts.pop(i),t,r,starts[i])
+                    probe_cost[i]["update_cache_seconds"]+=time.monotonic()-cache_started
                 if a.sync_signal=="update":
                     reports[i],probe_cost[i]=extractor.after(c,update_starts.pop(i),t,r,starts[i])
                     reports[i],probe_cost[i]["quantization_l2"]=quantize_report(reports[i],a.sync_wire_format)
@@ -464,7 +471,7 @@ def run_research(args):
                     raise RuntimeError("byte-cap invariant violated")
             if r==0 and len(downloaded)!=a.num_clients:
                 raise RuntimeError("bootstrap download incomplete")
-            if r==0 and a.sync_signal=="tier_a_features":
+            if r==0 and a.sync_signal in ("tier_a_features","tier_a_prototypes"):
                 extractor.anchor.load_state_dict(model.state_dict());extractor.anchor.eval();extractor.tier_a_anchor_ready=True
             boundary=(r+1)%rpt==0
             if boundary:
@@ -504,7 +511,7 @@ def run_research(args):
             if a.sync_counterfactual:
                 write_jsonl(out/'counterfactuals.jsonl',counterfactual_rows)
             if a.sync_checkpoint:
-                save_checkpoint(ckpt,r,model,clients,ctl,metrics,rounds,signature,counterfactual_rows,extractor.anchor.state_dict() if a.sync_signal=="tier_a_features" else None)
+                save_checkpoint(ckpt,r,model,clients,ctl,metrics,rounds,signature,counterfactual_rows,extractor.anchor.state_dict() if a.sync_signal in ("tier_a_features","tier_a_prototypes") else None)
             if a.sync_stop_after_round is not None and r==a.sync_stop_after_round and r<a.global_rounds:
                 atomic_json(out/"status.json",{"status":"paused","last_committed_round":r})
                 return None

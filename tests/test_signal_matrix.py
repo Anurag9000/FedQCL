@@ -9,8 +9,9 @@ from flcore.sync.protocol import Controller
 class SignalMatrix(unittest.TestCase):
     def test_exact_matrix(self):
         rows=read_core_signal_entries()
-        self.assertEqual(len(rows),9)
-        self.assertEqual(len({(x["signal"],x["method"]) for x in rows}),9)
+        self.assertEqual(len(rows),24)
+        self.assertEqual(len({(x["signal"],x["method"]) for x in rows}),24)
+        self.assertEqual(len({x["flags"][1] for x in rows}),8)
         for x in rows:
             self.assertIn({"M1":"last_sync","M2":"aggregate","M3":"direct"}[x["method"]],x["flags"])
     def test_cka_gram_distance(self):
@@ -54,3 +55,26 @@ class SignalMatrix(unittest.TestCase):
         a=Report(0,0,0,tuple(range(5)),(2.,1.,0.,1.,0.),kind="tier_a_functional",space=sp,sample_count=2,metric="tier_a")
         b=Report(1,0,0,tuple(range(5)),(2.,1.,0.,0.,1.),kind="tier_a_functional",space=sp,sample_count=2,metric="tier_a")
         self.assertAlmostEqual(distance(a,b),.5)
+    def test_current_and_historical_js_pooled_by_support(self):
+        from flcore.sync.tier_a_reports import make_layout
+        from flcore.sync.policies import pooled
+        sp=make_layout([("now","current",2,"js"),("old","past",2,"js")],"test")
+        a=Report(0,1,0,tuple(range(6)),(2.,1.,0.,0.,0.,0.),kind="tier_a_distributions",space=sp,sample_count=2,metric="tier_a")
+        b=Report(1,1,0,tuple(range(6)),(6.,0.,1.,4.,.5,.5),kind="tier_a_distributions",space=sp,sample_count=10,metric="tier_a")
+        self.assertAlmostEqual(distance(a,b),1.)
+        self.assertEqual(pooled([a,b],a).counts,(8.,.25,.75,4.,.5,.5))
+    def test_cached_update_source_age(self):
+        from flcore.sync.tier_a_reports import make_layout
+        sp=make_layout([("u","current",2,"relative")],"test")
+        a=Report(0,1,6,(0,1,2),(1.,1.,0.),window="cached_update:1",kind="tier_a_cached_update",space=sp,sample_count=1,metric="tier_a")
+        from dataclasses import replace
+        b=replace(a,client=1,window="cached_update:5")
+        self.assertEqual(bank_score(b,[a],7,age=5), (None,None))
+    def test_unit_l1_distance(self):
+        from flcore.sync.tier_a_reports import make_layout
+        from dataclasses import replace
+        sp=make_layout([("loss","past",2,"unit_l1")],"test")
+        a=Report(0,1,1,(0,1,2),(3.,0.,1.),kind="tier_a_replay_loss",space=sp,sample_count=3,metric="tier_a")
+        b=replace(a,counts=(3.,1.,0.))
+        self.assertAlmostEqual(distance(a,b),1.)
+        self.assertFalse(replace(a,counts=(3.,1.1,0.)).valid())

@@ -67,6 +67,13 @@ def valid(job):
             if any(len(x["selected"])!=(5 if i==0 else 3) or x["selected"]!=x["accepted"] or x["accepted"]!=x["downloaded"] for i,x in enumerate(rounds)):return False
             if entry["method"]=="M2" and not any(e["kind"]=="BANK_AGGREGATE" for e in events):return False
             if not any(report is not None for row in rounds[1:] for report in row["sampled_reports"].values()):return False
+            if entry["signal"]=="model_update_similarity":
+                for row in rounds:
+                    for i,report in row["sampled_reports"].items():
+                        if report is None:continue
+                        src=row["probe_cost"][i]["cached_update_source_round"]
+                        if not 0<=src<row["round"] or not report["window"].startswith("cached_update:") or int(report["window"].split(":")[1])!=src:return False
+                        if i not in [str(c) for c in rounds[src]["trained"]] or rounds[src]["task"]!=row["task"]:return False
             if any("replay_loss_by_task" not in cost for row in rounds for cost in row["probe_cost"].values()):return False
         n=job["config"].get("rounds",50);tasks=job["config"].get("tasks",5)
         if job["config"].get("campaign") in ("task_il_48","task_il_joint"):

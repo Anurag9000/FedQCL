@@ -116,9 +116,15 @@ def pooled(records, template, weighted=True):
     return Report(-1, template.task, max(x.round for x in records),
                   template.labels, counts, "pooled",kind=template.kind,space=template.space,metric=template.metric,histogram_distance=template.histogram_distance)
 
+def evidence_round(report):
+    """Cached update age is measured from training, not the report resend."""
+    if report.kind=="tier_a_cached_update" and report.window.startswith("cached_update:"):
+        return int(report.window.split(":",1)[1])
+    return report.round
+
 def bank_score(report, bank, round_id, age=5, include_self=False, kind="latest"):
     records = [x for x in bank if (include_self or x.client != report.client)
-               and 0 <= round_id-x.round <= age and distance(report,x) is not None]
+               and 0 <= round_id-evidence_round(x) <= age and distance(report,x) is not None]
     if kind=="aggregate":
         records=[x for x in records if x.client==-1]
         if not records:return None,None

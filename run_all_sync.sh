@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
-# Core is the default; the historical combinatorial suite requires explicit opt-in.
+# Core: exactly 24 training configurations (8 signals x M1/M2/M3).
+# Historical combinatorial suite requires explicit opt-in.
 set -euo pipefail
 cd "$(dirname "$0")"
 python -m unittest discover -s tests -v

@@ -168,5 +168,9 @@
     0.1,
     0.2,
     0.35
+  ],
+  "matched_controls": [
+    "matched_count",
+    "matched_bytes"
   ]
 }

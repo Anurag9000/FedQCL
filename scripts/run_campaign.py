@@ -87,11 +87,14 @@ def valid(job):
             entry=next((x for x in read_core_signal_entries() if x["id"]==selector),None)
             if baseline:
                 from campaign_matrix import BASELINES
-                if selector not in BASELINES or cfg["policy"]!=BASELINES[selector] or cfg["signal"]!="none":return False
+                matched=cfg.get("selection_mode") in ("matched_count","matched_bytes")
+                if matched:
+                    if cfg["policy"]!="random" or not selector.startswith(("B-COUNT-","B-BYTES-")) or cfg["signal"]!="none":return False
+                elif selector not in BASELINES or cfg["policy"]!=BASELINES[selector] or cfg["signal"]!="none":return False
                 entry={"policy":cfg["policy"],"flags":[],"method":"baseline","signal":"none"}
             if entry is None:return False
             if (cfg["signal"],cfg["mechanism"],cfg["policy"])!=(entry["signal"],entry["method"],entry["policy"]):return False
-            flags=entry["flags"];expected={"sync_policy":entry["policy"],"sync_mode":cfg.get("selection_mode","fixed"),"sync_threshold":cfg.get("threshold",.1),"sync_k":cfg["k"],"sync_max_skip":cfg.get("max_skip",4),"seed":cfg["training_seed"],
+            flags=entry["flags"];expected={"sync_policy":entry["policy"],"sync_mode":"fixed" if cfg.get("selection_mode") in ("matched_count","matched_bytes") else cfg.get("selection_mode","fixed"),"sync_threshold":cfg.get("threshold",.1),"sync_k":cfg["k"],"sync_max_skip":cfg.get("max_skip",4),"seed":cfg["training_seed"],
                 "num_clients":5,"tasks":5,"num_classes":20,"global_rounds":49,"local_epochs":5,"batch_size":13,
                 "memory_size":500,"memory_batch_size":13,"local_learning_rate":.005,"sync_eval_split":"validation"}
             for pos,flag in enumerate(flags):
@@ -101,6 +104,14 @@ def valid(job):
             if any(resolved_config.get(k)!=v for k,v in expected.items()):return False
             from flcore.sync.bandwidth import verify_artifacts
             verify_artifacts(out,events,rounds,cfg["clients"],summary,cfg["policy"])
+            from flcore.sync.matched_budget import verify_match,verify_source_plan
+            if cfg.get("selection_mode") in ("matched_count","matched_bytes"):
+                verify_match(cfg["source_output"],out,cfg["selection_mode"],cfg["training_seed"],cfg.get("max_skip",4),cfg["clients"])
+            elif not baseline:verify_source_plan(out,cfg["training_seed"],cfg.get("max_skip",4),cfg["clients"])
+            held=json.loads((out/"heldout_test_metrics.json").read_text());test=held["rows"]
+            if held["evaluation_split"]!="test" or held["ground_truth_hash"]!=summary["ground_truth_hash"] or [x["task"] for x in test]!=list(range(cfg["tasks"])) or sum(x["count"] for x in test)!=10000:return False
+            if any(x["round"]!=cfg["rounds"]-1 or x["version"]!=rounds[-1]["version"] or x["count"]!=sum(x["class_counts"]) or x["accuracy"]!=sum(x["class_correct"])/x["count"] for x in test):return False
+            if summary["test_final_accuracy"]!=sum(x["accuracy"] for x in test)/len(test) or summary["test_worst_task_accuracy"]!=min(x["accuracy"] for x in test) or summary["test_worst_class_accuracy"]!=min(c/n for x in test for c,n in zip(x["class_correct"],x["class_counts"]) if n):return False
             from flcore.sync.ground_truth import verify
             truth=out/"ground_truth";receipt=json.loads((truth/"validation_receipt.json").read_text());verify(truth,receipt)
             manifest=json.loads((truth/"dataset_manifest.json").read_text())
@@ -194,7 +205,7 @@ def select_jobs(jobs,stages,job_id,settings=None,seeds=None,budgets=None,selecto
     by_id=dependency_order(jobs)
     wanted={j["id"] for j in jobs if (not stages or j["stage"] in stages) and (not job_id or j["id"]==job_id)}
     if settings or seeds or budgets or selectors or modes or thresholds:
-        wanted={key for key in wanted if by_id[key]["kind"]!="analysis" and (not settings or by_id[key]["config"].get("setting_id") in settings) and (not seeds or by_id[key]["config"].get("partition_seed") in seeds) and (not budgets or (by_id[key]["config"].get("selection_mode","fixed")=="fixed" and by_id[key]["config"].get("k") in budgets)) and (not selectors or by_id[key]["config"].get("selector_id") in selectors) and (not modes or by_id[key]["config"].get("selection_mode","fixed") in modes) and (not thresholds or (by_id[key]["config"].get("selection_mode")=="threshold" and by_id[key]["config"].get("threshold") in thresholds))}
+        wanted={key for key in wanted if by_id[key]["kind"]!="analysis" and (not settings or by_id[key]["config"].get("setting_id") in settings) and (not seeds or by_id[key]["config"].get("partition_seed") in seeds) and (not budgets or (by_id[key]["config"].get("selection_mode","fixed")=="fixed" and by_id[key]["config"].get("k") in budgets)) and (not selectors or by_id[key]["config"].get("selector_id") in selectors) and (not modes or by_id[key]["config"].get("selection_mode","fixed") in modes) and (not thresholds or (by_id[key]["config"].get("source_selection_mode",by_id[key]["config"].get("selection_mode"))=="threshold" and by_id[key]["config"].get("threshold") in thresholds))}
     if not wanted:raise ValueError("no matching jobs")
     stack=list(wanted)
     while stack:
@@ -205,8 +216,8 @@ def select_jobs(jobs,stages,job_id,settings=None,seeds=None,budgets=None,selecto
 def estimate(jobs):
     training=[j for j in jobs if j["kind"]=="train"]
     # Architecture-scale approximations, not measured memory or wall time.
-    adaptive=[j for j in training if j["config"].get("selection_mode")=="threshold"]
-    fixed=[j for j in training if j["config"].get("selection_mode")!="threshold"]
+    adaptive=[j for j in training if j["config"].get("selection_mode") in ("threshold","matched_count","matched_bytes")]
+    fixed=[j for j in training if j["config"].get("selection_mode") not in ("threshold","matched_count","matched_bytes")]
     draws=sum(j["config"].get("selected_draws",j["config"]["clients"]+(j["config"]["rounds"]-1)*j["config"]["k"]) for j in fixed)
     adaptive_max=sum(j["config"]["clients"]*j["config"]["rounds"] for j in adaptive)
     initial=sum(j["config"]["clients"] for j in training if j["config"].get("campaign") in ("task_il_48","task_il_joint") or "--sync-bandwidth-audit" in j.get("command",[]))
@@ -215,7 +226,7 @@ def estimate(jobs):
     from math import comb
     cf_aggregates=sum(len(j["config"].get("counterfactual_rounds",[]))*(comb(j["config"]["clients"],j["config"]["k"])+int(j["config"]["k"]!=j["config"]["clients"])) for j in fixed)
     cf_max=cf_aggregates+sum(len(j["config"]["counterfactual_rounds"])*(comb(j["config"]["clients"],j["config"]["clients"]//2)+1) for j in adaptive)
-    return {"jobs":len(jobs),"training_jobs":len(training),"threshold_jobs":len(adaptive),"nominal_client_draws":draws,"threshold_draw_upper_bound":adaptive_max,"counterfactual_aggregate_upper_bound":cf_max,"counterfactual_checkpoints":cf_rounds,"counterfactual_candidate_local_trainings":cf_candidates,"counterfactual_aggregate_evaluations":cf_aggregates,
+    return {"jobs":len(jobs),"training_jobs":len(training),"threshold_jobs":sum(j["config"].get("selection_mode")=="threshold" for j in adaptive),"matched_control_jobs":sum(j["config"].get("selection_mode") in ("matched_count","matched_bytes") for j in adaptive),"nominal_client_draws":draws,"threshold_draw_upper_bound":adaptive_max,"counterfactual_aggregate_upper_bound":cf_max,"counterfactual_checkpoints":cf_rounds,"counterfactual_candidate_local_trainings":cf_candidates,"counterfactual_aggregate_evaluations":cf_aggregates,
             "nominal_model_transfer_upper_bound_at_45MB":45000000*(2*(draws+adaptive_max)+initial),
             "initial_downloads":initial,"initial_task_il_downloads":sum(j["config"]["clients"] for j in training if j["config"].get("campaign") in ("task_il_48","task_il_joint")),
             "task_il_local_training_rounds":sum(j["config"].get("local_training_rounds",0) for j in training),
@@ -232,7 +243,7 @@ def main():
     p.add_argument("--ledger",type=Path,default=ROOT/"experiments"/"job_ledger.jsonl")
     p.add_argument("--stage",action="append");p.add_argument("--job-id")
     p.add_argument("--setting",action="append");p.add_argument("--seed",type=int,action="append");p.add_argument("--budget",type=int,action="append");p.add_argument("--selector",action="append")
-    p.add_argument("--selection-mode",choices=["fixed","threshold"],action="append");p.add_argument("--threshold",type=float,action="append")
+    p.add_argument("--selection-mode",choices=["fixed","threshold","matched_count","matched_bytes"],action="append");p.add_argument("--threshold",type=float,action="append")
     p.add_argument("--dry-run",action="store_true");p.add_argument("--estimate-only",action="store_true")
     p.add_argument("--resume",action="store_true");p.add_argument("--retry-failed",action="store_true")
     p.add_argument("--device",choices=["cpu","cuda"],default="cuda");p.add_argument("--gpu-id",default="0")

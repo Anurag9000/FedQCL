@@ -136,6 +136,13 @@ class Training(unittest.TestCase):
                 self.assertEqual(summary["backbone"],"fedavg_uniform_er_v1")
                 self.assertEqual(summary["total_bytes"],sum(json.loads(l)["serialized_bytes"] for l in (out/"communication_events.jsonl").read_text().splitlines()))
 
+            # Both controls consume the source schedule without looking at reports.
+            source=tmp/"A06-M1-threshold"
+            from flcore.sync.matched_budget import verify_match
+            for mode,name in (("matched_count","participation_schedule.json"),("matched_bytes","matched_byte_count_schedule.json")):
+                matched=run("B-"+mode,"random",["--sync-windowed","--sync-audit-references","--sync-counterfactual","--sync-controlled-stream","--sync-eval-split","validation","--sync-charge-control","--sync-bandwidth-audit","--sync-count-schedule",str(source/name)])
+                self.assertTrue(verify_match(source,matched,mode,42,4,2))
+                self.assertEqual(len(json.loads((matched/"heldout_test_metrics.json").read_text())["rows"]),2)
             # Counterfactual instrumentation must not perturb the actual model,
             # decisions, logical communication or independent validation metrics.
             entry=read_core_signal_entries()[0]

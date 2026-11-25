@@ -8,7 +8,7 @@ import numpy as np
 from campaign_matrix import expected_ids,read_catalog,CATALOG,DETAILS
 from run_campaign import valid
 
-MEASURES=("final_accuracy","forgetting","worst_task_accuracy","worst_class_accuracy","backward_transfer","retention_auc_mean","acquisition_auc_mean","total_bytes","optimizer_steps","processed_samples","replay_samples","complete_syncs","mean_model_age","jain_sync_fairness","deadline_cap_violations","counterfactual_seconds","model_bytes","statistics_bytes","control_bytes","upload_bytes","download_bytes","peer_bytes","model_tensor_bytes","statistic_vector_bytes","full_model_payload_bytes","model_uploads","model_downloads","initial_downloads","model_refreshes","skipped_client_rounds","no_aggregation_rounds","mean_participants","participation_fraction")
+MEASURES=("test_final_accuracy","test_worst_task_accuracy","test_worst_class_accuracy","final_accuracy","forgetting","worst_task_accuracy","worst_class_accuracy","backward_transfer","retention_auc_mean","acquisition_auc_mean","total_bytes","optimizer_steps","processed_samples","replay_samples","complete_syncs","mean_model_age","jain_sync_fairness","deadline_cap_violations","counterfactual_seconds","model_bytes","statistics_bytes","control_bytes","upload_bytes","download_bytes","peer_bytes","model_tensor_bytes","statistic_vector_bytes","full_model_payload_bytes","model_uploads","model_downloads","initial_downloads","model_refreshes","skipped_client_rounds","no_aggregation_rounds","mean_participants","participation_fraction")
 AUDIT=("mean_label_coverage_regret","mean_joint_coverage_regret","mean_joint_mass_regret","mean_conditional_coverage_regret","mean_replay_coverage_regret","mean_selection_delay","shift_precision","shift_recall","mean_past_accuracy","mean_current_accuracy","missing_report_fraction")
 def csv_rows(path,rows):
     rows=list(rows)
@@ -35,7 +35,7 @@ def truth_stats(root):
 def flatten(job,summary,audit,truth):
     c=job["config"]
     row={k:c[k] for k in ("experiment_id","selector_id","setting_id","setting_name","partition_seed","training_seed","k","signal","mechanism","policy","stream_spec_sha256")}
-    row.update(selection_mode=c.get("selection_mode","fixed"),threshold=c.get("threshold",.1),job_id=job["id"],ground_truth_hash=summary["ground_truth_hash"],**truth)
+    row.update(source_experiment_id=c.get("source_experiment_id"),source_selection_mode=c.get("source_selection_mode"),selection_mode=c.get("selection_mode","fixed"),threshold=c.get("threshold",.1),job_id=job["id"],ground_truth_hash=summary["ground_truth_hash"],**truth)
     for key in MEASURES:row[key]=summary.get(key)
     for key in AUDIT:row[key]=audit["summary"].get(key)
     for key in ("label_rank_agreement","joint_rank_agreement","replay_rank_agreement","update_geometry_rank_agreement","novelty_current_marginal_rank_agreement","novelty_past_marginal_rank_agreement"):
@@ -50,17 +50,25 @@ def baseline_deltas(rows):
     idx={(x["setting_id"],x["partition_seed"],x["k"],x["selector_id"]):x for x in fixed}
     if len(idx)!=len(fixed):raise ValueError("duplicate trajectory identity")
     result=[]
+    matches={(x.get("source_experiment_id"),x.get("selection_mode")):x for x in rows if x.get("source_experiment_id")}
     for row in rows:
         if row["selector_id"]=="B-FULL":continue
         refs=[("full",idx[row["setting_id"],row["partition_seed"],5,"B-FULL"])]
         if row.get("selection_mode","fixed")=="fixed":refs += [("random",idx[row["setting_id"],row["partition_seed"],row["k"],"B-RANDOM"]),("oldest",idx[row["setting_id"],row["partition_seed"],row["k"],"B-OLDEST"])]
+        for mode,name in (("matched_count","matched_count_random"),("matched_bytes","matched_byte_random")):
+            other=matches.get((row["experiment_id"],mode))
+            if other is not None:refs.append((name,other))
         v={k:row[k] for k in ("experiment_id","selector_id","setting_id","partition_seed","k")}
         v.update(selection_mode=row.get("selection_mode","fixed"),threshold=row.get("threshold",.1))
         for name,base in refs:
             if row["ground_truth_hash"]!=base["ground_truth_hash"]:raise ValueError("baseline stream mismatch")
-            for key in ("final_accuracy","forgetting","worst_class_accuracy","backward_transfer","total_bytes","optimizer_steps","mean_joint_coverage_regret","model_bytes","statistics_bytes","control_bytes","upload_bytes","download_bytes","peer_bytes","participation_fraction"):
+            for key in ("test_final_accuracy","test_worst_task_accuracy","test_worst_class_accuracy","final_accuracy","forgetting","worst_class_accuracy","backward_transfer","total_bytes","optimizer_steps","mean_joint_coverage_regret","model_bytes","statistics_bytes","control_bytes","upload_bytes","download_bytes","peer_bytes","participation_fraction"):
                 a,b=row.get(key),base.get(key)
                 v[key+"_delta_vs_"+name]=a-b if a is not None and b is not None else None
+        matched=matches.get((row["experiment_id"],"matched_bytes"))
+        if matched is not None:
+            v["unused_matched_byte_budget"]=row["total_bytes"]-matched["total_bytes"]
+            if v["unused_matched_byte_budget"]<0:raise ValueError("matched byte baseline exceeded source budget")
         full=refs[0][1]
         v["net_bytes_saved_vs_full"]=full["total_bytes"]-row["total_bytes"]
         parts=("model_bytes","statistics_bytes","control_bytes")
@@ -79,7 +87,7 @@ def seed_summary(rows,deltas):
     for (setting,mode,tau,k,selector),items in sorted(grouped.items()):
         if {x["partition_seed"] for x in items}!={42,43,44} or len(items)!=3:raise ValueError("incomplete paired seeds")
         row={"setting_id":setting,"selection_mode":mode,"threshold":tau,"k":k,"selector_id":selector,"n_seeds":3}
-        keys=[key for key in items[0] if key in MEASURES or key in AUDIT or "_delta_vs_" in key or key in ("byte_savings_fraction_vs_full","net_bytes_saved_vs_full","model_bytes_avoided_vs_full","extra_statistics_control_bytes_vs_full") or key.endswith(("_spearman","_kendall")) or key.startswith("counterfactual_mean_")]
+        keys=[key for key in items[0] if key in MEASURES or key in AUDIT or "_delta_vs_" in key or key in ("byte_savings_fraction_vs_full","net_bytes_saved_vs_full","model_bytes_avoided_vs_full","extra_statistics_control_bytes_vs_full","unused_matched_byte_budget") or key.endswith(("_spearman","_kendall")) or key.startswith("counterfactual_mean_")]
         for key in keys:
             vals=[v[key] for v in items if v.get(key) is not None]
             row[key+"_mean"]=statistics.mean(vals) if vals else None

@@ -113,3 +113,21 @@ filter threshold trajectories; --budget 3 selects only fixed-budget runs.
 Audited communication events also preserve base64 of the exact serialized envelope (not model tensor contents), and its SHA-256; the verifier decodes and checks each envelope, tensor schema, message roster, category and direction. The peer roster communicates last-sync ages, and selected peers receive an explicit admission response. Treat derived statistical envelopes as restricted research output, not public releases.
 
 Offline causal decision replay verifies every primary roster against historical local references or the bank actually delivered and current peer reports. Floating threshold ties now defer at equality; exact rational TV remains exact. A participation_schedule.json artifact supports subsequent random matched-count runs without sharing private statistics. The fixed four-skip safeguard is explicit; no adaptive age sweep is implied. Run identity hashes omit the absolute dataset path so that different checkout roots do not create duplicate run IDs.
+
+## Matched controls and independent final evaluation
+
+For each threshold trajectory a random comparator reproduces its exact participant
+count in every round (including zero). Each statistical trajectory, fixed or
+threshold, also has a random comparator constrained by the source's cumulative
+application-byte curve. The offline plan uses only sample-count message metadata,
+model schema, source byte totals and the seeded random/age scheduler. It budgets
+whole-model exchanges through the actual serializer, including controls, and
+verifies actual per-round rosters and bytes. It does not pad or claim exact
+byte equality: unused budget is reported; infeasible common traffic fails closed.
+All comparator dependencies point to the source trajectory and validated stream.
+The 6,912 count controls and 13,824 byte controls increase the default to
+35,208 training trajectories and 35,353 jobs. Final held-out test metrics are
+recorded only after optimization and all validation decisions finish. Validation
+remains the basis for model/threshold selection; test metrics must not be used
+to tune the suite. Count matching does not imply identical processed samples on
+unequal-workload streams. The new comparison is logical bytes, not throughput.

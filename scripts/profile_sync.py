@@ -9,7 +9,7 @@ def main():
     p.add_argument("--ledger",type=Path,default=ROOT/"experiments/job_ledger.jsonl")
     p.add_argument("--experiment",required=True,action="append",help="Full experiment ID or selector ID, or all; serial isolated prefixes")
     p.add_argument("--setting",action="append");p.add_argument("--seed",type=int,action="append");p.add_argument("--budget",type=int,action="append")
-    p.add_argument("--selection-mode",choices=["fixed","threshold"],action="append");p.add_argument("--threshold",type=float,action="append")
+    p.add_argument("--selection-mode",choices=["fixed","threshold","matched_count","matched_bytes"],action="append");p.add_argument("--threshold",type=float,action="append")
     p.add_argument("--stop-after-round",type=int,default=13,help="Zero-based round; must be before final round")
     p.add_argument("--device",choices=["cpu","cuda"],default="cuda")
     p.add_argument("--gpu-id",default="0")

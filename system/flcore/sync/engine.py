@@ -601,8 +601,21 @@ def run_research(args):
             verify_decisions(config,rounds,ctl.decisions,ctl.transport.events)
             comm,by_round,by_client=audit(ctl.transport.events,rounds,schema,a.num_clients,a.sync_policy)
             write_artifacts(out,comm,by_round,by_client)
+            if a.sync_policy in ("own","server","peer") and not a.sync_refresh:
+                from .matched_budget import write_plan
+                write_plan(out,rounds,by_round,schema,a.seed,a.sync_max_skip,a.num_clients)
             summary.update({k:comm[k] for k in ("model_bytes","statistics_bytes","control_bytes","upload_bytes","download_bytes","peer_bytes","model_tensor_bytes","statistic_vector_bytes","full_model_payload_bytes","model_uploads","model_downloads","initial_downloads","model_refreshes","skipped_client_rounds","no_aggregation_rounds","mean_participants","participation_fraction")})
             summary["accounting"]="audited dense native tensor bytes plus serialized envelopes; initialization, controls and per-recipient deliveries included; no physical network"
+        if a.sync_bandwidth_audit:
+            # Only the final trained model is evaluated on the held-out split.
+            # No test metric is available to admission or counterfactual selection.
+            test_loaders={}
+            for u in range(a.tasks):
+                for i in range(a.num_clients):verify_shard(a,u,"test",i)
+                test_loaders[u]=[DataLoader(read_client_data(os.path.join(a.dataset,f"task_{u}"),i,False),batch_size=a.batch_size,shuffle=False) for i in range(a.num_clients)]
+            held=evaluate(model,test_loaders,a.tasks-1,a.global_rounds,ctl.model_version,device,a.num_classes)
+            atomic_json(out/"heldout_test_metrics.json",{"evaluation_split":"test","ground_truth_hash":config["ground_truth_hash"],"rows":held})
+            summary.update(test_final_accuracy=sum(x["accuracy"] for x in held)/len(held),test_worst_task_accuracy=min(x["accuracy"] for x in held),test_worst_class_accuracy=min(c/n for x in held for c,n in zip(x["class_correct"],x["class_counts"]) if n))
         atomic_json(out/"final_summary.json",summary)
         torch.save(model.state_dict(),out/"server.pt")
         atomic_json(out/"status.json",{"status":"completed"})

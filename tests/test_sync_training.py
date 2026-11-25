@@ -77,7 +77,7 @@ class Training(unittest.TestCase):
             # Execute each active entry on the tiny two-task dataset.
             sys.path.insert(0,str(root/"scripts"))
             from core_suite import read_core_signal_entries
-            cases.extend((entry["id"],entry["policy"],[*entry["flags"],"--sync-windowed","--sync-audit-references","--sync-counterfactual","--sync-controlled-stream"]+ (["--sync-verify-branches"] if entry["id"]=="A01-M1" else [])) for entry in read_core_signal_entries())
+            cases.extend((entry["id"],entry["policy"],[*entry["flags"],"--sync-windowed","--sync-audit-references","--sync-counterfactual","--sync-controlled-stream","--sync-eval-split","validation"]+ (["--sync-verify-branches"] if entry["id"]=="A01-M1" else [])) for entry in read_core_signal_entries())
             for name,policy,extra in cases:
                 out=run(name,policy,extra)
                 if name=="aggregate_cka":

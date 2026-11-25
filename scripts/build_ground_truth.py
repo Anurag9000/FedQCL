@@ -80,7 +80,11 @@ def reconstruct(root,manifest):
         spatial_js=np.asarray([js(x[:,None,:],x[None,:,:]) for x in p]),
         spatiotemporal_label=1-pairwise(flat),spatiotemporal_joint=1-pairwise(flatq),temporal_label=temporal,
         federation_label=federation,federation_distance=tv(p,federation[:,None,:]),
-        cumulative_counts=cumulative,temporal_change=tv(p[1:],p[:-1]),label_error=label_error,joint_error=joint_error)
+        cumulative_counts=cumulative,cumulative_label=normalize(cumulative),
+        requested_spatial_label=np.asarray([1-pairwise(x) for x in target]),requested_spatial_joint=np.asarray([1-pairwise(x) for x in targetq]),
+        requested_spatiotemporal_label=1-pairwise(target.reshape(t*w*n,-1)),requested_spatiotemporal_joint=1-pairwise(targetq.reshape(t*w*n,-1)),
+        temporal_joint=np.asarray([1-pairwise(q[:,i]) for i in range(n)]),
+        temporal_change=tv(p[1:],p[:-1]),joint_temporal_change=tv(q[1:],q[:-1]),label_error=label_error,joint_error=joint_error)
     meta={"schema":1,"manifest_id":manifest["manifest_id"],"specification":spec,"schedule":schedule,
           "allocation_index_columns":["source_sample_id","round","client","global_class","brightness_rank_bin"],
           "stream_spec_sha256":manifest["controlled_stream_sha256"],

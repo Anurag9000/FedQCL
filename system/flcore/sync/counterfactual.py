@@ -5,6 +5,42 @@ import random
 import numpy as np
 import torch
 
+def update_geometry(server,clients,candidates,ctl):
+    """Full parameter deltas, not the admission sketches; diagnostic only."""
+    n=len(clients);gram=torch.zeros((n,n),dtype=torch.float64)
+    before=[dict(c.model.named_parameters()) for c in clients]
+    after=[dict(c.model.named_parameters()) for c in candidates]
+    common=dict(server.named_parameters())
+    with torch.no_grad():
+        for key in common:
+            # CPU chunks bound transient memory and avoid changing GPU precision flags.
+            for start in range(0,common[key].numel(),65536):
+                block=[]
+                for i in range(n):
+                    base=common[key] if ctl.args.sync_refresh and ctl.local[i].model_version!=ctl.model_version else before[i][key]
+                    a=after[i][key].detach().reshape(-1)[start:start+65536].cpu().double()
+                    b=base.detach().reshape(-1)[start:start+65536].cpu().double()
+                    block.append(a-b)
+                x=torch.stack(block);gram+=x@x.T
+        norms=gram.diag().clamp_min(0).sqrt()
+        dist=(norms.square()[:,None]+norms.square()[None,:]-2*gram).clamp_min(0).sqrt()
+        denominator=norms[:,None]+norms[None,:]
+        relative=torch.where(denominator>0,dist/denominator,0.).clamp(0,1)
+        relative.fill_diagonal_(0.)
+        cosine=[]
+        for i in range(n):
+            cosine.append([float((gram[i,j]/(norms[i]*norms[j])).clamp(-1,1)) if norms[i]*norms[j]>0 else None for j in range(n)])
+    return {"relative_l2":relative.tolist(),"cosine":cosine,"norms":norms.tolist()}
+
+def parameter_discrepancy(model,full,server):
+    with torch.no_grad():
+        f=dict(full.named_parameters());base=dict(server.named_parameters())
+        error=total=0.
+        for name,p in model.named_parameters():
+            x=f[name].detach();error+=float((p.detach()-x).double().square().sum())
+            total+=float((x-base[name].detach()).double().square().sum())
+    return {"l2":error**.5,"relative_to_full_update":(error/total)**.5 if total else None}
+
 def analyze(server,clients,datasets,task,r,ctl,actual,loaders,complete,device,classes):
     from .engine import aggregate,evaluate,download,aggregation_weights
     from .advanced import cached_views
@@ -41,6 +77,9 @@ def analyze(server,clients,datasets,task,r,ctl,actual,loaders,complete,device,cl
         if not getattr(ctl.args,"sync_controlled_stream",False):
             subsets.update(tuple(j for j in ids if j!=i) for i in ids)
             subsets.update(tuple(j for j in ids if j not in pair) for pair in combinations(ids,2))
+        controlled=getattr(ctl.args,"sync_controlled_stream",False)
+        full_model=aggregate(server,candidates,aggregation_weights(ctl.args,candidates,datasets,ids,complete),complete) if controlled else None
+        geometry=update_geometry(server,clients,candidates,ctl) if controlled else None
         outcomes=[]
         for s in sorted(subsets,key=lambda x:(len(x),x)):
             weights=aggregation_weights(ctl.args,candidates,datasets,s,complete)
@@ -63,7 +102,11 @@ def analyze(server,clients,datasets,task,r,ctl,actual,loaders,complete,device,cl
                              "features":subset_features(ids,s,cached,last,r,task,rpt,ctl.args.sync_bank_age),
                              "accuracy":sum(x["accuracy"] for x in rows)/len(rows),
                              "task_metrics":[{"task":x["task"],"loss":x["loss"],"accuracy":x["accuracy"]} for x in rows]})
+            if controlled:
+                outcomes[-1]["update_discrepancy"]=parameter_discrepancy(m,full_model,server)
+                if s==ids:outcomes[-1]["candidate_update_geometry"]=geometry
             del m
+        del full_model
         full=next(x for x in outcomes if x["subset"]==list(ids))
         for row in outcomes:
             row["current_harm"]=row["current_loss"]-full["current_loss"]

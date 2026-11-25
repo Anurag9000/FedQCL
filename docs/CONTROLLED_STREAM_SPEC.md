@@ -46,3 +46,10 @@ result hashes must match. Consolidated analysis refuses mixed streams and
 produces matrix, round/regime, signal and counterfactual CSV files plus
 heatmaps. Single seed, short regimes and carryover limit inference; no
 independent full/random baseline or adaptive participation budget claim.
+
+Restricted allocation_index.npz preserves source IDs, round, client, global
+class and domain bin. Never include this file in public exports. Counterfactual
+validation preserves full-parameter candidate update geometry and discrepancy
+from full aggregation, and checks actual-branch validation metrics against
+the real run. Per-round replay and conditional coverage, transitions and
+separate communication/optimization costs are included in the audit.

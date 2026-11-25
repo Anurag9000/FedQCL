@@ -352,6 +352,7 @@ def run_research(args):
             available=tuple(c.id for c in clients if not fails(r,"unavailable",c.id))
             if r==0 and len(available)!=a.num_clients:raise RuntimeError("bootstrap availability incomplete")
             datasets={i:clients[i].reveal(t,r) for i in available}
+            pre_memory={c.id:{k:np.bincount(np.asarray([int(y)%a.num_classes for _,y in v],dtype=int),minlength=a.num_classes).tolist() for k,v in c.task_memories.items()} for c in clients} if a.sync_controlled_stream else {}
             reports={}; population={}; probe_cost={}; update_starts={}
             for i in available:
                 c=clients[i]
@@ -519,6 +520,8 @@ def run_research(args):
                            "sampled_reports":{i:None if report is None else {"id":report.id,"values":report.counts,"space":report.space,"window":report.window,**(asdict(report) if a.sync_audit_references else {})} for i,report in reports.items()},
                            "observation_window":r%rpt if a.sync_windowed else None,
                            "counterfactual_seconds":counterfactual_seconds,
+                           "pre_memory_class_counts":pre_memory,
+                           "supplied_samples":{i:len(datasets[i]) for i in available},
                            "last_complete_sync":{i:s.last_sync for i,s in ctl.local.items()},
                            "local_revisions":{i:s.local_revision for i,s in ctl.local.items()},
                            "memory_missed":[i for i in range(a.num_clients) if boundary and t not in clients[i].task_memories],
@@ -555,7 +558,7 @@ def run_research(args):
         summary.update(summarize(metrics,rounds,ctl.decisions,ctl.transport.events,a.tasks,rpt,a.num_clients))
         if a.sync_controlled_stream:
             from .ground_truth import analyze_run
-            summary.update(analyze_run(out,rounds,ctl.decisions,metrics,counterfactual_rows))
+            summary.update(analyze_run(out,rounds,ctl.decisions,metrics,counterfactual_rows,ctl.transport.events))
         atomic_json(out/"final_summary.json",summary)
         torch.save(model.state_dict(),out/"server.pt")
         atomic_json(out/"status.json",{"status":"completed"})

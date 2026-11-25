@@ -174,7 +174,7 @@ def validate(a):
         raise ValueError("counterfactual reuse assumes reliable model delivery")
     if a.sync_posttrain and (a.sync_refresh or a.sync_counterfactual):
         raise ValueError("post-training admission cannot be combined with refresh or pre-training counterfactual")
-    if getattr(a,"sync_controlled_stream",False) and (not a.sync_windowed or not a.sync_counterfactual or not a.sync_audit_references or a.sync_failures or a.sync_policy not in ("own","server","peer")):
+    if getattr(a,"sync_controlled_stream",False) and (not a.sync_windowed or not a.sync_counterfactual or not a.sync_audit_references or a.sync_failures or a.sync_eval_split!="validation" or a.sync_policy not in ("own","server","peer")):
         raise ValueError("controlled stream requires reliable windowed audited M1/M2/M3 and counterfactual validation")
     if a.sync_windowed and a.few_shot:
         raise ValueError("windowed few-shot indexing is unsupported")

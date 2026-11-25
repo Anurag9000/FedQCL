@@ -142,7 +142,7 @@ def valid(job):
                 and {(x["round"],x["task"]) for x in metrics}==expected
                 and len(rounds)==n and [x["round"] for x in rounds]==list(range(n))
                 and sum(x["serialized_bytes"] for x in events)==summary["total_bytes"])
-    except (OSError,ValueError,KeyError,TypeError):return False
+    except (OSError,ValueError,KeyError,TypeError,IndexError,ArithmeticError):return False
 
 def dependency_order(jobs):
     seen=set()

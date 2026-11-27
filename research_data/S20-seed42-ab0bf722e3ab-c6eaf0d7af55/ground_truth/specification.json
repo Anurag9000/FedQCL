@@ -1,0 +1,785 @@
+{
+  "allocation_index_columns": [
+    "source_sample_id",
+    "round",
+    "client",
+    "global_class",
+    "brightness_rank_bin"
+  ],
+  "axes": {
+    "counts": [
+      "round",
+      "client",
+      "global_class"
+    ],
+    "joint_counts": [
+      "round",
+      "client",
+      "global_class",
+      "brightness_rank_bin"
+    ],
+    "spatiotemporal": "round-major, client-minor"
+  },
+  "manifest_id": "dda1eee2ba06ae86177fa0cb6ede66861605305a10cf02d787b6801d54ffb83a",
+  "max_joint_tv": 0.09918691893808002,
+  "max_label_tv": 0.022039904158205663,
+  "max_pairwise_label_error": 0.022639006654358307,
+  "metrics": {
+    "conditional": "overlap-weighted within-class TV; NaN if no shared classes",
+    "similarity": "1-total variation",
+    "spatial_js": "base-2 JS divergence (distance)"
+  },
+  "schedule": [
+    {
+      "groups": [
+        0,
+        1,
+        2,
+        3,
+        4
+      ],
+      "regime": "alpha",
+      "round": 0,
+      "task": 0,
+      "transition": false,
+      "window": 0
+    },
+    {
+      "groups": [
+        0,
+        1,
+        2,
+        3,
+        4
+      ],
+      "regime": "alpha",
+      "round": 1,
+      "task": 0,
+      "transition": false,
+      "window": 1
+    },
+    {
+      "groups": [
+        0,
+        1,
+        2,
+        3,
+        4
+      ],
+      "regime": "alpha",
+      "round": 2,
+      "task": 0,
+      "transition": false,
+      "window": 2
+    },
+    {
+      "groups": [
+        0,
+        1,
+        2,
+        3,
+        4
+      ],
+      "regime": "alpha",
+      "round": 3,
+      "task": 0,
+      "transition": false,
+      "window": 3
+    },
+    {
+      "groups": [
+        0,
+        1,
+        2,
+        3,
+        4
+      ],
+      "regime": "alpha",
+      "round": 4,
+      "task": 0,
+      "transition": false,
+      "window": 4
+    },
+    {
+      "groups": [
+        0,
+        1,
+        2,
+        3,
+        4
+      ],
+      "regime": "alpha",
+      "round": 5,
+      "task": 0,
+      "transition": false,
+      "window": 5
+    },
+    {
+      "groups": [
+        0,
+        1,
+        2,
+        3,
+        4
+      ],
+      "regime": "alpha",
+      "round": 6,
+      "task": 0,
+      "transition": false,
+      "window": 6
+    },
+    {
+      "groups": [
+        0,
+        1,
+        2,
+        3,
+        4
+      ],
+      "regime": "alpha",
+      "round": 7,
+      "task": 0,
+      "transition": false,
+      "window": 7
+    },
+    {
+      "groups": [
+        0,
+        1,
+        2,
+        3,
+        4
+      ],
+      "regime": "alpha",
+      "round": 8,
+      "task": 0,
+      "transition": false,
+      "window": 8
+    },
+    {
+      "groups": [
+        0,
+        1,
+        2,
+        3,
+        4
+      ],
+      "regime": "alpha",
+      "round": 9,
+      "task": 0,
+      "transition": false,
+      "window": 9
+    },
+    {
+      "groups": [
+        0,
+        1,
+        2,
+        3,
+        4
+      ],
+      "regime": "alpha",
+      "round": 10,
+      "task": 1,
+      "transition": false,
+      "window": 0
+    },
+    {
+      "groups": [
+        0,
+        1,
+        2,
+        3,
+        4
+      ],
+      "regime": "alpha",
+      "round": 11,
+      "task": 1,
+      "transition": false,
+      "window": 1
+    },
+    {
+      "groups": [
+        0,
+        1,
+        2,
+        3,
+        4
+      ],
+      "regime": "alpha",
+      "round": 12,
+      "task": 1,
+      "transition": false,
+      "window": 2
+    },
+    {
+      "groups": [
+        0,
+        1,
+        2,
+        3,
+        4
+      ],
+      "regime": "alpha",
+      "round": 13,
+      "task": 1,
+      "transition": false,
+      "window": 3
+    },
+    {
+      "groups": [
+        0,
+        1,
+        2,
+        3,
+        4
+      ],
+      "regime": "alpha",
+      "round": 14,
+      "task": 1,
+      "transition": false,
+      "window": 4
+    },
+    {
+      "groups": [
+        0,
+        1,
+        2,
+        3,
+        4
+      ],
+      "regime": "alpha",
+      "round": 15,
+      "task": 1,
+      "transition": false,
+      "window": 5
+    },
+    {
+      "groups": [
+        0,
+        1,
+        2,
+        3,
+        4
+      ],
+      "regime": "alpha",
+      "round": 16,
+      "task": 1,
+      "transition": false,
+      "window": 6
+    },
+    {
+      "groups": [
+        0,
+        1,
+        2,
+        3,
+        4
+      ],
+      "regime": "alpha",
+      "round": 17,
+      "task": 1,
+      "transition": false,
+      "window": 7
+    },
+    {
+      "groups": [
+        0,
+        1,
+        2,
+        3,
+        4
+      ],
+      "regime": "alpha",
+      "round": 18,
+      "task": 1,
+      "transition": false,
+      "window": 8
+    },
+    {
+      "groups": [
+        0,
+        1,
+        2,
+        3,
+        4
+      ],
+      "regime": "alpha",
+      "round": 19,
+      "task": 1,
+      "transition": false,
+      "window": 9
+    },
+    {
+      "groups": [
+        0,
+        1,
+        2,
+        3,
+        4
+      ],
+      "regime": "alpha",
+      "round": 20,
+      "task": 2,
+      "transition": false,
+      "window": 0
+    },
+    {
+      "groups": [
+        0,
+        1,
+        2,
+        3,
+        4
+      ],
+      "regime": "alpha",
+      "round": 21,
+      "task": 2,
+      "transition": false,
+      "window": 1
+    },
+    {
+      "groups": [
+        0,
+        1,
+        2,
+        3,
+        4
+      ],
+      "regime": "alpha",
+      "round": 22,
+      "task": 2,
+      "transition": false,
+      "window": 2
+    },
+    {
+      "groups": [
+        0,
+        1,
+        2,
+        3,
+        4
+      ],
+      "regime": "alpha",
+      "round": 23,
+      "task": 2,
+      "transition": false,
+      "window": 3
+    },
+    {
+      "groups": [
+        0,
+        1,
+        2,
+        3,
+        4
+      ],
+      "regime": "alpha",
+      "round": 24,
+      "task": 2,
+      "transition": false,
+      "window": 4
+    },
+    {
+      "groups": [
+        0,
+        1,
+        2,
+        3,
+        4
+      ],
+      "regime": "alpha",
+      "round": 25,
+      "task": 2,
+      "transition": false,
+      "window": 5
+    },
+    {
+      "groups": [
+        0,
+        1,
+        2,
+        3,
+        4
+      ],
+      "regime": "alpha",
+      "round": 26,
+      "task": 2,
+      "transition": false,
+      "window": 6
+    },
+    {
+      "groups": [
+        0,
+        1,
+        2,
+        3,
+        4
+      ],
+      "regime": "alpha",
+      "round": 27,
+      "task": 2,
+      "transition": false,
+      "window": 7
+    },
+    {
+      "groups": [
+        0,
+        1,
+        2,
+        3,
+        4
+      ],
+      "regime": "alpha",
+      "round": 28,
+      "task": 2,
+      "transition": false,
+      "window": 8
+    },
+    {
+      "groups": [
+        0,
+        1,
+        2,
+        3,
+        4
+      ],
+      "regime": "alpha",
+      "round": 29,
+      "task": 2,
+      "transition": false,
+      "window": 9
+    },
+    {
+      "groups": [
+        0,
+        1,
+        2,
+        3,
+        4
+      ],
+      "regime": "alpha",
+      "round": 30,
+      "task": 3,
+      "transition": false,
+      "window": 0
+    },
+    {
+      "groups": [
+        0,
+        1,
+        2,
+        3,
+        4
+      ],
+      "regime": "alpha",
+      "round": 31,
+      "task": 3,
+      "transition": false,
+      "window": 1
+    },
+    {
+      "groups": [
+        0,
+        1,
+        2,
+        3,
+        4
+      ],
+      "regime": "alpha",
+      "round": 32,
+      "task": 3,
+      "transition": false,
+      "window": 2
+    },
+    {
+      "groups": [
+        0,
+        1,
+        2,
+        3,
+        4
+      ],
+      "regime": "alpha",
+      "round": 33,
+      "task": 3,
+      "transition": false,
+      "window": 3
+    },
+    {
+      "groups": [
+        0,
+        1,
+        2,
+        3,
+        4
+      ],
+      "regime": "alpha",
+      "round": 34,
+      "task": 3,
+      "transition": false,
+      "window": 4
+    },
+    {
+      "groups": [
+        0,
+        1,
+        2,
+        3,
+        4
+      ],
+      "regime": "alpha",
+      "round": 35,
+      "task": 3,
+      "transition": false,
+      "window": 5
+    },
+    {
+      "groups": [
+        0,
+        1,
+        2,
+        3,
+        4
+      ],
+      "regime": "alpha",
+      "round": 36,
+      "task": 3,
+      "transition": false,
+      "window": 6
+    },
+    {
+      "groups": [
+        0,
+        1,
+        2,
+        3,
+        4
+      ],
+      "regime": "alpha",
+      "round": 37,
+      "task": 3,
+      "transition": false,
+      "window": 7
+    },
+    {
+      "groups": [
+        0,
+        1,
+        2,
+        3,
+        4
+      ],
+      "regime": "alpha",
+      "round": 38,
+      "task": 3,
+      "transition": false,
+      "window": 8
+    },
+    {
+      "groups": [
+        0,
+        1,
+        2,
+        3,
+        4
+      ],
+      "regime": "alpha",
+      "round": 39,
+      "task": 3,
+      "transition": false,
+      "window": 9
+    },
+    {
+      "groups": [
+        0,
+        1,
+        2,
+        3,
+        4
+      ],
+      "regime": "alpha",
+      "round": 40,
+      "task": 4,
+      "transition": false,
+      "window": 0
+    },
+    {
+      "groups": [
+        0,
+        1,
+        2,
+        3,
+        4
+      ],
+      "regime": "alpha",
+      "round": 41,
+      "task": 4,
+      "transition": false,
+      "window": 1
+    },
+    {
+      "groups": [
+        0,
+        1,
+        2,
+        3,
+        4
+      ],
+      "regime": "alpha",
+      "round": 42,
+      "task": 4,
+      "transition": false,
+      "window": 2
+    },
+    {
+      "groups": [
+        0,
+        1,
+        2,
+        3,
+        4
+      ],
+      "regime": "alpha",
+      "round": 43,
+      "task": 4,
+      "transition": false,
+      "window": 3
+    },
+    {
+      "groups": [
+        0,
+        1,
+        2,
+        3,
+        4
+      ],
+      "regime": "alpha",
+      "round": 44,
+      "task": 4,
+      "transition": false,
+      "window": 4
+    },
+    {
+      "groups": [
+        0,
+        1,
+        2,
+        3,
+        4
+      ],
+      "regime": "alpha",
+      "round": 45,
+      "task": 4,
+      "transition": false,
+      "window": 5
+    },
+    {
+      "groups": [
+        0,
+        1,
+        2,
+        3,
+        4
+      ],
+      "regime": "alpha",
+      "round": 46,
+      "task": 4,
+      "transition": false,
+      "window": 6
+    },
+    {
+      "groups": [
+        0,
+        1,
+        2,
+        3,
+        4
+      ],
+      "regime": "alpha",
+      "round": 47,
+      "task": 4,
+      "transition": false,
+      "window": 7
+    },
+    {
+      "groups": [
+        0,
+        1,
+        2,
+        3,
+        4
+      ],
+      "regime": "alpha",
+      "round": 48,
+      "task": 4,
+      "transition": false,
+      "window": 8
+    },
+    {
+      "groups": [
+        0,
+        1,
+        2,
+        3,
+        4
+      ],
+      "regime": "alpha",
+      "round": 49,
+      "task": 4,
+      "transition": false,
+      "window": 9
+    }
+  ],
+  "schema": 1,
+  "setting_id": "S20",
+  "specification": {
+    "alpha": 100,
+    "analysis_thresholds": {
+      "distribution_tv": 0.2,
+      "signal_distance": 0.1
+    },
+    "clients": 5,
+    "counterfactual_rounds": [
+      1,
+      3,
+      11,
+      13,
+      21,
+      23,
+      31,
+      33,
+      41,
+      43
+    ],
+    "domain": "brightness",
+    "domain_bins": 5,
+    "domain_specialization": 0.9,
+    "label_specialization": 0.9,
+    "mode": "named",
+    "regimes": [
+      "similar",
+      "clustered",
+      "separated",
+      "reassigned",
+      "conditional"
+    ],
+    "schema": 1,
+    "setting": "alpha",
+    "setting_id": "S20",
+    "setting_name": "Dirichlet alpha 100",
+    "tasks": 5,
+    "temporal_persistence": 0.75,
+    "tolerances": {
+      "between_cluster_tv": 0.65,
+      "conditional_joint_tv": 0.55,
+      "joint_tv": 0.25,
+      "label_tv": 0.12,
+      "near_pair_tv": 0.15,
+      "separated_tv": 0.65,
+      "within_cluster_tv": 0.18
+    },
+    "windows": 10
+  },
+  "stream_spec_sha256": "c6eaf0d7af55d271cbca5c4814c1a9b20557e5c6a675615fa3150a5fc57f987b"
+}

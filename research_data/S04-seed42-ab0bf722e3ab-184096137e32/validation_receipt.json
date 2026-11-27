@@ -1,0 +1,15 @@
+{
+  "manifest_id": "8b9df8097308f6c6a63a3f57cb3c7e7aad9b9fb7cf9b75be12a04793ac3f4bd7",
+  "train_and_validation": 49600,
+  "test": 10000,
+  "valid": true,
+  "public_probe": 400,
+  "verified_source_examples": 60000,
+  "source_verified": true,
+  "ground_truth_hash": "fc7d636d93f0a9a063c588050983ff3dae6990f14851ca440a20c57004044dc0",
+  "ground_truth_files": {
+    "distributions.npz": "2aee7214cbd43f9d56d8d6af583747f084bc403f962a7b5437163496be969d29",
+    "specification.json": "f529ef9da624403951d8f40550bdfd3162a0468d08621fc4893b63916d1952e3",
+    "allocation_index.npz": "3c3314ec699b4b374b2ea9fc7f2f1a7429e75a72f6e5d56608931ce4bc0099ef"
+  }
+}

@@ -1,0 +1,7 @@
+{
+  "backbone": "fedavg_uniform_er_v1",
+  "commit": "38192b43b1f084333db415de388a240b8f3f35d1",
+  "manifest_id": "ef9687596df1a9d70e4b09303735ac4643da8b7a3c42abc32624c097ff787e31",
+  "signature": "c6812d0d0158d91c38dfd260b975c77b42958cedf18c8d41a8cbf7996bff015a",
+  "torch": "2.5.1+cu121"
+}

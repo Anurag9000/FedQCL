@@ -1,0 +1,31 @@
+{
+  "accounting": "logical tensor payload plus serialized envelopes, predeclared schedule local; no physical network measurement",
+  "aggregation": "FedAvg direct current-shard-weighted complete-state average",
+  "backbone": "fedavg_uniform_er_v1",
+  "backward_transfer": -0.022111111111111106,
+  "bytes_by_kind": {
+    "MODEL_DOWNLOAD": 22459605410,
+    "MODEL_INITIAL": 224596075,
+    "MODEL_UPLOAD": 22459621800,
+    "SYNC_REQUEST": 66350
+  },
+  "chance_adjusted_accuracy": 0.6762,
+  "downloads": 500,
+  "evaluation_split": "test",
+  "final_accuracy": 0.8381000000000001,
+  "final_current_task_accuracy": 0.8640000000000001,
+  "final_current_task_loss": 0.31854126401245597,
+  "final_micro_accuracy": 0.8381,
+  "final_previous_task_accuracy": 0.8352222222222222,
+  "final_test_accuracy": 0.8381000000000001,
+  "forgetting": 0.07888888888888888,
+  "initial_downloads": 5,
+  "model_payload_bytes": 44919088,
+  "optimizer_steps": 35000,
+  "processed_samples": 450000,
+  "replay_samples": 409500,
+  "rounds": 100,
+  "terminal_flush": false,
+  "total_bytes": 45143889635,
+  "uploads": 500
+}

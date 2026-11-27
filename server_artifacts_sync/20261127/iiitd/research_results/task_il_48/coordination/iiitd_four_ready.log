@@ -1,0 +1,8 @@
+Traceback (most recent call last):
+  File "/home/anurag/Projects/FedQCL_Task/research_results/task_il_48/coordination/shared_gpu_dispatch.py", line 192, in <module>
+    if __name__=='__main__': main()
+                             ^^^^^^
+  File "/home/anurag/Projects/FedQCL_Task/research_results/task_il_48/coordination/shared_gpu_dispatch.py", line 186, in main
+    if rows[jid]['state']=='FAILED': raise RuntimeError(f"training job failed: {jid} exit={rc}; inspect {x['log']}")
+                                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+RuntimeError: training job failed: E06-03-s42-b390ad95787c exit=1; inspect research_results/task_il_48/coordination/attempt_ledgers/E06-03-s42-b390ad95787c/runner.log

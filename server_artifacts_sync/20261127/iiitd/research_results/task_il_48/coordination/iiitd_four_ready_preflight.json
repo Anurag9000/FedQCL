@@ -1,0 +1,106 @@
+{
+  "active": {},
+  "created_at": "2026-11-25T08:33:32.729762+00:00",
+  "external": null,
+  "jobs": {
+    "E06-03-s42-b390ad95787c": {
+      "attempt": 0,
+      "execution_job_id": "E06-03-s42-b390ad95787c",
+      "kind": "train",
+      "source_commit": "38192b43b1f084333db415de388a240b8f3f35d1",
+      "state": "PENDING",
+      "updated_at": "2026-11-25T08:33:27.774871+00:00"
+    },
+    "E09-03-s42-01facd9498f2": {
+      "attempt": 0,
+      "execution_job_id": "E09-03-s42-01facd9498f2",
+      "kind": "train",
+      "source_commit": "38192b43b1f084333db415de388a240b8f3f35d1",
+      "state": "PENDING",
+      "updated_at": "2026-11-25T08:33:27.774876+00:00"
+    },
+    "E09-04-s42-cdd9e6cf58dc": {
+      "attempt": 0,
+      "execution_job_id": "E09-04-s42-cdd9e6cf58dc",
+      "kind": "train",
+      "source_commit": "38192b43b1f084333db415de388a240b8f3f35d1",
+      "state": "PENDING",
+      "updated_at": "2026-11-25T08:33:27.774877+00:00"
+    },
+    "E09-05-s42-b76dbca27aee": {
+      "attempt": 0,
+      "execution_job_id": "E09-05-s42-b76dbca27aee",
+      "kind": "train",
+      "source_commit": "38192b43b1f084333db415de388a240b8f3f35d1",
+      "state": "PENDING",
+      "updated_at": "2026-11-25T08:33:27.774879+00:00"
+    },
+    "data-b43208a736a417b80575": {
+      "artifact_sha256": {
+        "/home/anurag/Projects/FedQCL_Task/research_data/task_il_48/b43208a736a417b80575/manifest.json": "2f44bc0b5b2cf73d7f58472ce6f29064ed764871345d1711333d06bf845d334d"
+      },
+      "attempt": 0,
+      "execution_job_id": "data-b43208a736a417b80575",
+      "kind": "generate",
+      "source_commit": "38192b43b1f084333db415de388a240b8f3f35d1",
+      "state": "VERIFIED_COMPLETE",
+      "updated_at": "2026-11-25T08:33:27.774861+00:00",
+      "verified_at": "2026-11-25T08:33:27.775111+00:00"
+    },
+    "data-d8e07254e9af27ba1a2a": {
+      "artifact_sha256": {
+        "/home/anurag/Projects/FedQCL_Task/research_data/task_il_48/d8e07254e9af27ba1a2a/manifest.json": "74fb448b01b9812b062b0d4649b5f7fa5d7a4899898effb71b5acf154ec636d0"
+      },
+      "attempt": 0,
+      "execution_job_id": "data-d8e07254e9af27ba1a2a",
+      "kind": "generate",
+      "source_commit": "38192b43b1f084333db415de388a240b8f3f35d1",
+      "state": "VERIFIED_COMPLETE",
+      "updated_at": "2026-11-25T08:33:27.774873+00:00",
+      "verified_at": "2026-11-25T08:33:30.329905+00:00"
+    },
+    "validate-b43208a736a417b80575": {
+      "artifact_sha256": {
+        "/home/anurag/Projects/FedQCL_Task/research_data/task_il_48/b43208a736a417b80575/validation_receipt.json": "68d00d7196836331848d295c418c8035a830e38e41fa97dec81cba91a5804492"
+      },
+      "attempt": 0,
+      "execution_job_id": "validate-b43208a736a417b80575",
+      "kind": "validate",
+      "source_commit": "38192b43b1f084333db415de388a240b8f3f35d1",
+      "state": "VERIFIED_COMPLETE",
+      "updated_at": "2026-11-25T08:33:27.774868+00:00",
+      "verified_at": "2026-11-25T08:33:30.329359+00:00"
+    },
+    "validate-d8e07254e9af27ba1a2a": {
+      "artifact_sha256": {
+        "/home/anurag/Projects/FedQCL_Task/research_data/task_il_48/d8e07254e9af27ba1a2a/validation_receipt.json": "d59a774bb948ae5e611083c4b727213f7d075b9d34611a687e1a6762c6bea934"
+      },
+      "attempt": 0,
+      "execution_job_id": "validate-d8e07254e9af27ba1a2a",
+      "kind": "validate",
+      "source_commit": "38192b43b1f084333db415de388a240b8f3f35d1",
+      "state": "VERIFIED_COMPLETE",
+      "updated_at": "2026-11-25T08:33:27.774874+00:00",
+      "verified_at": "2026-11-25T08:33:32.729277+00:00"
+    }
+  },
+  "ledger": "research_results/task_il_48/coordination/iiitd_four_ready_jobs.jsonl",
+  "resources": {
+    "device": "cuda",
+    "external_job_id": null,
+    "external_pid": null,
+    "gpu": "0",
+    "gpu_margin_mib": 4096,
+    "gpu_reserve_mib": 3072,
+    "host_margin_mib": 8192,
+    "host_reserve_mib": 4096,
+    "ledger": "research_results/task_il_48/coordination/iiitd_four_ready_jobs.jsonl",
+    "prepare_only": true,
+    "python": "/home/anurag/.venvs/fedqcl-taskil-py312/bin/python",
+    "state": "research_results/task_il_48/coordination/iiitd_four_ready_preflight.json",
+    "stopped_parent_pid": null,
+    "workers": 4
+  },
+  "source_commit": "38192b43b1f084333db415de388a240b8f3f35d1",
+  "status": "DEPENDENCIES_VERIFIED"
+}

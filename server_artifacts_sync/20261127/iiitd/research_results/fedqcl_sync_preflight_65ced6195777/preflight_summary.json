@@ -1,0 +1,198 @@
+{
+  "status": "passed",
+  "verified_streams": 2,
+  "streams": [
+    {
+      "status": "passed",
+      "dataset": "official CIFAR-100",
+      "setting_id": "S14",
+      "partition_seed": 42,
+      "verified_source_examples": 60000,
+      "private_examples": 44600,
+      "public_probe": 400,
+      "validation_examples": 5000,
+      "test_examples": 10000,
+      "client_round_samples": {
+        "min": 178,
+        "max": 179
+      },
+      "manifest_id": "18ac0532329a578042655ba5d123020baee4f2f01ee28e5314215aad0747f2e1",
+      "ground_truth_hash": "a29121f6253681a9e96e91476e85c7a218200b8db5c3c45327719aa863fbfa27",
+      "max_label_tv": 0.016089385474860333,
+      "max_joint_tv": 0.09640449438202241,
+      "regimes": {
+        "similar": {
+          "rounds": 10,
+          "label_distances": {
+            "min": 0.0,
+            "mean": 0.008246186680057783,
+            "max": 0.011235955056179803
+          },
+          "joint_distances": {
+            "min": 0.06703910614525133,
+            "mean": 0.10000502165589106,
+            "max": 0.12359550561797761
+          }
+        },
+        "clustered": {
+          "rounds": 10,
+          "label_distances": {
+            "min": 0.0,
+            "mean": 0.5424926244429102,
+            "max": 0.8988764044943821
+          },
+          "joint_distances": {
+            "min": 0.050561797752809,
+            "mean": 0.5704117757830646,
+            "max": 0.8988764044943833
+          }
+        },
+        "separated": {
+          "rounds": 10,
+          "label_distances": {
+            "min": 0.893854748603352,
+            "mean": 0.905057749042747,
+            "max": 0.910112359550562
+          },
+          "joint_distances": {
+            "min": 0.9217877094972065,
+            "mean": 0.9490540455715274,
+            "max": 0.9662921348314608
+          }
+        },
+        "reassigned": {
+          "rounds": 10,
+          "label_distances": {
+            "min": 0.0,
+            "mean": 0.5419311405435944,
+            "max": 0.8988764044943821
+          },
+          "joint_distances": {
+            "min": 0.06145251396648044,
+            "mean": 0.5720937166530665,
+            "max": 0.8988764044943832
+          }
+        },
+        "conditional": {
+          "rounds": 10,
+          "label_distances": {
+            "min": 0.0,
+            "mean": 0.008190634611763262,
+            "max": 0.011235955056179803
+          },
+          "joint_distances": {
+            "min": 1.0,
+            "mean": 1.0,
+            "max": 1.0000000000000002
+          }
+        }
+      }
+    },
+    {
+      "status": "passed",
+      "dataset": "official CIFAR-100",
+      "setting_id": "S14N10",
+      "partition_seed": 42,
+      "verified_source_examples": 60000,
+      "private_examples": 44600,
+      "public_probe": 400,
+      "validation_examples": 5000,
+      "test_examples": 10000,
+      "client_round_samples": {
+        "min": 89,
+        "max": 90
+      },
+      "manifest_id": "277c4b237a14c65ef6ae48ea9f422f011b6654547cfab64e74f25d76113b4c32",
+      "ground_truth_hash": "5a1f96dc6769a433df46e1f8118999543cc413b1060103e8e4682a2f599bffac",
+      "max_label_tv": 0.06111111111111121,
+      "max_joint_tv": 0.21,
+      "regimes": {
+        "similar": {
+          "rounds": 10,
+          "label_distances": {
+            "min": 0.0,
+            "mean": 0.061146344846719373,
+            "max": 0.10611735330836447
+          },
+          "joint_distances": {
+            "min": 0.05555555555555558,
+            "mean": 0.1128170342627272,
+            "max": 0.1235955056179775
+          }
+        },
+        "clustered": {
+          "rounds": 10,
+          "label_distances": {
+            "min": 0.011111111111111072,
+            "mean": 0.5012797891524484,
+            "max": 0.9550561797752811
+          },
+          "joint_distances": {
+            "min": 0.0449438202247191,
+            "mean": 0.567608267443474,
+            "max": 0.9550561797752827
+          }
+        },
+        "separated": {
+          "rounds": 10,
+          "label_distances": {
+            "min": 0.101123595505618,
+            "mean": 0.8401645165765017,
+            "max": 1.0
+          },
+          "joint_distances": {
+            "min": 0.101123595505618,
+            "mean": 0.8599342488555977,
+            "max": 1.000000000000001
+          }
+        },
+        "reassigned": {
+          "rounds": 10,
+          "label_distances": {
+            "min": 0.011111111111111072,
+            "mean": 0.5011260923845194,
+            "max": 0.9550561797752811
+          },
+          "joint_distances": {
+            "min": 0.07677902621722832,
+            "mean": 0.5683712026633382,
+            "max": 0.9550561797752827
+          }
+        },
+        "conditional": {
+          "rounds": 10,
+          "label_distances": {
+            "min": 0.0,
+            "mean": 0.061109446525176844,
+            "max": 0.10611735330836447
+          },
+          "joint_distances": {
+            "min": 0.101123595505618,
+            "mean": 0.900346788736302,
+            "max": 1.0000000000000013
+          }
+        }
+      }
+    }
+  ],
+  "campaign": {
+    "jobs": 54,
+    "training_jobs": 0,
+    "calibration_prefixes": 3,
+    "calibration_rounds": 60,
+    "threshold_jobs": 0,
+    "matched_control_jobs": 0,
+    "nominal_client_draws": 0,
+    "threshold_draw_upper_bound": 0,
+    "counterfactual_aggregate_upper_bound": 0,
+    "counterfactual_checkpoints": 0,
+    "counterfactual_candidate_local_trainings": 0,
+    "counterfactual_aggregate_evaluations": 0,
+    "nominal_model_transfer_upper_bound_at_45MB": 0,
+    "initial_downloads": 0,
+    "initial_task_il_downloads": 0,
+    "task_il_local_training_rounds": 0,
+    "note": "Adaptive, threshold, failures, duplicate draws and counterfactual continuation alter actual costs. No runtime or peak memory guarantee."
+  },
+  "source_commit": "65ced6195777d824c77f3c26152b066ef5f47f18"
+}

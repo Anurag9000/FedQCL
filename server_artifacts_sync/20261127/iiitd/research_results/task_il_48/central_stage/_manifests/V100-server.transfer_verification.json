@@ -1,0 +1,16 @@
+{
+  "content_mismatches": [],
+  "destination_host": "iiitd",
+  "destination_manifest_sha256": "c530acc161e104669cea090646bcab3cc999ecc49b5b97b5cc38341e11e43a55",
+  "destination_root": "/home/anurag/Projects/FedQCL_Task/research_results/task_il_48/central_stage/V100-server",
+  "extra_files": [],
+  "file_count": 77,
+  "manifest_match": true,
+  "method": "rsync -a; direct V100-to-iiitd LAN",
+  "missing_files": [],
+  "run_count": 7,
+  "source_host": "V100-server",
+  "source_manifest_sha256": "c530acc161e104669cea090646bcab3cc999ecc49b5b97b5cc38341e11e43a55",
+  "total_bytes": 2227521821,
+  "verified_at": "2026-11-25T11:17:00+00:00"
+}

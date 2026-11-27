@@ -1,0 +1,107 @@
+[transformers] Disabling PyTorch because PyTorch >= 2.6 is required but found 2.5.1+cu121
+[transformers] PyTorch was not found. Models won't be available and only tokenizers, configuration and file/data utilities can be used.
+SimpleCnn(
+  (conv1): Conv2d(28, 16, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+  (conv2): Conv2d(16, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+  (pool): MaxPool2d(kernel_size=2, stride=2, padding=0, dilation=1, ceil_mode=False)
+  (fc1): Linear(in_features=1568, out_features=128, bias=True)
+  (fc2): Linear(in_features=128, out_features=10, bias=True)
+)
+usage: main.py [-h] [-go GOAL] [-dev {cpu,cuda}] [-did DEVICE_ID]
+               [-data DATASET] [-tasks TASKS] [-delta DELTA]
+               [-memory_size MEMORY_SIZE]
+               [-memory_batch_size MEMORY_BATCH_SIZE]
+               [-task_batch_size TASK_BATCH_SIZE] [-V V]
+               [-ppe PATTERNS_PER_EXPERIENCE] [-ss SAMPLE_SIZE]
+               [-nb NUM_CLASSES] [-seed SEED]
+               [-m {cnn,resnet18,whisper,alexnet}] [-lbs BATCH_SIZE]
+               [-lr LOCAL_LEARNING_RATE] [-ld LEARNING_RATE_DECAY]
+               [-ldg LEARNING_RATE_DECAY_GAMMA] [-gr GLOBAL_ROUNDS]
+               [-ls LOCAL_EPOCHS] [-algo ALGORITHM] [-jr JOIN_RATIO]
+               [--hide_one_client]
+               [--hidden_clients_per_round HIDDEN_CLIENTS_PER_ROUND]
+               [-rjr RANDOM_JOIN_RATIO] [-nc NUM_CLIENTS] [-pv PREV]
+               [-t TIMES] [-eg EVAL_GAP] [-dp PRIVACY] [-dps DP_SIGMA]
+               [-sfn SAVE_FOLDER_NAME] [-ab AUTO_BREAK] [-dlg DLG_EVAL]
+               [-dlgg DLG_GAP] [-bnpc BATCH_NUM_PER_CLIENT]
+               [-nnc NUM_NEW_CLIENTS] [-ften FINE_TUNING_EPOCH_NEW]
+               [-cdr CLIENT_DROP_RATE] [-tsr TRAIN_SLOW_RATE]
+               [-ssr SEND_SLOW_RATE] [-ts TIME_SELECT] [-tth TIME_THRETHOLD]
+               [-bt BETA] [-lam LAMDA] [-mu MU] [-K K] [-fs FEW_SHOT]
+               [-lrp P_LEARNING_RATE] [-alpha ALPHA]
+
+options:
+  -h, --help            show this help message and exit
+  -go GOAL, --goal GOAL
+                        The goal for this experiment
+  -dev {cpu,cuda}, --device {cpu,cuda}
+  -did DEVICE_ID, --device_id DEVICE_ID
+  -data DATASET, --dataset DATASET
+  -tasks TASKS, --tasks TASKS
+  -delta DELTA, --delta DELTA
+  -memory_size MEMORY_SIZE, --memory_size MEMORY_SIZE
+  -memory_batch_size MEMORY_BATCH_SIZE, --memory_batch_size MEMORY_BATCH_SIZE
+  -task_batch_size TASK_BATCH_SIZE, --task_batch_size TASK_BATCH_SIZE
+  -V V, --V V
+  -ppe PATTERNS_PER_EXPERIENCE, --patterns_per_experience PATTERNS_PER_EXPERIENCE
+  -ss SAMPLE_SIZE, --sample_size SAMPLE_SIZE
+  -nb NUM_CLASSES, --num_classes NUM_CLASSES
+  -seed SEED, --seed SEED
+  -m {cnn,resnet18,whisper,alexnet}, --model {cnn,resnet18,whisper,alexnet}
+  -lbs BATCH_SIZE, --batch_size BATCH_SIZE
+  -lr LOCAL_LEARNING_RATE, --local_learning_rate LOCAL_LEARNING_RATE
+                        Local learning rate
+  -ld LEARNING_RATE_DECAY, --learning_rate_decay LEARNING_RATE_DECAY
+  -ldg LEARNING_RATE_DECAY_GAMMA, --learning_rate_decay_gamma LEARNING_RATE_DECAY_GAMMA
+  -gr GLOBAL_ROUNDS, --global_rounds GLOBAL_ROUNDS
+  -ls LOCAL_EPOCHS, --local_epochs LOCAL_EPOCHS
+                        Multiple update steps in one local epoch.
+  -algo ALGORITHM, --algorithm ALGORITHM
+  -jr JOIN_RATIO, --join_ratio JOIN_RATIO
+                        Ratio of clients per round
+  --hide_one_client     Exclude one randomly chosen client from training,
+                        upload, and broadcast each round
+  --hidden_clients_per_round HIDDEN_CLIENTS_PER_ROUND
+                        Randomly exclude this many clients from both
+                        directions each round
+  -rjr RANDOM_JOIN_RATIO, --random_join_ratio RANDOM_JOIN_RATIO
+                        Random ratio of clients per round
+  -nc NUM_CLIENTS, --num_clients NUM_CLIENTS
+                        Total number of clients
+  -pv PREV, --prev PREV
+                        Previous Running times
+  -t TIMES, --times TIMES
+                        Running times
+  -eg EVAL_GAP, --eval_gap EVAL_GAP
+                        Rounds gap for evaluation
+  -dp PRIVACY, --privacy PRIVACY
+                        differential privacy
+  -dps DP_SIGMA, --dp_sigma DP_SIGMA
+  -sfn SAVE_FOLDER_NAME, --save_folder_name SAVE_FOLDER_NAME
+  -ab AUTO_BREAK, --auto_break AUTO_BREAK
+  -dlg DLG_EVAL, --dlg_eval DLG_EVAL
+  -dlgg DLG_GAP, --dlg_gap DLG_GAP
+  -bnpc BATCH_NUM_PER_CLIENT, --batch_num_per_client BATCH_NUM_PER_CLIENT
+  -nnc NUM_NEW_CLIENTS, --num_new_clients NUM_NEW_CLIENTS
+  -ften FINE_TUNING_EPOCH_NEW, --fine_tuning_epoch_new FINE_TUNING_EPOCH_NEW
+  -cdr CLIENT_DROP_RATE, --client_drop_rate CLIENT_DROP_RATE
+                        Rate for clients that train but drop out
+  -tsr TRAIN_SLOW_RATE, --train_slow_rate TRAIN_SLOW_RATE
+                        The rate for slow clients when training locally
+  -ssr SEND_SLOW_RATE, --send_slow_rate SEND_SLOW_RATE
+                        The rate for slow clients when sending global model
+  -ts TIME_SELECT, --time_select TIME_SELECT
+                        Whether to group and select clients at each round
+                        according to time cost
+  -tth TIME_THRETHOLD, --time_threthold TIME_THRETHOLD
+                        The threthold for droping slow clients
+  -bt BETA, --beta BETA
+  -lam LAMDA, --lamda LAMDA
+                        Regularization weight
+  -mu MU, --mu MU
+  -K K, --K K           Number of personalized training steps for pFedMe
+  -fs FEW_SHOT, --few_shot FEW_SHOT
+  -lrp P_LEARNING_RATE, --p_learning_rate P_LEARNING_RATE
+                        personalized learning rate to caculate theta
+                        aproximately using K steps
+  -alpha ALPHA, --alpha ALPHA

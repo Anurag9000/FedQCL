@@ -1,0 +1,32 @@
+{
+  "attempt_id": "E08-03-s42-107bf22191c5-iiitd-a002",
+  "created_at_utc": "2026-11-25T10:50:55.939376+00:00",
+  "dataset_manifest_id": "858e6927282a5907b732d818f62a930c0a5857848b2c2c5bbc927d961bd3c45c",
+  "dataset_path": "/home/anurag/Projects/FedQCL_Task/research_data/task_il_48/20f5e8923a8844c64666",
+  "host": "iiitd",
+  "launch_command": [
+    "/home/anurag/.venvs/fedqcl-taskil-py312/bin/python",
+    "task_il_main.py",
+    "--config",
+    "/home/anurag/Projects/FedQCL_Task/research_results/task_il_48/E08-03-s42-107bf22191c5-iiitd-a002/config.json",
+    "--schedule",
+    "/home/anurag/Projects/FedQCL_Task/research_results/task_il_48/E08-03-s42-107bf22191c5-iiitd-a002/schedule.json",
+    "--data",
+    "/home/anurag/Projects/FedQCL_Task/research_data/task_il_48/20f5e8923a8844c64666",
+    "--output",
+    "/home/anurag/Projects/FedQCL_Task/research_results/task_il_48/E08-03-s42-107bf22191c5-iiitd-a002",
+    "--sync-resume",
+    "-dev",
+    "cuda",
+    "-did",
+    "0"
+  ],
+  "logical_run_id": "E08-03-s42-107bf22191c5",
+  "output_directory": "/home/anurag/Projects/FedQCL_Task/research_results/task_il_48/E08-03-s42-107bf22191c5-iiitd-a002",
+  "resumed_from_round": 47,
+  "source_checkpoint_sha256": "c58358a2e3e1de8e64b76b759ad0268064dd690099b8dbc78ce1124bac3c0a60",
+  "source_commit": "38192b43b1f084333db415de388a240b8f3f35d1",
+  "source_host": "MtechDEServer1",
+  "transfer_validation": "all nine source artifact SHA256 values match destination; checkpoint signature match true",
+  "verified_checkpoint_signature": "c062dd5c02763c2e5bb7ba60ecc57e828eb7d79ea4b970f47ddfad3a32cbc0c4"
+}

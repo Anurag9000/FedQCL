@@ -1,0 +1,1460 @@
+{
+  "clients": 5,
+  "episodes": [
+    {
+      "client": 0,
+      "id": 0,
+      "task": 0
+    },
+    {
+      "client": 0,
+      "id": 1,
+      "task": 1
+    },
+    {
+      "client": 0,
+      "id": 2,
+      "task": 2
+    },
+    {
+      "client": 0,
+      "id": 3,
+      "task": 3
+    },
+    {
+      "client": 0,
+      "id": 4,
+      "task": 4
+    },
+    {
+      "client": 0,
+      "id": 5,
+      "task": 5
+    },
+    {
+      "client": 0,
+      "id": 6,
+      "task": 6
+    },
+    {
+      "client": 0,
+      "id": 7,
+      "task": 7
+    },
+    {
+      "client": 0,
+      "id": 8,
+      "task": 8
+    },
+    {
+      "client": 0,
+      "id": 9,
+      "task": 9
+    },
+    {
+      "client": 0,
+      "id": 10,
+      "task": 10
+    },
+    {
+      "client": 0,
+      "id": 11,
+      "task": 11
+    },
+    {
+      "client": 0,
+      "id": 12,
+      "task": 12
+    },
+    {
+      "client": 0,
+      "id": 13,
+      "task": 13
+    },
+    {
+      "client": 0,
+      "id": 14,
+      "task": 14
+    },
+    {
+      "client": 0,
+      "id": 15,
+      "task": 15
+    },
+    {
+      "client": 0,
+      "id": 16,
+      "task": 16
+    },
+    {
+      "client": 0,
+      "id": 17,
+      "task": 17
+    },
+    {
+      "client": 0,
+      "id": 18,
+      "task": 18
+    },
+    {
+      "client": 0,
+      "id": 19,
+      "task": 19
+    },
+    {
+      "client": 0,
+      "id": 20,
+      "task": 20
+    },
+    {
+      "client": 0,
+      "id": 21,
+      "task": 21
+    },
+    {
+      "client": 0,
+      "id": 22,
+      "task": 22
+    },
+    {
+      "client": 0,
+      "id": 23,
+      "task": 23
+    },
+    {
+      "client": 0,
+      "id": 24,
+      "task": 24
+    },
+    {
+      "client": 0,
+      "id": 25,
+      "task": 25
+    },
+    {
+      "client": 0,
+      "id": 26,
+      "task": 26
+    },
+    {
+      "client": 0,
+      "id": 27,
+      "task": 27
+    },
+    {
+      "client": 0,
+      "id": 28,
+      "task": 28
+    },
+    {
+      "client": 0,
+      "id": 29,
+      "task": 29
+    },
+    {
+      "client": 0,
+      "id": 30,
+      "task": 30
+    },
+    {
+      "client": 0,
+      "id": 31,
+      "task": 31
+    },
+    {
+      "client": 0,
+      "id": 32,
+      "task": 32
+    },
+    {
+      "client": 0,
+      "id": 33,
+      "task": 33
+    },
+    {
+      "client": 0,
+      "id": 34,
+      "task": 34
+    },
+    {
+      "client": 0,
+      "id": 35,
+      "task": 35
+    },
+    {
+      "client": 0,
+      "id": 36,
+      "task": 36
+    },
+    {
+      "client": 0,
+      "id": 37,
+      "task": 37
+    },
+    {
+      "client": 0,
+      "id": 38,
+      "task": 38
+    },
+    {
+      "client": 0,
+      "id": 39,
+      "task": 39
+    },
+    {
+      "client": 0,
+      "id": 40,
+      "task": 40
+    },
+    {
+      "client": 0,
+      "id": 41,
+      "task": 41
+    },
+    {
+      "client": 0,
+      "id": 42,
+      "task": 42
+    },
+    {
+      "client": 0,
+      "id": 43,
+      "task": 43
+    },
+    {
+      "client": 0,
+      "id": 44,
+      "task": 44
+    },
+    {
+      "client": 0,
+      "id": 45,
+      "task": 45
+    },
+    {
+      "client": 0,
+      "id": 46,
+      "task": 46
+    },
+    {
+      "client": 0,
+      "id": 47,
+      "task": 47
+    },
+    {
+      "client": 0,
+      "id": 48,
+      "task": 48
+    },
+    {
+      "client": 0,
+      "id": 49,
+      "task": 49
+    },
+    {
+      "client": 1,
+      "id": 50,
+      "task": 0
+    },
+    {
+      "client": 1,
+      "id": 51,
+      "task": 1
+    },
+    {
+      "client": 1,
+      "id": 52,
+      "task": 2
+    },
+    {
+      "client": 1,
+      "id": 53,
+      "task": 3
+    },
+    {
+      "client": 1,
+      "id": 54,
+      "task": 4
+    },
+    {
+      "client": 1,
+      "id": 55,
+      "task": 5
+    },
+    {
+      "client": 1,
+      "id": 56,
+      "task": 6
+    },
+    {
+      "client": 1,
+      "id": 57,
+      "task": 7
+    },
+    {
+      "client": 1,
+      "id": 58,
+      "task": 8
+    },
+    {
+      "client": 1,
+      "id": 59,
+      "task": 9
+    },
+    {
+      "client": 1,
+      "id": 60,
+      "task": 10
+    },
+    {
+      "client": 1,
+      "id": 61,
+      "task": 11
+    },
+    {
+      "client": 1,
+      "id": 62,
+      "task": 12
+    },
+    {
+      "client": 1,
+      "id": 63,
+      "task": 13
+    },
+    {
+      "client": 1,
+      "id": 64,
+      "task": 14
+    },
+    {
+      "client": 1,
+      "id": 65,
+      "task": 15
+    },
+    {
+      "client": 1,
+      "id": 66,
+      "task": 16
+    },
+    {
+      "client": 1,
+      "id": 67,
+      "task": 17
+    },
+    {
+      "client": 1,
+      "id": 68,
+      "task": 18
+    },
+    {
+      "client": 1,
+      "id": 69,
+      "task": 19
+    },
+    {
+      "client": 1,
+      "id": 70,
+      "task": 20
+    },
+    {
+      "client": 1,
+      "id": 71,
+      "task": 21
+    },
+    {
+      "client": 1,
+      "id": 72,
+      "task": 22
+    },
+    {
+      "client": 1,
+      "id": 73,
+      "task": 23
+    },
+    {
+      "client": 1,
+      "id": 74,
+      "task": 24
+    },
+    {
+      "client": 1,
+      "id": 75,
+      "task": 25
+    },
+    {
+      "client": 1,
+      "id": 76,
+      "task": 26
+    },
+    {
+      "client": 1,
+      "id": 77,
+      "task": 27
+    },
+    {
+      "client": 1,
+      "id": 78,
+      "task": 28
+    },
+    {
+      "client": 1,
+      "id": 79,
+      "task": 29
+    },
+    {
+      "client": 1,
+      "id": 80,
+      "task": 30
+    },
+    {
+      "client": 1,
+      "id": 81,
+      "task": 31
+    },
+    {
+      "client": 1,
+      "id": 82,
+      "task": 32
+    },
+    {
+      "client": 1,
+      "id": 83,
+      "task": 33
+    },
+    {
+      "client": 1,
+      "id": 84,
+      "task": 34
+    },
+    {
+      "client": 1,
+      "id": 85,
+      "task": 35
+    },
+    {
+      "client": 1,
+      "id": 86,
+      "task": 36
+    },
+    {
+      "client": 1,
+      "id": 87,
+      "task": 37
+    },
+    {
+      "client": 1,
+      "id": 88,
+      "task": 38
+    },
+    {
+      "client": 1,
+      "id": 89,
+      "task": 39
+    },
+    {
+      "client": 1,
+      "id": 90,
+      "task": 40
+    },
+    {
+      "client": 1,
+      "id": 91,
+      "task": 41
+    },
+    {
+      "client": 1,
+      "id": 92,
+      "task": 42
+    },
+    {
+      "client": 1,
+      "id": 93,
+      "task": 43
+    },
+    {
+      "client": 1,
+      "id": 94,
+      "task": 44
+    },
+    {
+      "client": 1,
+      "id": 95,
+      "task": 45
+    },
+    {
+      "client": 1,
+      "id": 96,
+      "task": 46
+    },
+    {
+      "client": 1,
+      "id": 97,
+      "task": 47
+    },
+    {
+      "client": 1,
+      "id": 98,
+      "task": 48
+    },
+    {
+      "client": 1,
+      "id": 99,
+      "task": 49
+    },
+    {
+      "client": 2,
+      "id": 100,
+      "task": 0
+    },
+    {
+      "client": 2,
+      "id": 101,
+      "task": 1
+    },
+    {
+      "client": 2,
+      "id": 102,
+      "task": 2
+    },
+    {
+      "client": 2,
+      "id": 103,
+      "task": 3
+    },
+    {
+      "client": 2,
+      "id": 104,
+      "task": 4
+    },
+    {
+      "client": 2,
+      "id": 105,
+      "task": 5
+    },
+    {
+      "client": 2,
+      "id": 106,
+      "task": 6
+    },
+    {
+      "client": 2,
+      "id": 107,
+      "task": 7
+    },
+    {
+      "client": 2,
+      "id": 108,
+      "task": 8
+    },
+    {
+      "client": 2,
+      "id": 109,
+      "task": 9
+    },
+    {
+      "client": 2,
+      "id": 110,
+      "task": 10
+    },
+    {
+      "client": 2,
+      "id": 111,
+      "task": 11
+    },
+    {
+      "client": 2,
+      "id": 112,
+      "task": 12
+    },
+    {
+      "client": 2,
+      "id": 113,
+      "task": 13
+    },
+    {
+      "client": 2,
+      "id": 114,
+      "task": 14
+    },
+    {
+      "client": 2,
+      "id": 115,
+      "task": 15
+    },
+    {
+      "client": 2,
+      "id": 116,
+      "task": 16
+    },
+    {
+      "client": 2,
+      "id": 117,
+      "task": 17
+    },
+    {
+      "client": 2,
+      "id": 118,
+      "task": 18
+    },
+    {
+      "client": 2,
+      "id": 119,
+      "task": 19
+    },
+    {
+      "client": 2,
+      "id": 120,
+      "task": 20
+    },
+    {
+      "client": 2,
+      "id": 121,
+      "task": 21
+    },
+    {
+      "client": 2,
+      "id": 122,
+      "task": 22
+    },
+    {
+      "client": 2,
+      "id": 123,
+      "task": 23
+    },
+    {
+      "client": 2,
+      "id": 124,
+      "task": 24
+    },
+    {
+      "client": 2,
+      "id": 125,
+      "task": 25
+    },
+    {
+      "client": 2,
+      "id": 126,
+      "task": 26
+    },
+    {
+      "client": 2,
+      "id": 127,
+      "task": 27
+    },
+    {
+      "client": 2,
+      "id": 128,
+      "task": 28
+    },
+    {
+      "client": 2,
+      "id": 129,
+      "task": 29
+    },
+    {
+      "client": 2,
+      "id": 130,
+      "task": 30
+    },
+    {
+      "client": 2,
+      "id": 131,
+      "task": 31
+    },
+    {
+      "client": 2,
+      "id": 132,
+      "task": 32
+    },
+    {
+      "client": 2,
+      "id": 133,
+      "task": 33
+    },
+    {
+      "client": 2,
+      "id": 134,
+      "task": 34
+    },
+    {
+      "client": 2,
+      "id": 135,
+      "task": 35
+    },
+    {
+      "client": 2,
+      "id": 136,
+      "task": 36
+    },
+    {
+      "client": 2,
+      "id": 137,
+      "task": 37
+    },
+    {
+      "client": 2,
+      "id": 138,
+      "task": 38
+    },
+    {
+      "client": 2,
+      "id": 139,
+      "task": 39
+    },
+    {
+      "client": 2,
+      "id": 140,
+      "task": 40
+    },
+    {
+      "client": 2,
+      "id": 141,
+      "task": 41
+    },
+    {
+      "client": 2,
+      "id": 142,
+      "task": 42
+    },
+    {
+      "client": 2,
+      "id": 143,
+      "task": 43
+    },
+    {
+      "client": 2,
+      "id": 144,
+      "task": 44
+    },
+    {
+      "client": 2,
+      "id": 145,
+      "task": 45
+    },
+    {
+      "client": 2,
+      "id": 146,
+      "task": 46
+    },
+    {
+      "client": 2,
+      "id": 147,
+      "task": 47
+    },
+    {
+      "client": 2,
+      "id": 148,
+      "task": 48
+    },
+    {
+      "client": 2,
+      "id": 149,
+      "task": 49
+    },
+    {
+      "client": 3,
+      "id": 150,
+      "task": 0
+    },
+    {
+      "client": 3,
+      "id": 151,
+      "task": 1
+    },
+    {
+      "client": 3,
+      "id": 152,
+      "task": 2
+    },
+    {
+      "client": 3,
+      "id": 153,
+      "task": 3
+    },
+    {
+      "client": 3,
+      "id": 154,
+      "task": 4
+    },
+    {
+      "client": 3,
+      "id": 155,
+      "task": 5
+    },
+    {
+      "client": 3,
+      "id": 156,
+      "task": 6
+    },
+    {
+      "client": 3,
+      "id": 157,
+      "task": 7
+    },
+    {
+      "client": 3,
+      "id": 158,
+      "task": 8
+    },
+    {
+      "client": 3,
+      "id": 159,
+      "task": 9
+    },
+    {
+      "client": 3,
+      "id": 160,
+      "task": 10
+    },
+    {
+      "client": 3,
+      "id": 161,
+      "task": 11
+    },
+    {
+      "client": 3,
+      "id": 162,
+      "task": 12
+    },
+    {
+      "client": 3,
+      "id": 163,
+      "task": 13
+    },
+    {
+      "client": 3,
+      "id": 164,
+      "task": 14
+    },
+    {
+      "client": 3,
+      "id": 165,
+      "task": 15
+    },
+    {
+      "client": 3,
+      "id": 166,
+      "task": 16
+    },
+    {
+      "client": 3,
+      "id": 167,
+      "task": 17
+    },
+    {
+      "client": 3,
+      "id": 168,
+      "task": 18
+    },
+    {
+      "client": 3,
+      "id": 169,
+      "task": 19
+    },
+    {
+      "client": 3,
+      "id": 170,
+      "task": 20
+    },
+    {
+      "client": 3,
+      "id": 171,
+      "task": 21
+    },
+    {
+      "client": 3,
+      "id": 172,
+      "task": 22
+    },
+    {
+      "client": 3,
+      "id": 173,
+      "task": 23
+    },
+    {
+      "client": 3,
+      "id": 174,
+      "task": 24
+    },
+    {
+      "client": 3,
+      "id": 175,
+      "task": 25
+    },
+    {
+      "client": 3,
+      "id": 176,
+      "task": 26
+    },
+    {
+      "client": 3,
+      "id": 177,
+      "task": 27
+    },
+    {
+      "client": 3,
+      "id": 178,
+      "task": 28
+    },
+    {
+      "client": 3,
+      "id": 179,
+      "task": 29
+    },
+    {
+      "client": 3,
+      "id": 180,
+      "task": 30
+    },
+    {
+      "client": 3,
+      "id": 181,
+      "task": 31
+    },
+    {
+      "client": 3,
+      "id": 182,
+      "task": 32
+    },
+    {
+      "client": 3,
+      "id": 183,
+      "task": 33
+    },
+    {
+      "client": 3,
+      "id": 184,
+      "task": 34
+    },
+    {
+      "client": 3,
+      "id": 185,
+      "task": 35
+    },
+    {
+      "client": 3,
+      "id": 186,
+      "task": 36
+    },
+    {
+      "client": 3,
+      "id": 187,
+      "task": 37
+    },
+    {
+      "client": 3,
+      "id": 188,
+      "task": 38
+    },
+    {
+      "client": 3,
+      "id": 189,
+      "task": 39
+    },
+    {
+      "client": 3,
+      "id": 190,
+      "task": 40
+    },
+    {
+      "client": 3,
+      "id": 191,
+      "task": 41
+    },
+    {
+      "client": 3,
+      "id": 192,
+      "task": 42
+    },
+    {
+      "client": 3,
+      "id": 193,
+      "task": 43
+    },
+    {
+      "client": 3,
+      "id": 194,
+      "task": 44
+    },
+    {
+      "client": 3,
+      "id": 195,
+      "task": 45
+    },
+    {
+      "client": 3,
+      "id": 196,
+      "task": 46
+    },
+    {
+      "client": 3,
+      "id": 197,
+      "task": 47
+    },
+    {
+      "client": 3,
+      "id": 198,
+      "task": 48
+    },
+    {
+      "client": 3,
+      "id": 199,
+      "task": 49
+    },
+    {
+      "client": 4,
+      "id": 200,
+      "task": 0
+    },
+    {
+      "client": 4,
+      "id": 201,
+      "task": 1
+    },
+    {
+      "client": 4,
+      "id": 202,
+      "task": 2
+    },
+    {
+      "client": 4,
+      "id": 203,
+      "task": 3
+    },
+    {
+      "client": 4,
+      "id": 204,
+      "task": 4
+    },
+    {
+      "client": 4,
+      "id": 205,
+      "task": 5
+    },
+    {
+      "client": 4,
+      "id": 206,
+      "task": 6
+    },
+    {
+      "client": 4,
+      "id": 207,
+      "task": 7
+    },
+    {
+      "client": 4,
+      "id": 208,
+      "task": 8
+    },
+    {
+      "client": 4,
+      "id": 209,
+      "task": 9
+    },
+    {
+      "client": 4,
+      "id": 210,
+      "task": 10
+    },
+    {
+      "client": 4,
+      "id": 211,
+      "task": 11
+    },
+    {
+      "client": 4,
+      "id": 212,
+      "task": 12
+    },
+    {
+      "client": 4,
+      "id": 213,
+      "task": 13
+    },
+    {
+      "client": 4,
+      "id": 214,
+      "task": 14
+    },
+    {
+      "client": 4,
+      "id": 215,
+      "task": 15
+    },
+    {
+      "client": 4,
+      "id": 216,
+      "task": 16
+    },
+    {
+      "client": 4,
+      "id": 217,
+      "task": 17
+    },
+    {
+      "client": 4,
+      "id": 218,
+      "task": 18
+    },
+    {
+      "client": 4,
+      "id": 219,
+      "task": 19
+    },
+    {
+      "client": 4,
+      "id": 220,
+      "task": 20
+    },
+    {
+      "client": 4,
+      "id": 221,
+      "task": 21
+    },
+    {
+      "client": 4,
+      "id": 222,
+      "task": 22
+    },
+    {
+      "client": 4,
+      "id": 223,
+      "task": 23
+    },
+    {
+      "client": 4,
+      "id": 224,
+      "task": 24
+    },
+    {
+      "client": 4,
+      "id": 225,
+      "task": 25
+    },
+    {
+      "client": 4,
+      "id": 226,
+      "task": 26
+    },
+    {
+      "client": 4,
+      "id": 227,
+      "task": 27
+    },
+    {
+      "client": 4,
+      "id": 228,
+      "task": 28
+    },
+    {
+      "client": 4,
+      "id": 229,
+      "task": 29
+    },
+    {
+      "client": 4,
+      "id": 230,
+      "task": 30
+    },
+    {
+      "client": 4,
+      "id": 231,
+      "task": 31
+    },
+    {
+      "client": 4,
+      "id": 232,
+      "task": 32
+    },
+    {
+      "client": 4,
+      "id": 233,
+      "task": 33
+    },
+    {
+      "client": 4,
+      "id": 234,
+      "task": 34
+    },
+    {
+      "client": 4,
+      "id": 235,
+      "task": 35
+    },
+    {
+      "client": 4,
+      "id": 236,
+      "task": 36
+    },
+    {
+      "client": 4,
+      "id": 237,
+      "task": 37
+    },
+    {
+      "client": 4,
+      "id": 238,
+      "task": 38
+    },
+    {
+      "client": 4,
+      "id": 239,
+      "task": 39
+    },
+    {
+      "client": 4,
+      "id": 240,
+      "task": 40
+    },
+    {
+      "client": 4,
+      "id": 241,
+      "task": 41
+    },
+    {
+      "client": 4,
+      "id": 242,
+      "task": 42
+    },
+    {
+      "client": 4,
+      "id": 243,
+      "task": 43
+    },
+    {
+      "client": 4,
+      "id": 244,
+      "task": 44
+    },
+    {
+      "client": 4,
+      "id": 245,
+      "task": 45
+    },
+    {
+      "client": 4,
+      "id": 246,
+      "task": 46
+    },
+    {
+      "client": 4,
+      "id": 247,
+      "task": 47
+    },
+    {
+      "client": 4,
+      "id": 248,
+      "task": 48
+    },
+    {
+      "client": 4,
+      "id": 249,
+      "task": 49
+    }
+  ],
+  "schema": 1,
+  "seed": 42,
+  "tasks": [
+    [
+      0,
+      95
+    ],
+    [
+      1,
+      70
+    ],
+    [
+      2,
+      51
+    ],
+    [
+      3,
+      94
+    ],
+    [
+      4,
+      97
+    ],
+    [
+      5,
+      24
+    ],
+    [
+      6,
+      67
+    ],
+    [
+      7,
+      34
+    ],
+    [
+      8,
+      47
+    ],
+    [
+      9,
+      91
+    ],
+    [
+      10,
+      73
+    ],
+    [
+      11,
+      69
+    ],
+    [
+      12,
+      85
+    ],
+    [
+      13,
+      86
+    ],
+    [
+      14,
+      81
+    ],
+    [
+      15,
+      78
+    ],
+    [
+      16,
+      38
+    ],
+    [
+      17,
+      28
+    ],
+    [
+      18,
+      66
+    ],
+    [
+      19,
+      82
+    ],
+    [
+      20,
+      90
+    ],
+    [
+      21,
+      30
+    ],
+    [
+      22,
+      62
+    ],
+    [
+      23,
+      36
+    ],
+    [
+      25,
+      71
+    ],
+    [
+      26,
+      83
+    ],
+    [
+      27,
+      88
+    ],
+    [
+      29,
+      64
+    ],
+    [
+      31,
+      35
+    ],
+    [
+      32,
+      96
+    ],
+    [
+      33,
+      87
+    ],
+    [
+      37,
+      76
+    ],
+    [
+      39,
+      40
+    ],
+    [
+      41,
+      42
+    ],
+    [
+      43,
+      79
+    ],
+    [
+      44,
+      74
+    ],
+    [
+      45,
+      72
+    ],
+    [
+      46,
+      99
+    ],
+    [
+      48,
+      92
+    ],
+    [
+      49,
+      80
+    ],
+    [
+      50,
+      65
+    ],
+    [
+      52,
+      98
+    ],
+    [
+      53,
+      89
+    ],
+    [
+      54,
+      75
+    ],
+    [
+      55,
+      56
+    ],
+    [
+      57,
+      93
+    ],
+    [
+      58,
+      68
+    ],
+    [
+      59,
+      63
+    ],
+    [
+      60,
+      61
+    ],
+    [
+      77,
+      84
+    ]
+  ],
+  "validation_per_class": 50
+}

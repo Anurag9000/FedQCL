@@ -1,0 +1,30 @@
+{
+  "extension_counts": {
+    "": 10,
+    ".csv": 11,
+    ".exit": 2,
+    ".exit_code": 1,
+    ".gz": 1,
+    ".h5": 16,
+    ".json": 756,
+    ".jsonl": 320,
+    ".lock": 5,
+    ".log": 52,
+    ".md": 11,
+    ".npz": 1331,
+    ".pid": 1,
+    ".png": 283,
+    ".py": 96,
+    ".sh": 13,
+    ".sha256": 1,
+    ".tar": 1,
+    ".tsv": 3,
+    ".txt": 7,
+    ".txt~": 1,
+    ".yml": 1
+  },
+  "files_and_symlinks": 2923,
+  "logical_bytes": 6354572210,
+  "manifest": "/tmp/artifacts_manifest_iiitd.jsonl",
+  "root": "/home/anurag/Projects/FedQCL_Task"
+}

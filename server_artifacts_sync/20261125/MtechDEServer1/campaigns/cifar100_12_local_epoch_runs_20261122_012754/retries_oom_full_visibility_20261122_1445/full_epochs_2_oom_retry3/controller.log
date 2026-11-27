@@ -1,0 +1,37 @@
+{"event": "waiting_for_vram", "run_id": "fedqcl_full_e2_retry3", "free_vram_mib": 2601, "outstanding_reservations_mib": 1030, "available_after_reservations_mib": 1571, "required_mib": 9216}
+{"event": "waiting_for_vram", "run_id": "fedqcl_full_e2_retry3", "free_vram_mib": 2601, "outstanding_reservations_mib": 1030, "available_after_reservations_mib": 1571, "required_mib": 9216}
+{"event": "waiting_for_vram", "run_id": "fedqcl_full_e2_retry3", "free_vram_mib": 2601, "outstanding_reservations_mib": 1030, "available_after_reservations_mib": 1571, "required_mib": 9216}
+{"event": "waiting_for_vram", "run_id": "fedqcl_full_e2_retry3", "free_vram_mib": 1777, "outstanding_reservations_mib": 206, "available_after_reservations_mib": 1571, "required_mib": 9216}
+{"event": "waiting_for_vram", "run_id": "fedqcl_full_e2_retry3", "free_vram_mib": 1777, "outstanding_reservations_mib": 206, "available_after_reservations_mib": 1571, "required_mib": 9216}
+{"event": "waiting_for_vram", "run_id": "fedqcl_full_e2_retry3", "free_vram_mib": 1571, "outstanding_reservations_mib": 0, "available_after_reservations_mib": 1571, "required_mib": 9216}
+{"event": "waiting_for_vram", "run_id": "fedqcl_full_e2_retry3", "free_vram_mib": 1571, "outstanding_reservations_mib": 0, "available_after_reservations_mib": 1571, "required_mib": 9216}
+{"event": "waiting_for_vram", "run_id": "fedqcl_full_e2_retry3", "free_vram_mib": 1571, "outstanding_reservations_mib": 0, "available_after_reservations_mib": 1571, "required_mib": 9216}
+{"event": "waiting_for_vram", "run_id": "fedqcl_full_e2_retry3", "free_vram_mib": 1571, "outstanding_reservations_mib": 0, "available_after_reservations_mib": 1571, "required_mib": 9216}
+{"event": "waiting_for_vram", "run_id": "fedqcl_full_e2_retry3", "free_vram_mib": 1571, "outstanding_reservations_mib": 0, "available_after_reservations_mib": 1571, "required_mib": 9216}
+{"event": "waiting_for_vram", "run_id": "fedqcl_full_e2_retry3", "free_vram_mib": 1571, "outstanding_reservations_mib": 0, "available_after_reservations_mib": 1571, "required_mib": 9216}
+{"event": "waiting_for_vram", "run_id": "fedqcl_full_e2_retry3", "free_vram_mib": 1571, "outstanding_reservations_mib": 0, "available_after_reservations_mib": 1571, "required_mib": 9216}
+{"event": "waiting_for_vram", "run_id": "fedqcl_full_e2_retry3", "free_vram_mib": 1571, "outstanding_reservations_mib": 0, "available_after_reservations_mib": 1571, "required_mib": 9216}
+OSError: [Errno 28] No space left on device
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/anurag24092/Projects/Correlation-Aware-FCL-vram-broker-20261122/vram_broker.py", line 208, in <module>
+    raise SystemExit(main())
+                     ^^^^^^
+  File "/home/anurag24092/Projects/Correlation-Aware-FCL-vram-broker-20261122/vram_broker.py", line 163, in main
+    atomic_json(reservation, record)
+  File "/home/anurag24092/Projects/Correlation-Aware-FCL-vram-broker-20261122/vram_broker.py", line 24, in atomic_json
+    tmp.write_text(json.dumps(obj, indent=2, sort_keys=True) + "\n")
+  File "/home/anurag24092/.local/share/uv/python/cpython-3.12.15-linux-x86_64-gnu/lib/python3.12/pathlib.py", line 1047, in write_text
+    with self.open(mode='w', encoding=encoding, errors=errors, newline=newline) as f:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+OSError: [Errno 28] No space left on device
+Traceback (most recent call last):
+  File "/home/anurag24092/Projects/FedQCL_Task/system/main.py", line 51, in <module>
+    import torch._dynamo
+  File "/home/anurag24092/Projects/Correlation-Aware-FCL/.venv/lib/python3.12/site-packages/torch/_dynamo/__init__.py", line 3, in <module>
+    from . import convert_frame, eval_frame, resume_execution
+  File "/home/anurag24092/Projects/Correlation-Aware-FCL/.venv/lib/python3.12/site-packages/torch/_dynamo/convert_frame.py", line 53, in <module>
+    from . import config, exc, trace_rules
+  File "/home/anurag24092/Projects/Correlation-Aware-FCL/.venv/lib/python3.12/site-packages/torch/_dynamo/trac

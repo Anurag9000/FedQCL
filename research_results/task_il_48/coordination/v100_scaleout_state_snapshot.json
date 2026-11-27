@@ -1,0 +1,94 @@
+{
+  "active": {
+    "E05-05-s42-08dd079c8ed9": {
+      "kind": "train",
+      "ledger": "research_results/task_il_48/coordination/attempt_ledgers/E05-05-s42-08dd079c8ed9/E05-05-s42-08dd079c8ed9.jsonl",
+      "log": "research_results/task_il_48/coordination/attempt_ledgers/E05-05-s42-08dd079c8ed9/runner.log",
+      "pid": 739104,
+      "reserve_gpu_mib": 1536,
+      "reserve_host_mib": 8192,
+      "started_at": "2026-11-25T05:29:01.545345+00:00"
+    },
+    "E05-06-s42-08ed4a33a14c": {
+      "kind": "train",
+      "ledger": "research_results/task_il_48/coordination/attempt_ledgers/E05-06-s42-08ed4a33a14c/E05-06-s42-08ed4a33a14c.jsonl",
+      "log": "research_results/task_il_48/coordination/attempt_ledgers/E05-06-s42-08ed4a33a14c/runner.log",
+      "pid": 739155,
+      "reserve_gpu_mib": 1536,
+      "reserve_host_mib": 8192,
+      "started_at": "2026-11-25T05:29:06.057789+00:00"
+    }
+  },
+  "created_at": "2026-11-25T05:29:06.057839+00:00",
+  "external": null,
+  "jobs": {
+    "E05-05-s42-08dd079c8ed9": {
+      "attempt": 1,
+      "attempt_id": "E05-05-s42-08dd079c8ed9-shared-a001",
+      "execution_job_id": "E05-05-s42-08dd079c8ed9",
+      "kind": "train",
+      "launched_at": "2026-11-25T05:29:01.545384+00:00",
+      "ledger": "research_results/task_il_48/coordination/attempt_ledgers/E05-05-s42-08dd079c8ed9/E05-05-s42-08dd079c8ed9.jsonl",
+      "log": "research_results/task_il_48/coordination/attempt_ledgers/E05-05-s42-08dd079c8ed9/runner.log",
+      "pid": 739104,
+      "source_commit": "38192b43b1f084333db415de388a240b8f3f35d1",
+      "state": "RUNNING",
+      "updated_at": "2026-11-25T05:28:51.500928+00:00"
+    },
+    "E05-06-s42-08ed4a33a14c": {
+      "attempt": 1,
+      "attempt_id": "E05-06-s42-08ed4a33a14c-shared-a001",
+      "execution_job_id": "E05-06-s42-08ed4a33a14c",
+      "kind": "train",
+      "launched_at": "2026-11-25T05:29:06.057827+00:00",
+      "ledger": "research_results/task_il_48/coordination/attempt_ledgers/E05-06-s42-08ed4a33a14c/E05-06-s42-08ed4a33a14c.jsonl",
+      "log": "research_results/task_il_48/coordination/attempt_ledgers/E05-06-s42-08ed4a33a14c/runner.log",
+      "pid": 739155,
+      "source_commit": "38192b43b1f084333db415de388a240b8f3f35d1",
+      "state": "RUNNING",
+      "updated_at": "2026-11-25T05:28:51.500933+00:00"
+    },
+    "data-befe180fb8e71cce1ec1": {
+      "artifact_sha256": {
+        "/home/anurag24092/Projects/FedQCL_Task/research_data/task_il_48/befe180fb8e71cce1ec1/manifest.json": "64c7928af6a8c1b40086ab47f8a581502752849e2b6f42e460cc43978fcf500c"
+      },
+      "attempt": 0,
+      "execution_job_id": "data-befe180fb8e71cce1ec1",
+      "kind": "generate",
+      "source_commit": "38192b43b1f084333db415de388a240b8f3f35d1",
+      "state": "VERIFIED_COMPLETE",
+      "updated_at": "2026-11-25T05:28:51.500892+00:00",
+      "verified_at": "2026-11-25T05:28:51.501448+00:00"
+    },
+    "validate-befe180fb8e71cce1ec1": {
+      "artifact_sha256": {
+        "/home/anurag24092/Projects/FedQCL_Task/research_data/task_il_48/befe180fb8e71cce1ec1/validation_receipt.json": "ee95f04f2026a1d1891c23a68ef92953e8fb8f46410aa2959739af868f6ec6ef"
+      },
+      "attempt": 0,
+      "execution_job_id": "validate-befe180fb8e71cce1ec1",
+      "kind": "validate",
+      "source_commit": "38192b43b1f084333db415de388a240b8f3f35d1",
+      "state": "VERIFIED_COMPLETE",
+      "updated_at": "2026-11-25T05:28:51.500920+00:00",
+      "verified_at": "2026-11-25T05:28:57.136343+00:00"
+    }
+  },
+  "ledger": "research_results/task_il_48/coordination/v100_scaleout_jobs.jsonl",
+  "resources": {
+    "device": "cuda",
+    "external_job_id": null,
+    "external_pid": null,
+    "gpu": "0",
+    "gpu_margin_mib": 2048,
+    "gpu_reserve_mib": 1536,
+    "host_margin_mib": 16384,
+    "host_reserve_mib": 8192,
+    "ledger": "research_results/task_il_48/coordination/v100_scaleout_jobs.jsonl",
+    "prepare_only": false,
+    "python": "/home/anurag24092/.venvs/fedqcl-taskil-py312/bin/python",
+    "state": "research_results/task_il_48/coordination/v100_scaleout_state.json",
+    "stopped_parent_pid": null,
+    "workers": 2
+  },
+  "source_commit": "38192b43b1f084333db415de388a240b8f3f35d1"
+}

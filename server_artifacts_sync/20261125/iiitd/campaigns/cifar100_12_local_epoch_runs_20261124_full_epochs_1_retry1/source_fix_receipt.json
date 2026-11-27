@@ -1,0 +1,8 @@
+{
+  "at": "2026-11-24T10:21:36+05:30",
+  "path": "/home/anurag24092/Projects/FedQCL_Task/system/main.py",
+  "change": "Added missing import sys required by the existing VRAM admission wrapper before it reads sys.argv. No other source lines changed.",
+  "before_sha256": "219fbb908c2dc763a134f71ce15de6c91e43770effa77b303f8b0aa126c0a80f",
+  "after_sha256": "4605323405b59ac822c8db378c59e3b990e5ce04a677353740c93dce3e3777b5",
+  "git_head": "49d709b0227e63198cf0207d94d7016b46f6c476"
+}

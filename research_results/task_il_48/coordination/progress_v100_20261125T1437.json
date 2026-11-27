@@ -1,0 +1,1 @@
+{"host": "#ubuntu\nV100-server", "jobs": {"E06-03-s42-b390ad95787c": {"communication_bytes": 9657647464, "completed_rounds": 21, "last_progress_at": "2026-11-25T09:06:20.888696+00:00", "observed_evaluation_rows": 110, "optimizer_steps": 4300, "process_id": 760722, "processed_samples": 54000, "replay_samples": 44200}}, "observed_at": "2026-11-25T09:07:19.844748+00:00"}

@@ -1,0 +1,47 @@
+{
+  "algorithm": "sha256",
+  "files": [
+    {
+      "path": "/home/anurag24092/Projects/FedQCL_Task/system/main.py",
+      "sha256": "219fbb908c2dc763a134f71ce15de6c91e43770effa77b303f8b0aa126c0a80f"
+    },
+    {
+      "path": "/home/anurag24092/Projects/FedQCL_Task/system/flcore/clients/clientavg_tl.py",
+      "sha256": "4e64264aa61060ad506e7fe253ef81d8e6f3ef22409986fb3b677c649be80477"
+    },
+    {
+      "path": "/home/anurag24092/Projects/FedQCL_Task/system/flcore/servers/serveravg.py",
+      "sha256": "73d8bd18d7b1284e51a63f7c67a9bee709acdb11c735bbeb88af7cd1ff666f6a"
+    }
+  ],
+  "git_head": "49d709b0227e63198cf0207d94d7016b46f6c476",
+  "git_status": [
+    " M README.md",
+    " M system/flcore/clients/clientavg_tl.py",
+    " M system/flcore/servers/serveravg.py",
+    " M system/flcore/trainmodel/__pycache__/models.cpython-312.pyc",
+    " M system/flcore/trainmodel/__pycache__/whisper.cpython-312.pyc",
+    " M system/main.py",
+    " M system/utils/__pycache__/data_utils.cpython-312.pyc",
+    " M system/utils/__pycache__/dlg.cpython-312.pyc",
+    " M system/utils/__pycache__/mem_utils.cpython-312.pyc",
+    " M system/utils/__pycache__/result_utils.cpython-312.pyc",
+    "?? __pycache__/",
+    "?? campaigns/",
+    "?? data/",
+    "?? dataset/",
+    "?? launch_cifar100_12_runs.sh",
+    "?? retry_failed_cifar100_three_hidden.sh",
+    "?? run_cifar100_three_hidden.sh",
+    "?? run_cifar100_two_hidden.sh",
+    "?? system/__pycache__/",
+    "?? system/dataset/",
+    "?? system/flcore/clients/__pycache__/clientavg_tl.cpython-312.pyc",
+    "?? system/flcore/clients/__pycache__/clientbase.cpython-312.pyc",
+    "?? system/flcore/servers/__pycache__/helper.cpython-312.pyc",
+    "?? system/flcore/servers/__pycache__/serveravg.cpython-312.pyc",
+    "?? system/flcore/servers/__pycache__/serverbase.cpython-312.pyc",
+    "?? system/flcore/trainmodel/__pycache__/alexnet.cpython-312.pyc",
+    "?? system/flcore/trainmodel/__pycache__/resnet.cpython-312.pyc"
+  ]
+}

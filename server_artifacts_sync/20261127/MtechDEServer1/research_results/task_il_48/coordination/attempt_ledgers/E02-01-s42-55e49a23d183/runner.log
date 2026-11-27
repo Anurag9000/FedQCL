@@ -1,0 +1,2 @@
+
+COMMAND: /home/anurag24092/Projects/Correlation-Aware-FCL/.venv/bin/python /home/anurag24092/Projects/FedQCL_Task/scripts/run_campaign.py --ledger research_results/task_il_48/coordination/attempt_ledgers/E02-01-s42-55e49a23d183/E02-01-s42-55e49a23d183.jsonl --job-id E02-01-s42-55e49a23d183 --resume --workers 1 --gpu-id 0 --device cuda

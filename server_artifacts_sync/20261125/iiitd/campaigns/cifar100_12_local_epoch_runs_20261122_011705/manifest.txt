@@ -1,0 +1,26 @@
+campaign_root=/home/anurag24092/Projects/FedQCL_Task/campaigns/cifar100_12_local_epoch_runs_20261122_011705
+started_at=2026-11-22T01:17:05+05:30
+dataset=
+clients=5
+tasks=5
+classes_per_task=20
+rounds_per_task=10
+global_rounds=49
+local_epochs=1,2,10
+seed=42
+backbone=resnet18
+aggregator=FedAvg
+full_epochs_1	9369	1
+1_off_epochs_1	9371	1
+2_off_epochs_1	9373	1
+3_off_epochs_1	9375	1
+full_epochs_2	9377	2
+1_off_epochs_2	9379	2
+2_off_epochs_2	9381	2
+3_off_epochs_2	9383	2
+full_epochs_10	9385	10
+1_off_epochs_10	9387	10
+2_off_epochs_10	9389	10
+3_off_epochs_10	9391	10
+launch_complete_at=2026-11-22T01:17:05+05:30
+finished_at=2026-11-22T01:17:05+05:30

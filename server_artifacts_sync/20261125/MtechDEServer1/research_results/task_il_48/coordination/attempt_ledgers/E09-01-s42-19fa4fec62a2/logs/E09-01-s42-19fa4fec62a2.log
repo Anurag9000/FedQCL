@@ -1,0 +1,2 @@
+
+COMMAND: /home/anurag24092/Projects/Correlation-Aware-FCL/.venv/bin/python task_il_main.py --config /home/anurag24092/Projects/FedQCL_Task/experiments/task_il_48/manifests/38192b43b1f0/E09-01-s42-19fa4fec62a2.config.json --schedule /home/anurag24092/Projects/FedQCL_Task/experiments/task_il_48/manifests/38192b43b1f0/E09-01-s42-19fa4fec62a2.schedule.json --data /home/anurag24092/Projects/FedQCL_Task/research_data/task_il_48/d8e07254e9af27ba1a2a --output /home/anurag24092/Projects/FedQCL_Task/research_results/task_il_48/E09-01-s42-19fa4fec62a2 -dev cuda -did 0

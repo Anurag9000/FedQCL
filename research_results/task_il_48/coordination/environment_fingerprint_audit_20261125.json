@@ -1,0 +1,20 @@
+{
+  "environment": {
+    "cuda_runtime": "12.1",
+    "numpy": "2.5.4",
+    "python": "3.12.15",
+    "torch": "2.5.1+cu121",
+    "torchvision": "0.20.1+cu121"
+  },
+  "evidence": {
+    "Mtech_direct_probe": true,
+    "Mtech_provenance_outputs": 37,
+    "V100_direct_probe": true,
+    "V100_provenance_outputs": 6,
+    "all_provenance_commit": "38192b43b1f084333db415de388a240b8f3f35d1",
+    "all_provenance_torch": "2.5.1+cu121"
+  },
+  "rows_updated": 48,
+  "source_commit": "38192b43b1f084333db415de388a240b8f3f35d1",
+  "timestamp": "2026-11-25T07:54:11.190888+00:00"
+}

@@ -1,0 +1,27 @@
+{
+  "extension_counts": {
+    "": 10,
+    ".exit_code": 4,
+    ".gz": 1,
+    ".h5": 16,
+    ".json": 631,
+    ".jsonl": 241,
+    ".lock": 65,
+    ".log": 148,
+    ".md": 11,
+    ".npz": 1279,
+    ".pid": 1,
+    ".py": 94,
+    ".sh": 9,
+    ".sha256": 1,
+    ".tar": 1,
+    ".tsv": 3,
+    ".txt": 5,
+    ".txt~": 1,
+    ".yml": 1
+  },
+  "files_and_symlinks": 2522,
+  "logical_bytes": 5979361990,
+  "manifest": "/tmp/artifacts_manifest_MtechDEServer1.jsonl",
+  "root": "/home/anurag24092/Projects/FedQCL_Task"
+}

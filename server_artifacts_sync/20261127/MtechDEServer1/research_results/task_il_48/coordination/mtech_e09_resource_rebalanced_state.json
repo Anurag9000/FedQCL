@@ -1,0 +1,103 @@
+{
+  "active": {
+    "E09-01-s42-19fa4fec62a2": {
+      "kind": "train",
+      "ledger": "research_results/task_il_48/coordination/attempt_ledgers/E09-01-s42-19fa4fec62a2/E09-01-s42-19fa4fec62a2.jsonl",
+      "log": "research_results/task_il_48/coordination/attempt_ledgers/E09-01-s42-19fa4fec62a2/runner.log",
+      "pid": 24647,
+      "reserve_gpu_mib": 1600,
+      "reserve_host_mib": 8192,
+      "started_at": "2026-11-25T07:49:15.960810+00:00"
+    }
+  },
+  "created_at": "2026-11-25T07:49:15.960866+00:00",
+  "external": null,
+  "jobs": {
+    "E09-01-s42-19fa4fec62a2": {
+      "attempt": 1,
+      "attempt_id": "E09-01-s42-19fa4fec62a2-shared-a001",
+      "execution_job_id": "E09-01-s42-19fa4fec62a2",
+      "kind": "train",
+      "launched_at": "2026-11-25T07:49:15.960856+00:00",
+      "ledger": "research_results/task_il_48/coordination/attempt_ledgers/E09-01-s42-19fa4fec62a2/E09-01-s42-19fa4fec62a2.jsonl",
+      "log": "research_results/task_il_48/coordination/attempt_ledgers/E09-01-s42-19fa4fec62a2/runner.log",
+      "pid": 24647,
+      "source_commit": "38192b43b1f084333db415de388a240b8f3f35d1",
+      "state": "RUNNING",
+      "updated_at": "2026-11-25T07:49:03.218198+00:00"
+    },
+    "E09-02-s42-01958b5ee588": {
+      "attempt": 0,
+      "execution_job_id": "E09-02-s42-01958b5ee588",
+      "kind": "train",
+      "source_commit": "38192b43b1f084333db415de388a240b8f3f35d1",
+      "state": "PENDING",
+      "updated_at": "2026-11-25T07:49:03.218202+00:00"
+    },
+    "E09-03-s42-01facd9498f2": {
+      "attempt": 0,
+      "execution_job_id": "E09-03-s42-01facd9498f2",
+      "kind": "train",
+      "source_commit": "38192b43b1f084333db415de388a240b8f3f35d1",
+      "state": "PENDING",
+      "updated_at": "2026-11-25T07:49:03.218206+00:00"
+    },
+    "E09-04-s42-cdd9e6cf58dc": {
+      "attempt": 0,
+      "execution_job_id": "E09-04-s42-cdd9e6cf58dc",
+      "kind": "train",
+      "source_commit": "38192b43b1f084333db415de388a240b8f3f35d1",
+      "state": "PENDING",
+      "updated_at": "2026-11-25T07:49:03.218210+00:00"
+    },
+    "E09-05-s42-b76dbca27aee": {
+      "attempt": 0,
+      "execution_job_id": "E09-05-s42-b76dbca27aee",
+      "kind": "train",
+      "source_commit": "38192b43b1f084333db415de388a240b8f3f35d1",
+      "state": "PENDING",
+      "updated_at": "2026-11-25T07:49:03.218214+00:00"
+    },
+    "data-d8e07254e9af27ba1a2a": {
+      "artifact_sha256": {
+        "/home/anurag24092/Projects/FedQCL_Task/research_data/task_il_48/d8e07254e9af27ba1a2a/manifest.json": "74fb448b01b9812b062b0d4649b5f7fa5d7a4899898effb71b5acf154ec636d0"
+      },
+      "attempt": 0,
+      "execution_job_id": "data-d8e07254e9af27ba1a2a",
+      "kind": "generate",
+      "source_commit": "38192b43b1f084333db415de388a240b8f3f35d1",
+      "state": "VERIFIED_COMPLETE",
+      "updated_at": "2026-11-25T07:49:03.218171+00:00",
+      "verified_at": "2026-11-25T07:49:03.218737+00:00"
+    },
+    "validate-d8e07254e9af27ba1a2a": {
+      "artifact_sha256": {
+        "/home/anurag24092/Projects/FedQCL_Task/research_data/task_il_48/d8e07254e9af27ba1a2a/validation_receipt.json": "d59a774bb948ae5e611083c4b727213f7d075b9d34611a687e1a6762c6bea934"
+      },
+      "attempt": 0,
+      "execution_job_id": "validate-d8e07254e9af27ba1a2a",
+      "kind": "validate",
+      "source_commit": "38192b43b1f084333db415de388a240b8f3f35d1",
+      "state": "VERIFIED_COMPLETE",
+      "updated_at": "2026-11-25T07:49:03.218192+00:00",
+      "verified_at": "2026-11-25T07:49:09.835115+00:00"
+    }
+  },
+  "ledger": "research_results/task_il_48/coordination/mtech_e09_resource_rebalanced_jobs.jsonl",
+  "resources": {
+    "device": "cuda",
+    "external_job_id": null,
+    "external_pid": null,
+    "gpu": "0",
+    "gpu_margin_mib": 2048,
+    "gpu_reserve_mib": 1600,
+    "host_margin_mib": 16384,
+    "host_reserve_mib": 8192,
+    "ledger": "research_results/task_il_48/coordination/mtech_e09_resource_rebalanced_jobs.jsonl",
+    "python": "/home/anurag24092/Projects/Correlation-Aware-FCL/.venv/bin/python",
+    "state": "research_results/task_il_48/coordination/mtech_e09_resource_rebalanced_state.json",
+    "stopped_parent_pid": null,
+    "workers": 5
+  },
+  "source_commit": "38192b43b1f084333db415de388a240b8f3f35d1"
+}

@@ -1,0 +1,369 @@
+{
+  "active": {},
+  "created_at": "2026-11-25T05:58:21.534952+00:00",
+  "external": null,
+  "jobs": {
+    "E03-05-s42-025228c05254": {
+      "attempt": 0,
+      "execution_job_id": "E03-05-s42-025228c05254",
+      "kind": "train",
+      "source_commit": "38192b43b1f084333db415de388a240b8f3f35d1",
+      "state": "PENDING",
+      "updated_at": "2026-11-25T05:57:35.835953+00:00"
+    },
+    "E03-06-s42-5a3c7c57ac61": {
+      "attempt": 0,
+      "execution_job_id": "E03-06-s42-5a3c7c57ac61",
+      "kind": "train",
+      "source_commit": "38192b43b1f084333db415de388a240b8f3f35d1",
+      "state": "PENDING",
+      "updated_at": "2026-11-25T05:57:35.835956+00:00"
+    },
+    "E04-02-s42-42d7a8fdb7d4": {
+      "attempt": 0,
+      "execution_job_id": "E04-02-s42-42d7a8fdb7d4",
+      "kind": "train",
+      "source_commit": "38192b43b1f084333db415de388a240b8f3f35d1",
+      "state": "PENDING",
+      "updated_at": "2026-11-25T05:57:35.835963+00:00"
+    },
+    "E04-03-s42-60ec995f95ec": {
+      "attempt": 0,
+      "execution_job_id": "E04-03-s42-60ec995f95ec",
+      "kind": "train",
+      "source_commit": "38192b43b1f084333db415de388a240b8f3f35d1",
+      "state": "PENDING",
+      "updated_at": "2026-11-25T05:57:35.835969+00:00"
+    },
+    "E06-01-s42-68627d35b3ff": {
+      "attempt": 0,
+      "execution_job_id": "E06-01-s42-68627d35b3ff",
+      "kind": "train",
+      "source_commit": "38192b43b1f084333db415de388a240b8f3f35d1",
+      "state": "PENDING",
+      "updated_at": "2026-11-25T05:57:35.835976+00:00"
+    },
+    "E06-02-s42-77c4f703924e": {
+      "attempt": 0,
+      "execution_job_id": "E06-02-s42-77c4f703924e",
+      "kind": "train",
+      "source_commit": "38192b43b1f084333db415de388a240b8f3f35d1",
+      "state": "PENDING",
+      "updated_at": "2026-11-25T05:57:35.835983+00:00"
+    },
+    "E06-03-s42-b390ad95787c": {
+      "attempt": 0,
+      "execution_job_id": "E06-03-s42-b390ad95787c",
+      "kind": "train",
+      "source_commit": "38192b43b1f084333db415de388a240b8f3f35d1",
+      "state": "PENDING",
+      "updated_at": "2026-11-25T05:57:35.835992+00:00"
+    },
+    "E08-01-s42-bc85a037a7e3": {
+      "attempt": 0,
+      "execution_job_id": "E08-01-s42-bc85a037a7e3",
+      "kind": "train",
+      "source_commit": "38192b43b1f084333db415de388a240b8f3f35d1",
+      "state": "PENDING",
+      "updated_at": "2026-11-25T05:57:35.835998+00:00"
+    },
+    "E08-02-s42-fba7b5a4712d": {
+      "attempt": 0,
+      "execution_job_id": "E08-02-s42-fba7b5a4712d",
+      "kind": "train",
+      "source_commit": "38192b43b1f084333db415de388a240b8f3f35d1",
+      "state": "PENDING",
+      "updated_at": "2026-11-25T05:57:35.836005+00:00"
+    },
+    "E08-03-s42-107bf22191c5": {
+      "attempt": 0,
+      "execution_job_id": "E08-03-s42-107bf22191c5",
+      "kind": "train",
+      "source_commit": "38192b43b1f084333db415de388a240b8f3f35d1",
+      "state": "PENDING",
+      "updated_at": "2026-11-25T05:57:35.836012+00:00"
+    },
+    "E09-03-s42-01facd9498f2": {
+      "attempt": 0,
+      "execution_job_id": "E09-03-s42-01facd9498f2",
+      "kind": "train",
+      "source_commit": "38192b43b1f084333db415de388a240b8f3f35d1",
+      "state": "PENDING",
+      "updated_at": "2026-11-25T05:57:35.836018+00:00"
+    },
+    "E09-04-s42-cdd9e6cf58dc": {
+      "attempt": 0,
+      "execution_job_id": "E09-04-s42-cdd9e6cf58dc",
+      "kind": "train",
+      "source_commit": "38192b43b1f084333db415de388a240b8f3f35d1",
+      "state": "PENDING",
+      "updated_at": "2026-11-25T05:57:35.836020+00:00"
+    },
+    "E09-05-s42-b76dbca27aee": {
+      "attempt": 0,
+      "execution_job_id": "E09-05-s42-b76dbca27aee",
+      "kind": "train",
+      "source_commit": "38192b43b1f084333db415de388a240b8f3f35d1",
+      "state": "PENDING",
+      "updated_at": "2026-11-25T05:57:35.836022+00:00"
+    },
+    "data-20f5e8923a8844c64666": {
+      "artifact_sha256": {
+        "/home/anurag24092/Projects/FedQCL_Task/research_data/task_il_48/20f5e8923a8844c64666/manifest.json": "3af10a3d052f4cc7d9a3c48c203b5163d6cdbf21b2159b9787d1f07f35c5089f"
+      },
+      "attempt": 0,
+      "execution_job_id": "data-20f5e8923a8844c64666",
+      "kind": "generate",
+      "source_commit": "38192b43b1f084333db415de388a240b8f3f35d1",
+      "state": "VERIFIED_COMPLETE",
+      "updated_at": "2026-11-25T05:57:35.836007+00:00",
+      "verified_at": "2026-11-25T05:58:12.229126+00:00"
+    },
+    "data-55d88cae2e773864a31d": {
+      "artifact_sha256": {
+        "/home/anurag24092/Projects/FedQCL_Task/research_data/task_il_48/55d88cae2e773864a31d/manifest.json": "c72e6cde152e069599ef7eeb5817864567c08adce199a215d4c28d5197e454ab"
+      },
+      "attempt": 0,
+      "execution_job_id": "data-55d88cae2e773864a31d",
+      "kind": "generate",
+      "source_commit": "38192b43b1f084333db415de388a240b8f3f35d1",
+      "state": "VERIFIED_COMPLETE",
+      "updated_at": "2026-11-25T05:57:35.835972+00:00",
+      "verified_at": "2026-11-25T05:57:49.776561+00:00"
+    },
+    "data-5b45a4a6762224aa8c6c": {
+      "artifact_sha256": {
+        "/home/anurag24092/Projects/FedQCL_Task/research_data/task_il_48/5b45a4a6762224aa8c6c/manifest.json": "bb8b29d9cbb59657020b83223cdbdbb2276816096f29a6ae672007e78e97c9b9"
+      },
+      "attempt": 0,
+      "execution_job_id": "data-5b45a4a6762224aa8c6c",
+      "kind": "generate",
+      "source_commit": "38192b43b1f084333db415de388a240b8f3f35d1",
+      "state": "VERIFIED_COMPLETE",
+      "updated_at": "2026-11-25T05:57:35.835994+00:00",
+      "verified_at": "2026-11-25T05:58:03.314732+00:00"
+    },
+    "data-638fb5f8df27258cd1ad": {
+      "artifact_sha256": {
+        "/home/anurag24092/Projects/FedQCL_Task/research_data/task_il_48/638fb5f8df27258cd1ad/manifest.json": "f70d6cc46ca6114ce57f8edc7c76a05dc6dd11453b085631f07c09eea0dee264"
+      },
+      "attempt": 0,
+      "execution_job_id": "data-638fb5f8df27258cd1ad",
+      "kind": "generate",
+      "source_commit": "38192b43b1f084333db415de388a240b8f3f35d1",
+      "state": "VERIFIED_COMPLETE",
+      "updated_at": "2026-11-25T05:57:35.835958+00:00",
+      "verified_at": "2026-11-25T05:57:40.584602+00:00"
+    },
+    "data-69d70dbef8252358549f": {
+      "artifact_sha256": {
+        "/home/anurag24092/Projects/FedQCL_Task/research_data/task_il_48/69d70dbef8252358549f/manifest.json": "2d5e371cb0b791b5012a3d273a1c2db6ec4ff7034523bfc766b99ec06e9f9e6d"
+      },
+      "attempt": 0,
+      "execution_job_id": "data-69d70dbef8252358549f",
+      "kind": "generate",
+      "source_commit": "38192b43b1f084333db415de388a240b8f3f35d1",
+      "state": "VERIFIED_COMPLETE",
+      "updated_at": "2026-11-25T05:57:35.836001+00:00",
+      "verified_at": "2026-11-25T05:58:07.754187+00:00"
+    },
+    "data-7a6593e30f8ea50b067b": {
+      "artifact_sha256": {
+        "/home/anurag24092/Projects/FedQCL_Task/research_data/task_il_48/7a6593e30f8ea50b067b/manifest.json": "9947ae56a0b1d35ff450e15604960b7552e4650778e545e78df7d7c716f3f414"
+      },
+      "attempt": 0,
+      "execution_job_id": "data-7a6593e30f8ea50b067b",
+      "kind": "generate",
+      "source_commit": "38192b43b1f084333db415de388a240b8f3f35d1",
+      "state": "VERIFIED_COMPLETE",
+      "updated_at": "2026-11-25T05:57:35.835965+00:00",
+      "verified_at": "2026-11-25T05:57:45.223254+00:00"
+    },
+    "data-a2071b3fbd0d1dff193b": {
+      "artifact_sha256": {
+        "/home/anurag24092/Projects/FedQCL_Task/research_data/task_il_48/a2071b3fbd0d1dff193b/manifest.json": "39937a3d6d62a01b72bd89910e168cab59e5c04570e0623a0dd1c58e05293788"
+      },
+      "attempt": 0,
+      "execution_job_id": "data-a2071b3fbd0d1dff193b",
+      "kind": "generate",
+      "source_commit": "38192b43b1f084333db415de388a240b8f3f35d1",
+      "state": "VERIFIED_COMPLETE",
+      "updated_at": "2026-11-25T05:57:35.835932+00:00",
+      "verified_at": "2026-11-25T05:57:35.836559+00:00"
+    },
+    "data-b43208a736a417b80575": {
+      "artifact_sha256": {
+        "/home/anurag24092/Projects/FedQCL_Task/research_data/task_il_48/b43208a736a417b80575/manifest.json": "2f44bc0b5b2cf73d7f58472ce6f29064ed764871345d1711333d06bf845d334d"
+      },
+      "attempt": 0,
+      "execution_job_id": "data-b43208a736a417b80575",
+      "kind": "generate",
+      "source_commit": "38192b43b1f084333db415de388a240b8f3f35d1",
+      "state": "VERIFIED_COMPLETE",
+      "updated_at": "2026-11-25T05:57:35.835987+00:00",
+      "verified_at": "2026-11-25T05:57:58.874575+00:00"
+    },
+    "data-d8e07254e9af27ba1a2a": {
+      "artifact_sha256": {
+        "/home/anurag24092/Projects/FedQCL_Task/research_data/task_il_48/d8e07254e9af27ba1a2a/manifest.json": "74fb448b01b9812b062b0d4649b5f7fa5d7a4899898effb71b5acf154ec636d0"
+      },
+      "attempt": 0,
+      "execution_job_id": "data-d8e07254e9af27ba1a2a",
+      "kind": "generate",
+      "source_commit": "38192b43b1f084333db415de388a240b8f3f35d1",
+      "state": "VERIFIED_COMPLETE",
+      "updated_at": "2026-11-25T05:57:35.836014+00:00",
+      "verified_at": "2026-11-25T05:58:16.949215+00:00"
+    },
+    "data-fab4c16d06be576caa0a": {
+      "artifact_sha256": {
+        "/home/anurag24092/Projects/FedQCL_Task/research_data/task_il_48/fab4c16d06be576caa0a/manifest.json": "da9376ba0259bd890c74e2f418ea483cf6283de5a37ae5d2ad0c5046d193f712"
+      },
+      "attempt": 0,
+      "execution_job_id": "data-fab4c16d06be576caa0a",
+      "kind": "generate",
+      "source_commit": "38192b43b1f084333db415de388a240b8f3f35d1",
+      "state": "VERIFIED_COMPLETE",
+      "updated_at": "2026-11-25T05:57:35.835979+00:00",
+      "verified_at": "2026-11-25T05:57:54.381358+00:00"
+    },
+    "validate-20f5e8923a8844c64666": {
+      "artifact_sha256": {
+        "/home/anurag24092/Projects/FedQCL_Task/research_data/task_il_48/20f5e8923a8844c64666/validation_receipt.json": "8fd68b90db7049c01485ca6b91470eda7490621f659a926248266f6be0cd0efb"
+      },
+      "attempt": 0,
+      "execution_job_id": "validate-20f5e8923a8844c64666",
+      "kind": "validate",
+      "source_commit": "38192b43b1f084333db415de388a240b8f3f35d1",
+      "state": "VERIFIED_COMPLETE",
+      "updated_at": "2026-11-25T05:57:35.836010+00:00",
+      "verified_at": "2026-11-25T05:58:16.948262+00:00"
+    },
+    "validate-55d88cae2e773864a31d": {
+      "artifact_sha256": {
+        "/home/anurag24092/Projects/FedQCL_Task/research_data/task_il_48/55d88cae2e773864a31d/validation_receipt.json": "3af4358b960275899e32c2a513f3f4c8541956d2157f26cc37d602c0986de407"
+      },
+      "attempt": 0,
+      "execution_job_id": "validate-55d88cae2e773864a31d",
+      "kind": "validate",
+      "source_commit": "38192b43b1f084333db415de388a240b8f3f35d1",
+      "state": "VERIFIED_COMPLETE",
+      "updated_at": "2026-11-25T05:57:35.835974+00:00",
+      "verified_at": "2026-11-25T05:57:54.380250+00:00"
+    },
+    "validate-5b45a4a6762224aa8c6c": {
+      "artifact_sha256": {
+        "/home/anurag24092/Projects/FedQCL_Task/research_data/task_il_48/5b45a4a6762224aa8c6c/validation_receipt.json": "d0c84d94a3332dced72ac3668ffe9ce30e46feaedab5977d9f5b85379fc7dd2a"
+      },
+      "attempt": 0,
+      "execution_job_id": "validate-5b45a4a6762224aa8c6c",
+      "kind": "validate",
+      "source_commit": "38192b43b1f084333db415de388a240b8f3f35d1",
+      "state": "VERIFIED_COMPLETE",
+      "updated_at": "2026-11-25T05:57:35.835996+00:00",
+      "verified_at": "2026-11-25T05:58:07.753216+00:00"
+    },
+    "validate-638fb5f8df27258cd1ad": {
+      "artifact_sha256": {
+        "/home/anurag24092/Projects/FedQCL_Task/research_data/task_il_48/638fb5f8df27258cd1ad/validation_receipt.json": "0ac327959247f787269490df8ea1767d8a887739b078a7acdf00466b907d4c53"
+      },
+      "attempt": 0,
+      "execution_job_id": "validate-638fb5f8df27258cd1ad",
+      "kind": "validate",
+      "source_commit": "38192b43b1f084333db415de388a240b8f3f35d1",
+      "state": "VERIFIED_COMPLETE",
+      "updated_at": "2026-11-25T05:57:35.835960+00:00",
+      "verified_at": "2026-11-25T05:57:45.222169+00:00"
+    },
+    "validate-69d70dbef8252358549f": {
+      "artifact_sha256": {
+        "/home/anurag24092/Projects/FedQCL_Task/research_data/task_il_48/69d70dbef8252358549f/validation_receipt.json": "1c4552abd112811421defece5e27a3fcb0d344ba3f427031f5f4c30b480f7c72"
+      },
+      "attempt": 0,
+      "execution_job_id": "validate-69d70dbef8252358549f",
+      "kind": "validate",
+      "source_commit": "38192b43b1f084333db415de388a240b8f3f35d1",
+      "state": "VERIFIED_COMPLETE",
+      "updated_at": "2026-11-25T05:57:35.836003+00:00",
+      "verified_at": "2026-11-25T05:58:12.227890+00:00"
+    },
+    "validate-7a6593e30f8ea50b067b": {
+      "artifact_sha256": {
+        "/home/anurag24092/Projects/FedQCL_Task/research_data/task_il_48/7a6593e30f8ea50b067b/validation_receipt.json": "d73a97624c2e90a98f02e9d543ad1c57772a5eb7e64ab0a809007b34ea2d9722"
+      },
+      "attempt": 0,
+      "execution_job_id": "validate-7a6593e30f8ea50b067b",
+      "kind": "validate",
+      "source_commit": "38192b43b1f084333db415de388a240b8f3f35d1",
+      "state": "VERIFIED_COMPLETE",
+      "updated_at": "2026-11-25T05:57:35.835967+00:00",
+      "verified_at": "2026-11-25T05:57:49.775516+00:00"
+    },
+    "validate-a2071b3fbd0d1dff193b": {
+      "artifact_sha256": {
+        "/home/anurag24092/Projects/FedQCL_Task/research_data/task_il_48/a2071b3fbd0d1dff193b/validation_receipt.json": "ae9a1121925aca6bb0fa9e8479e968efe73f0a181bdfb0f3b00f6fca26bc03ee"
+      },
+      "attempt": 0,
+      "execution_job_id": "validate-a2071b3fbd0d1dff193b",
+      "kind": "validate",
+      "source_commit": "38192b43b1f084333db415de388a240b8f3f35d1",
+      "state": "VERIFIED_COMPLETE",
+      "updated_at": "2026-11-25T05:57:35.835946+00:00",
+      "verified_at": "2026-11-25T05:57:40.583418+00:00"
+    },
+    "validate-b43208a736a417b80575": {
+      "artifact_sha256": {
+        "/home/anurag24092/Projects/FedQCL_Task/research_data/task_il_48/b43208a736a417b80575/validation_receipt.json": "68d00d7196836331848d295c418c8035a830e38e41fa97dec81cba91a5804492"
+      },
+      "attempt": 0,
+      "execution_job_id": "validate-b43208a736a417b80575",
+      "kind": "validate",
+      "source_commit": "38192b43b1f084333db415de388a240b8f3f35d1",
+      "state": "VERIFIED_COMPLETE",
+      "updated_at": "2026-11-25T05:57:35.835990+00:00",
+      "verified_at": "2026-11-25T05:58:03.313570+00:00"
+    },
+    "validate-d8e07254e9af27ba1a2a": {
+      "artifact_sha256": {
+        "/home/anurag24092/Projects/FedQCL_Task/research_data/task_il_48/d8e07254e9af27ba1a2a/validation_receipt.json": "d59a774bb948ae5e611083c4b727213f7d075b9d34611a687e1a6762c6bea934"
+      },
+      "attempt": 0,
+      "execution_job_id": "validate-d8e07254e9af27ba1a2a",
+      "kind": "validate",
+      "source_commit": "38192b43b1f084333db415de388a240b8f3f35d1",
+      "state": "VERIFIED_COMPLETE",
+      "updated_at": "2026-11-25T05:57:35.836016+00:00",
+      "verified_at": "2026-11-25T05:58:21.534759+00:00"
+    },
+    "validate-fab4c16d06be576caa0a": {
+      "artifact_sha256": {
+        "/home/anurag24092/Projects/FedQCL_Task/research_data/task_il_48/fab4c16d06be576caa0a/validation_receipt.json": "1bd3fb3c8bd70bece7ead33c34ecd4d832cad64aff2f3e6fbbb41940e6f3adb8"
+      },
+      "attempt": 0,
+      "execution_job_id": "validate-fab4c16d06be576caa0a",
+      "kind": "validate",
+      "source_commit": "38192b43b1f084333db415de388a240b8f3f35d1",
+      "state": "VERIFIED_COMPLETE",
+      "updated_at": "2026-11-25T05:57:35.835981+00:00",
+      "verified_at": "2026-11-25T05:57:58.873439+00:00"
+    }
+  },
+  "ledger": "research_results/task_il_48/coordination/v100_after_e09_jobs.jsonl",
+  "resources": {
+    "device": "cuda",
+    "external_job_id": null,
+    "external_pid": null,
+    "gpu": "0",
+    "gpu_margin_mib": 4096,
+    "gpu_reserve_mib": 1536,
+    "host_margin_mib": 16384,
+    "host_reserve_mib": 8192,
+    "ledger": "research_results/task_il_48/coordination/v100_after_e09_jobs.jsonl",
+    "prepare_only": false,
+    "python": "/home/anurag24092/.venvs/fedqcl-taskil-py312/bin/python",
+    "state": "research_results/task_il_48/coordination/v100_after_e09_state.json",
+    "stopped_parent_pid": null,
+    "workers": 13
+  },
+  "source_commit": "38192b43b1f084333db415de388a240b8f3f35d1"
+}

@@ -1,0 +1,22 @@
+{
+  "data-5b45a4a6762224aa8c6c": {
+    "artifact_sha256": {
+      "/home/anurag24092/Projects/FedQCL_Task/research_data/task_il_48/5b45a4a6762224aa8c6c/manifest.json": "bb8b29d9cbb59657020b83223cdbdbb2276816096f29a6ae672007e78e97c9b9"
+    },
+    "dependency_artifacts": {},
+    "exit_code": 0,
+    "status": "completed"
+  },
+  "validate-5b45a4a6762224aa8c6c": {
+    "artifact_sha256": {
+      "/home/anurag24092/Projects/FedQCL_Task/research_data/task_il_48/5b45a4a6762224aa8c6c/validation_receipt.json": "d0c84d94a3332dced72ac3668ffe9ce30e46feaedab5977d9f5b85379fc7dd2a"
+    },
+    "dependency_artifacts": {
+      "data-5b45a4a6762224aa8c6c": {
+        "/home/anurag24092/Projects/FedQCL_Task/research_data/task_il_48/5b45a4a6762224aa8c6c/manifest.json": "bb8b29d9cbb59657020b83223cdbdbb2276816096f29a6ae672007e78e97c9b9"
+      }
+    },
+    "exit_code": 0,
+    "status": "completed"
+  }
+}

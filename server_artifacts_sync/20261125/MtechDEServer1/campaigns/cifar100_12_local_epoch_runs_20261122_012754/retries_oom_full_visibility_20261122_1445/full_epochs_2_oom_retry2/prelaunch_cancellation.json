@@ -1,0 +1,8 @@
+{
+  "attempt_id": "oom_retry2",
+  "cancelled_at": 1795357175.9383788,
+  "evidence": "broker log has waiting_for_vram; no worker command process found",
+  "pid": 10585,
+  "reason": "broker was waiting but cwd would have written results outside the isolated attempt directory",
+  "worker_admitted": false
+}

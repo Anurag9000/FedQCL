@@ -1,0 +1,150 @@
+{
+  "active": {
+    "E06-01-s42-68627d35b3ff": {
+      "kind": "train",
+      "ledger": "research_results/task_il_48/coordination/attempt_ledgers/E06-01-s42-68627d35b3ff/E06-01-s42-68627d35b3ff.jsonl",
+      "log": "research_results/task_il_48/coordination/attempt_ledgers/E06-01-s42-68627d35b3ff/runner.log",
+      "pid": 751635,
+      "reserve_gpu_mib": 1792,
+      "reserve_host_mib": 8192,
+      "started_at": "2026-11-25T07:24:30.567594+00:00"
+    },
+    "E06-02-s42-77c4f703924e": {
+      "kind": "train",
+      "ledger": "research_results/task_il_48/coordination/attempt_ledgers/E06-02-s42-77c4f703924e/E06-02-s42-77c4f703924e.jsonl",
+      "log": "research_results/task_il_48/coordination/attempt_ledgers/E06-02-s42-77c4f703924e/runner.log",
+      "pid": 751782,
+      "reserve_gpu_mib": 1792,
+      "reserve_host_mib": 8192,
+      "started_at": "2026-11-25T07:24:35.278817+00:00"
+    }
+  },
+  "created_at": "2026-11-25T07:24:35.278875+00:00",
+  "external": null,
+  "jobs": {
+    "E06-01-s42-68627d35b3ff": {
+      "attempt": 1,
+      "attempt_id": "E06-01-s42-68627d35b3ff-shared-a001",
+      "execution_job_id": "E06-01-s42-68627d35b3ff",
+      "kind": "train",
+      "launched_at": "2026-11-25T07:24:30.567654+00:00",
+      "ledger": "research_results/task_il_48/coordination/attempt_ledgers/E06-01-s42-68627d35b3ff/E06-01-s42-68627d35b3ff.jsonl",
+      "log": "research_results/task_il_48/coordination/attempt_ledgers/E06-01-s42-68627d35b3ff/runner.log",
+      "pid": 751635,
+      "source_commit": "38192b43b1f084333db415de388a240b8f3f35d1",
+      "state": "RUNNING",
+      "updated_at": "2026-11-25T07:24:12.433336+00:00"
+    },
+    "E06-02-s42-77c4f703924e": {
+      "attempt": 1,
+      "attempt_id": "E06-02-s42-77c4f703924e-shared-a001",
+      "execution_job_id": "E06-02-s42-77c4f703924e",
+      "kind": "train",
+      "launched_at": "2026-11-25T07:24:35.278861+00:00",
+      "ledger": "research_results/task_il_48/coordination/attempt_ledgers/E06-02-s42-77c4f703924e/E06-02-s42-77c4f703924e.jsonl",
+      "log": "research_results/task_il_48/coordination/attempt_ledgers/E06-02-s42-77c4f703924e/runner.log",
+      "pid": 751782,
+      "source_commit": "38192b43b1f084333db415de388a240b8f3f35d1",
+      "state": "RUNNING",
+      "updated_at": "2026-11-25T07:24:12.433352+00:00"
+    },
+    "E06-03-s42-b390ad95787c": {
+      "attempt": 0,
+      "execution_job_id": "E06-03-s42-b390ad95787c",
+      "kind": "train",
+      "source_commit": "38192b43b1f084333db415de388a240b8f3f35d1",
+      "state": "PENDING",
+      "updated_at": "2026-11-25T07:24:12.433366+00:00"
+    },
+    "data-55d88cae2e773864a31d": {
+      "artifact_sha256": {
+        "/home/anurag24092/Projects/FedQCL_Task/research_data/task_il_48/55d88cae2e773864a31d/manifest.json": "c72e6cde152e069599ef7eeb5817864567c08adce199a215d4c28d5197e454ab"
+      },
+      "attempt": 0,
+      "execution_job_id": "data-55d88cae2e773864a31d",
+      "kind": "generate",
+      "source_commit": "38192b43b1f084333db415de388a240b8f3f35d1",
+      "state": "VERIFIED_COMPLETE",
+      "updated_at": "2026-11-25T07:24:12.433303+00:00",
+      "verified_at": "2026-11-25T07:24:12.434035+00:00"
+    },
+    "data-b43208a736a417b80575": {
+      "artifact_sha256": {
+        "/home/anurag24092/Projects/FedQCL_Task/research_data/task_il_48/b43208a736a417b80575/manifest.json": "2f44bc0b5b2cf73d7f58472ce6f29064ed764871345d1711333d06bf845d334d"
+      },
+      "attempt": 0,
+      "execution_job_id": "data-b43208a736a417b80575",
+      "kind": "generate",
+      "source_commit": "38192b43b1f084333db415de388a240b8f3f35d1",
+      "state": "VERIFIED_COMPLETE",
+      "updated_at": "2026-11-25T07:24:12.433357+00:00",
+      "verified_at": "2026-11-25T07:24:21.560724+00:00"
+    },
+    "data-fab4c16d06be576caa0a": {
+      "artifact_sha256": {
+        "/home/anurag24092/Projects/FedQCL_Task/research_data/task_il_48/fab4c16d06be576caa0a/manifest.json": "da9376ba0259bd890c74e2f418ea483cf6283de5a37ae5d2ad0c5046d193f712"
+      },
+      "attempt": 0,
+      "execution_job_id": "data-fab4c16d06be576caa0a",
+      "kind": "generate",
+      "source_commit": "38192b43b1f084333db415de388a240b8f3f35d1",
+      "state": "VERIFIED_COMPLETE",
+      "updated_at": "2026-11-25T07:24:12.433342+00:00",
+      "verified_at": "2026-11-25T07:24:17.115815+00:00"
+    },
+    "validate-55d88cae2e773864a31d": {
+      "artifact_sha256": {
+        "/home/anurag24092/Projects/FedQCL_Task/research_data/task_il_48/55d88cae2e773864a31d/validation_receipt.json": "3af4358b960275899e32c2a513f3f4c8541956d2157f26cc37d602c0986de407"
+      },
+      "attempt": 0,
+      "execution_job_id": "validate-55d88cae2e773864a31d",
+      "kind": "validate",
+      "source_commit": "38192b43b1f084333db415de388a240b8f3f35d1",
+      "state": "VERIFIED_COMPLETE",
+      "updated_at": "2026-11-25T07:24:12.433327+00:00",
+      "verified_at": "2026-11-25T07:24:17.114399+00:00"
+    },
+    "validate-b43208a736a417b80575": {
+      "artifact_sha256": {
+        "/home/anurag24092/Projects/FedQCL_Task/research_data/task_il_48/b43208a736a417b80575/validation_receipt.json": "68d00d7196836331848d295c418c8035a830e38e41fa97dec81cba91a5804492"
+      },
+      "attempt": 0,
+      "execution_job_id": "validate-b43208a736a417b80575",
+      "kind": "validate",
+      "source_commit": "38192b43b1f084333db415de388a240b8f3f35d1",
+      "state": "VERIFIED_COMPLETE",
+      "updated_at": "2026-11-25T07:24:12.433362+00:00",
+      "verified_at": "2026-11-25T07:24:25.999736+00:00"
+    },
+    "validate-fab4c16d06be576caa0a": {
+      "artifact_sha256": {
+        "/home/anurag24092/Projects/FedQCL_Task/research_data/task_il_48/fab4c16d06be576caa0a/validation_receipt.json": "1bd3fb3c8bd70bece7ead33c34ecd4d832cad64aff2f3e6fbbb41940e6f3adb8"
+      },
+      "attempt": 0,
+      "execution_job_id": "validate-fab4c16d06be576caa0a",
+      "kind": "validate",
+      "source_commit": "38192b43b1f084333db415de388a240b8f3f35d1",
+      "state": "VERIFIED_COMPLETE",
+      "updated_at": "2026-11-25T07:24:12.433346+00:00",
+      "verified_at": "2026-11-25T07:24:21.559871+00:00"
+    }
+  },
+  "ledger": "research_results/task_il_48/coordination/v100_resource_rebalanced_jobs.jsonl",
+  "resources": {
+    "device": "cuda",
+    "external_job_id": null,
+    "external_pid": null,
+    "gpu": "0",
+    "gpu_margin_mib": 1536,
+    "gpu_reserve_mib": 1792,
+    "host_margin_mib": 16384,
+    "host_reserve_mib": 8192,
+    "ledger": "research_results/task_il_48/coordination/v100_resource_rebalanced_jobs.jsonl",
+    "prepare_only": false,
+    "python": "/home/anurag24092/.venvs/fedqcl-taskil-py312/bin/python",
+    "state": "research_results/task_il_48/coordination/v100_resource_rebalanced_state.json",
+    "stopped_parent_pid": null,
+    "workers": 3
+  },
+  "source_commit": "38192b43b1f084333db415de388a240b8f3f35d1"
+}

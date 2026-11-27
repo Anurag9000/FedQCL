@@ -1,0 +1,60 @@
+{
+  "active": {},
+  "created_at": "2026-11-25T06:13:33.583705+00:00",
+  "external": null,
+  "jobs": {
+    "E09-01-s42-19fa4fec62a2": {
+      "attempt": 0,
+      "execution_job_id": "E09-01-s42-19fa4fec62a2",
+      "kind": "train",
+      "source_commit": "38192b43b1f084333db415de388a240b8f3f35d1",
+      "state": "PENDING",
+      "updated_at": "2026-11-25T06:13:33.495803+00:00"
+    },
+    "E09-02-s42-01958b5ee588": {
+      "attempt": 0,
+      "execution_job_id": "E09-02-s42-01958b5ee588",
+      "kind": "train",
+      "source_commit": "38192b43b1f084333db415de388a240b8f3f35d1",
+      "state": "PENDING",
+      "updated_at": "2026-11-25T06:13:33.495807+00:00"
+    },
+    "data-d8e07254e9af27ba1a2a": {
+      "attempt": 1,
+      "execution_job_id": "data-d8e07254e9af27ba1a2a",
+      "exit_code": 1,
+      "finished_at": "2026-11-25T06:13:33.583563+00:00",
+      "kind": "generate",
+      "launched_at": "2026-11-25T06:13:33.496187+00:00",
+      "log": "research_results/task_il_48/coordination/attempt_ledgers/logs/data-d8e07254e9af27ba1a2a.log",
+      "source_commit": "38192b43b1f084333db415de388a240b8f3f35d1",
+      "state": "FAILED",
+      "updated_at": "2026-11-25T06:13:33.495785+00:00"
+    },
+    "validate-d8e07254e9af27ba1a2a": {
+      "attempt": 0,
+      "execution_job_id": "validate-d8e07254e9af27ba1a2a",
+      "kind": "validate",
+      "source_commit": "38192b43b1f084333db415de388a240b8f3f35d1",
+      "state": "PENDING",
+      "updated_at": "2026-11-25T06:13:33.495799+00:00"
+    }
+  },
+  "ledger": "research_results/task_il_48/coordination/mtech_after_e09_jobs.jsonl",
+  "resources": {
+    "device": "cuda",
+    "external_job_id": null,
+    "external_pid": null,
+    "gpu": "0",
+    "gpu_margin_mib": 2048,
+    "gpu_reserve_mib": 1536,
+    "host_margin_mib": 16384,
+    "host_reserve_mib": 8192,
+    "ledger": "research_results/task_il_48/coordination/mtech_after_e09_jobs.jsonl",
+    "python": "/home/anurag24092/Projects/Correlation-Aware-FCL/.venv/bin/python",
+    "state": "research_results/task_il_48/coordination/mtech_after_e09_state.json",
+    "stopped_parent_pid": null,
+    "workers": 15
+  },
+  "source_commit": "38192b43b1f084333db415de388a240b8f3f35d1"
+}

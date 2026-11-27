@@ -1,0 +1,216 @@
+# FEDQCL Task-IL Campaign Progress Record
+
+**Status:** In progress; this record is not the final scientific report.
+
+## Scope
+
+The campaign is the conventional CIFAR-100 Task-Incremental Learning suite on `main`, source commit `38192b43b1f084333db415de388a240b8f3f35d1`. It executes the committed 48 training entries (seed 42), 19 private dataset-generation jobs, and 19 dataset-validation jobs, for 86 resolved jobs. The separately committed joint/temporal-overlap mirror and the selective-synchronization campaign are excluded. E05-05 and E10-02 remain separate required executions.
+
+The implementation retains the shared ResNet-18 backbone, task-specific heads, private local experience replay, ordinary SGD, documented shard-weighted FedAvg behavior, explicit schedules, scheduled participation/outage semantics, and no terminal full-participation sync.
+
+## Preflight and verification
+
+- Source revision on Kakarot, Mtech, V100, and GitHub `main`: `38192b43b1f084333db415de388a240b8f3f35d1`.
+- Corrected dataset validation to rehash/revalidate actual private shard files instead of trusting only the saved validation receipt; regression test added and pushed in the scoped commit.
+- Mtech test sequence passed on the corrected revision: compileall, full unittest discovery (70 tests, 8 skips), sync training tests (3), Task-IL training tests (9), joint-path tests (6), extended ledger build, dry-run, and estimate-only.
+- Current GitHub Actions run for commit `38192b43b1f0` completed successfully.
+- Portable matrix verified: E01–E10 counts are 8, 3, 6, 3, 8, 3, 6, 3, 5, 3 (48 total). DAG verified as 19 generate + 19 validate + 48 train (86 total).
+- Raw CIFAR-100 tar SHA-256: `85cd44d02ba6437773c5bbd22e183051d648de2e7d6b014e1ef29b855ba677a7`. V100 raw CIFAR-100 load verified as 50,000 train examples, 10,000 test examples, and 100 classes.
+- A live shard-corruption regression was reproduced and is now rejected by the corrected validator.
+- Checkpoint-resume semantics were inspected and tested: checkpoints commit at round boundaries and save server/client states, replay memory, versions, exposure history, metrics, rounds, and communication events. Per-client episode/epoch shuffle, replay, and memory-admission draws use seed-derived generators, so resumption reconstructs round-local randomness without relying on a drifting global RNG stream.
+- The distributed dispatcher has five focused unit checks (dependency ordering, repository-root resolution, GPU/host admission boundaries, and isolated per-job dependency state), passed on both hosts. Its first live Mtech shared-device admission runs distinct job IDs with separate ledgers, outputs, and logs.
+
+## Execution environment and scheduling
+
+Mtech and V100 are Tesla V100 PCIe 32 GiB devices. Both now use Python 3.12.15, PyTorch 2.5.1+cu121, torchvision 0.20.1+cu121, NumPy 2.5.4, Pillow 13.0.0, and CUDA runtime 12.1. V100 uses a dedicated environment under the campaign user's home; the existing Boltz environment was not modified.
+
+Mtech has 40 CPU threads, 125 GiB RAM, and about 1.1 TiB free on the repository filesystem. Its measured first-run GPU peak so far is about 1.6 GiB per process; three distinct training processes currently use about 4.7 GiB total with high GPU utilization and about 107 GiB host RAM available. Shared-device admission uses a conservative per-job 4 GiB GPU reservation plus margin and 8 GiB host-RAM reservation plus margin.
+
+V100 has 40 CPU threads, 93 GiB RAM, and about 265 GiB free on the repository filesystem. An unrelated Boltz workload is actively using the GPU (about 25 GiB and 100% utilization in the last sample). Only CPU-side dataset preparation is running there; no campaign GPU training has been admitted.
+
+## Live ledger snapshot (2026-11-25 04:03 IST)
+
+- Mtech: 10/10 dataset dependency jobs verified; 3 training jobs running; 21 training jobs ready; no failures.
+- V100: 28/28 dataset dependency jobs verified; 24 training jobs are ready and resource-gated pending safe GPU availability; no failures.
+- Central ledger: 86 entries; 38 verified dependency jobs, 3 running training jobs, and 45 ready training jobs (21 on Mtech, 24 on V100). No failures.
+
+## Interpretation cautions for the final report
+
+- The default campaign uses one seed (42). Results describe this fixed seed and do not estimate across-seed variance.
+- Accuracy follows the repository's Task-IL evaluation contract, including the task-specific head/task identity; it is not Class-IL accuracy with an unknown task identity.
+- Reported communication is the repository's logical serialized upload/download/metadata accounting. It is not measured physical network traffic.
+- E05-05 and E10-02 remain separate required executions even though their scientific settings are intentionally equivalent. They must not be presented as independent statistical replications.
+- Baseline reuse in analysis is labeled as reuse and is not counted as another training run.
+
+## Authoritative state and next actions
+
+- Central ledger: `authoritative_execution_ledger.jsonl`.
+- Dispatch plan and per-host queues: `dispatch_plan.json`, `mtech_job_ledger.jsonl`, and `v100_job_ledger.jsonl`.
+- Live per-host state: Mtech and V100 `mtech_shared_dispatch.json` / `v100_shared_dispatch.json` on their respective repositories.
+- Host snapshots are merged with `reconcile_dispatch_snapshot.py`; all attempts, failures, and retries are retained in `attempts.jsonl` and `execution_events.jsonl`.
+- Continue Mtech shared-GPU jobs; finish V100 data preparation and keep its training queue gated until the unrelated GPU workload is gone and sustained resource checks show safe capacity.
+- Verify each completed terminal model and checkpoint with `verify_task_il_results.py`, transfer V100 data/results with SHA-256 verification, run complete Task-IL analysis, and update this report only from verified artifacts.
+
+No training result is yet counted as `VERIFIED_COMPLETE`; active runs remain in progress. Do not cite interim accuracy as a final experimental result.
+
+
+### 2026-11-24T23:33:46.976209+00:00 UTC — SSH reauthentication gate
+
+Fresh probes through B550 stopped before reaching either server because Tailscale SSH requested an additional authentication check. No live server state was returned, so the last host snapshots remain stale and no dispatch, stop, or retry decision was made from them. Existing Mtech campaign processes and the unrelated V100 workload were left untouched. The B550 peer remains online in local Tailscale status. Continue through the established route as soon as the authentication check clears.
+
+
+### 2026-11-25T00:28:12.298157+00:00 UTC — authentication gate persists
+
+The scheduled retry again failed at the B550 Tailscale SSH authentication check, before reaching either server; no host state was returned. The most recent successful host snapshot remains 2026-11-24T23:00:56Z UTC. This is an access interruption only, not evidence of a run failure; no process was changed.
+
+
+### 2026-11-25T02:00:39.621952+00:00 UTC — scheduled poll remains gated
+
+Both authorized host probes again ended at the B550 Tailscale SSH additional-authentication check. The last successful server snapshot is still 2026-11-24T23:00:56Z UTC. No fresh host state is inferred and no server process was changed.
+
+
+### 2026-11-25T02:31:31.834344+00:00 UTC — Tailscale check still pending
+
+Both scheduled SSH probes remained blocked at the jump-host additional-authentication banner. No training process was touched and no completion was inferred.
+
+
+### 2026-11-25T03:16:33.633671+00:00 UTC — resumed after Tailscale reauthentication
+
+The 08:34–08:38 IST live checks succeeded. The 86-row ledger currently has 48 verified complete (38 dependency jobs and 10 training jobs), 2 training jobs running, and 36 training jobs ready. The 10 completed Mtech training artifacts passed the independent deep verifier (250-round and shorter configs as specified). Mtech GPU: 3,180 MiB used of 32 GiB, 98% utilization; host RAM available 112 GiB; disk free 1.1 TiB. V100 GPU remains occupied by active unrelated Boltz jobs (25.5 GiB used, 100% utilization), so Task-IL training remains gated there.
+
+
+### 2026-11-25T04:45:48.334604+00:00 UTC — expanded Mtech concurrency is healthy
+
+The worker pool is no longer capped at two. Mtech has all 24 assigned training entries completed or active: 14 verified complete and 10 running concurrently. The latest live sample showed 15.45 GiB VRAM used, 17.05 GiB free, 100% GPU utilization, 72 GiB host RAM available, and no disk pressure. Round files advanced across all ten runs. All 14 completed Mtech runs passed the deep verifier. V100 remains queued because Boltz is actively using its GPU. Central ledger state: {'VERIFIED_COMPLETE': 52, 'READY': 24, 'RUNNING': 10}.
+
+
+### 2026-11-25T08:07:10Z — current training-only ledger and additional Mtech admission
+
+Fresh SSH/GPU observations at 2026-11-25 13:37:04 IST: Mtech V100 used 29,824 MiB / free 2,677 MiB, 99% utilization, 24.4 GiB MemAvailable; V100-server used 28,928 MiB / free 3,572 MiB, 100% utilization, 60.9 GiB MemAvailable. Current campaign processes were 19 on Mtech and 2 on V100. No unrelated processes were modified.
+
+Launched E09-02 (`E09-02-s42-01958b5ee588`) on Mtech under tmux `fedqcl-taskil-mtech-e09-one-more`, with its validated data-generation and validation dependencies. At 13:37:04 IST its runner PID 26476 remained alive and its rounds file had advanced to 3 rows (7,735 bytes); this confirms post-launch progress. The queue is single-run and attempt-specific.
+
+Two earlier RUNNING records were reconciled after their host processes exited. E03-04 on V100 and E10-03 on Mtech each passed `scripts/run_campaign.py` production `valid(job)` on its execution host; all ten required artifact digests were recomputed and recorded in the authoritative ledger. Current 48-training-run counts: 23 VERIFIED_COMPLETE, 21 RUNNING, 4 READY. Snapshot ledger: `research_results/task_il_48/coordination/training_run_status_current.csv`.
+
+### 2026-11-25T08:52Z — three-host live reconciliation and active-copy checkpoint
+
+- Fresh process/output snapshots were captured from Mtech, V100, and iiitd. All 25 training entries marked RUNNING in the central ledger matched a live `task_il_main.py` process: Mtech 19, V100 2, iiitd 4. All 38 dataset generation/validation dependencies are VERIFIED_COMPLETE; 23 training entries are VERIFIED_COMPLETE; none are waiting to launch.
+- Progress counters were reconciled from live per-run JSONL files into the central ledger. The training-only status CSV was regenerated. Pre-reconciliation copies of the ledger, attempts, events, and CSV are preserved beside the authoritative files.
+- The progress snapshot helper now records process IDs and real progress-file timestamps; reconciliation no longer advances `last_progress_at` just because a heartbeat was observed. Its two regression tests and all five shared-dispatcher tests passed locally.
+- A resumable, non-deleting Mtech-to-iiitd rsync of the full checkout completed with exit code 0 at about 64 MB/s. It deliberately excluded active output directories and `research_results/task_il_48/coordination` to protect live results and the iiitd dispatcher. Source checkout is 19 GiB and destination is 16 GiB; checksum verification and the final transfer of excluded active artifacts/coordination remain outstanding, so the checkout is not yet declared fully synchronized.
+- The last-admission health window exceeded five minutes. Fresh snapshots show advancing rounds on all three hosts. Mtech currently has 19 active runs with about 23 GiB RAM available and 2.4 GiB GPU memory free; all processes report sustained CPU activity. V100 has 2 active runs; iiitd has 4. No process or unrelated workload was stopped.
+
+
+### 2026-11-25T09:30:26.895383+00:00 UTC — terminal audits and three-host live reconciliation
+
+- Training-only ledger: **28 verified complete / 20 running / 0 other** out of 48. Full 86-job ledger: 66 verified complete and 20 running; the 38 dataset generation/validation dependencies remain verified.
+- Five newly terminal training outputs passed the independent `verify_task_il_results.py` audit against exact configuration, schedule and dataset identities, expected round/evaluation coverage, communication accounting, exposure totals, finite metrics and terminal model/checkpoint consistency: E05-07, E05-08, E10-02, E06-01 and E06-02. The local audit summaries and hashes are saved as `deep_audit_mtech_current.report.summary.json` (see execution_events.jsonl) and `deep_audit_v100_current.report.summary.json`; their JSONL reports are retained beside them.
+- The central E06-03 run now points to its live V100 attempt. The duplicate iiitd attempt was identity-checked, stopped earlier, and recorded as `INTERRUPTED` with its partial output preserved. Its V100 counterpart is the only active E06-03 attempt.
+- Fresh process and artifact snapshots at approximately 14:57 IST confirm 16 Mtech training processes, 1 V100 training process, and 3 iiitd training processes. All 20 have advancing run counters; snapshots are `progress_mtech_20261125T1453.json`, `progress_v100_20261125T1453.json`, and `progress_iiitd_20261125T1453.json`. Mtech shows 7,075 MiB free VRAM and 39 GiB available RAM; V100 5,340 MiB and 65 GiB; iiitd L40 30,528 MiB and 19 GiB.
+- Current active round counters by host: MtechDEServer1=16, V100-server=1, iiitd=3. The detailed counters are in the authoritative ledger and status CSV.
+- A low-priority, CPU-only independent audit of the 19 older Mtech training results is running in tmux `fedqcl-taskil-audit-mtech-prior`; it uses `nice -n 19`, `ionice -c3`, and `CUDA_VISIBLE_DEVICES=`. The failed first audit launch was only a local filtered-ledger selection error; no training or result files were touched, and the remote attempt log is retained.
+- Latest storage/checkout transfer verification and consolidated final analysis remain outstanding. Do not treat this campaign as complete.
+
+
+### 2026-11-25T09:35:19.071499+00:00 UTC — earlier V100 deep-audit receipts linked
+
+- Linked the existing independently verified V100 audit receipt into the central per-run and attempt records for E03-03, E03-04, E05-05 and E05-06. Together with the 19 audited Mtech results and the 5 newly completed runs, all 28 currently completed training entries now have independent deep-audit evidence. The four-run report checksum remains `afc60c145574f500f892c2cdb78e71023e2ba48c12de9b721ae078006bd76388`.
+
+
+### 2026-11-25T09:40:37.464846+00:00 UTC — all previously completed Mtech runs passed deep audit
+
+- The low-priority CPU-only verifier completed successfully: 19/19 Mtech training runs verified, zero failures, source revision `38192b43b1f084333db415de388a240b8f3f35d1`. Report: `deep_audit_mtech_prior19.report.jsonl`; SHA-256: `b687eeec05118983a685faadc09a5fc94466f2fb647be8cdce3aff9e18fc635b`.
+- The earlier note that this audit was still running is superseded. All 28 terminal training runs currently counted as complete now have deep-audit evidence linked in the authoritative ledger and attempts file.
+- The first iiitd dataset-copy check found 18 roots because dataset `5f273b85b6a14fb8ca49` was missing. That 243 MiB root has since been transferred from V100 to the iiitd checkout. File count (54), manifest and receipt are present with matching source hashes; the full 19-root shard validation is running before the copy is declared complete.
+
+
+### 2026-11-25T09:42:38.736795+00:00 UTC — iiitd dataset copy validation passes 19/19
+
+- The missing dataset root `5f273b85b6a14fb8ca49` was transferred from V100 to Kakarot and then to iiitd without replacing an existing destination. Its 54 files match source SHA-256 values at the Kakarot staging copy; the target manifest and validation receipt SHA-256 are `72740fbb91aaba5d10c36beb848a9ce44ce91b404f538a0a769b02d57360d5d6` and `db2479ead0a99ee91fa2dab5482570aae9fecf5dbbf31153d2d536717addd73d`.
+- Revalidation of all copied Task-IL datasets on iiitd completed successfully: **19 found, 19 valid, 19 receipts match, zero failures**. Report: `iiitd_dataset_copy_validation_20261125_rerun.jsonl`; SHA-256: `68c30792ef094fb64f79709a207c2d1e327bafc69fde53dbcb770d4c6349b135`.
+- This resolves the one missing dataset root in the target data copy. Full result/coordination synchronization and final campaign analysis remain outstanding.
+
+
+### 2026-11-25T09:44:55.004967+00:00 UTC — provenance details and audit integrity
+
+- The 54-file source-to-Kakarot SHA-256 manifest for dataset `5f273b85b6a14fb8ca49` matches byte-for-byte; checksum-list digest: `329a09c085d85102ebce83b79544d4a8701e082a38263ff1be44acc54de29bac`. The iiitd validator then rehashed all 19 dataset manifests/shards and matched all saved receipts.
+- Recorded exact process IDs, terminal rounds, exit status, and preserved output path for the superseded E06-03 iiitd attempt in `attempts.jsonl` and `execution_events.jsonl`.
+
+
+### 2026-11-25T09:50:07.187843+00:00 UTC — five additional Mtech training runs verified
+
+- E03-05 and E07-01 through E07-04 exited with `status=completed` and passed independent deep verification (five of five; zero failures). Report `deep_audit_mtech_new5.report.jsonl`, SHA-256 `bd64b8eaa8982136b6bf7c46dd2d3b8cb68f24be50f860e7442eb1af839970b1`.
+- Current ledger counts after this reconciliation: 33/48 verified complete and 15/48 running. Other training entries remain in progress; the suite is not complete.
+
+
+### 2026-11-25T09:52:51.027533+00:00 UTC — E07-05 verified; fresh three-host progress
+
+- E07-05 completed 50/50 rounds, exited cleanly, and passed independent deep audit. Report SHA-256 `12367cfd7e0508464bb5b6d5ccf985f3aa3feb93e527dd7933c06e1f8e9d8a1e`.
+- New snapshots at 09:50 UTC were reconciled from Mtech, V100, and iiitd. The ledger now has 34/48 training results verified and 14/48 still running. Active host distribution is Mtech 10, V100 1, iiitd 3; the other process that disappeared since the prior snapshot is E07-05 and is now audited complete.
+- Fresh capacity: Mtech V100 16,591 MiB free and about 75.6 GB RAM available; V100 5,448 MiB free and 71.2 GB RAM available; iiitd L40 30,772 MiB free and 19.9 GB RAM available. iiitd load average ~15 and three active training jobs are at 62–63/65 rounds; no migration was justified by that brief near-terminal state.
+
+
+### 2026-11-25T10:10:46+00:00 UTC — six terminal training runs deep-audited and reconciled
+
+- Independent production validator and deep terminal artifact verifier passed for E03-06, E07-06, E10-01 (Mtech) and E09-03, E09-04, E09-05 (iiitd); each report expected 1, verified 1, zero failures, source revision `38192b43b1f084333db415de388a240b8f3f35d1`.
+- Training ledger after reconciliation: **40/48 verified complete, 8 running, 0 pending**. The three iiitd artifact paths now point to the actual iiitd checkout.
+- Reports and SHA-256 values are retained under `coordination/terminal_rechecks/`; full result collection and final campaign analysis remain outstanding.
+
+
+### 2026-11-25T10:19:19+00:00 UTC — E06-03 passed terminal deep audit
+
+- V100 attempt status receipt records `completed`, exit code 0; the independent production validator/deep verifier passed one of one runs with zero failures at source revision `38192b43b1f084333db415de388a240b8f3f35d1`. Report SHA-256: `f8cbbd12f7a86a5423139d34c3225f261dcfa178e8b8d74215715448f06670a8`.
+- Training ledger: **41/48 verified complete, 7 running, 0 pending**.
+- Final output collection and consolidated analysis remain outstanding.
+
+
+### 2026-11-25T10:34:11Z — E08-01 moved from Mtech to iiitd for throughput
+
+- Re-polled before the move: E08-01 had 39 committed rounds on Mtech; Mtech's six other runs advanced about six rounds each over the prior twelve minutes after one job was moved. Mtech V100 had 21,357 MiB free at the pre-move sample. iiitd had no Task-IL process, 36,071 MiB free on its L40, about 30 GiB host RAM available, and 5.2 TiB disk free.
+- The Mtech child process was stopped deliberately after its runner state recorded exit `-15`. The latest atomic checkpoint was verified at round 38 with 39 committed round rows. The original Mtech output and runner logs remain preserved.
+- Resume compatibility was verified rather than assumed: source and target are commit `38192b43b1f084333db415de388a240b8f3f35d1`; both environments use Python 3.12.15, PyTorch 2.5.1+cu121, torchvision 0.20.1+cu121, and CUDA runtime 12.1; the destination dataset manifest ID matches; source and target checkpoint/config/schedule/provenance/metric/event/status file SHA-256 values match; target `verify_checkpoint_signature.py` returned `signature_match=true` for `cuda:0`.
+- A first Kakarot-relayed transfer was cancelled at 16% of the 305 MiB checkpoint because it was moving at roughly 1 MiB/s; the partial copy was retained at `E08-01-s42-bc85a037a7e3-iiitd-a002.partial-transfer-20261125T1552`. Mtech-to-iiitd direct LAN transfer then completed at about 111 MiB/s and all transferred files matched SHA-256.
+- Attempt `E08-01-s42-bc85a037a7e3-iiitd-a002` is running in persistent tmux session `fedqcl-taskil-e0801-migrate-a002` (PID 119681). It resumed from 39 committed rounds and advanced to 41/80 within about two minutes. Startup is healthy; the five-minute post-admission confirmation window runs through approximately 16:06:47 IST. No scientific configuration, seed, schedule, data manifest, model, or device string changed.
+- Training count remains 41 verified complete and 7 running; final artifact collection and consolidated analysis remain outstanding.
+
+
+### 2026-11-25T11:02:57+00:00 — Mtech terminal runs verified; iiitd resumes healthy
+
+- E04-02, E04-03, E09-01 and E09-02 each exited with code 0 and passed the production validator plus independent terminal artifact audit. Reports confirm exact rounds, evaluation coverage, communication totals, terminal checkpoint/model agreement and finite parameters. Final accuracy/forgetting: E04-02 0.8312/0.07163; E04-03 0.8262/0.06944; E09-01 0.7297/0.17177; E09-02 0.7802/0.12333.
+- Audit: `research_results/task_il_48/coordination/terminal_rechecks/mtech/terminal_audit_current_Mtech.jsonl` (SHA-256 `f5e14f26bd0d5e3e51491c47d2d9b76277283c085c16c29a276487f39198cddb`); runner receipts: `research_results/task_il_48/coordination/terminal_rechecks/mtech/terminal_runner_receipts_current_Mtech.json`.
+- Training ledger: **45/48 VERIFIED_COMPLETE, 3 RUNNING, 0 unlaunched**; 38/38 dataset dependencies verified.
+- After the E08 throughput migrations, the iiitd L40 passed the five-minute health window. E08-01/02/03 advanced to 67/80, 51/80 and 53/80 rounds. Mtech currently has no Task-IL training process; V100 remains occupied by unrelated workloads.
+
+
+### 2026-11-25T11:12:50+00:00 — Mtech results staged and SHA-256 verified on iiitd
+
+- Transferred 35 verified Mtech run directories (385 files, 12,389,258,975 bytes) to `/home/anurag/Projects/FedQCL_Task/research_results/task_il_48/central_stage/MtechDEServer1` using direct LAN rsync at 109.76 MiB/s. Source and destination per-file SHA-256 manifests match exactly; receipt `research_results/task_il_48/coordination/staging_checksums/MtechDEServer1.transfer_verification.json`. Original result directories remain preserved.
+
+
+### 2026-11-25T11:17:00+00:00 — V100 results staged and SHA-256 verified on iiitd
+
+- Transferred seven verified V100 runs (77 files, 2,227,521,821 bytes) into `/home/anurag/Projects/FedQCL_Task/research_results/task_il_48/central_stage/V100-server`. Source and destination per-file SHA-256 manifests match exactly; transfer receipt: `research_results/task_il_48/coordination/staging_checksums/V100-server.transfer_verification.json`. Source outputs remain preserved.
+
+
+### 2026-11-25T11:23:40+00:00 — E08-01 terminal model verified
+
+- E08-01 finished with exit code 0 at 11:15:31 UTC and passed the full production validator plus deep artifact audit: 80 rounds, 3,400 evaluation rows, 1,205 communication events, 36,655,588,965 logical bytes, final accuracy 0.544775 and forgetting 0.08368. Terminal server/checkpoint tensors match and are finite. Report: `research_results/task_il_48/coordination/terminal_rechecks/iiitd/status_recheck_E08-01_20261125.jsonl` (SHA-256 `5f2f4d1bf0450c41d38468c4fee23121aff0b2677e80b084cf08b4c7ae93dca4`).
+- Training ledger: **46/48 VERIFIED_COMPLETE, 2 RUNNING, 0 unlaunched**. E08-02 and E08-03 both advanced to 72/80 rounds and remained live at the 11:22:52 UTC poll.
+
+### 2026-11-25T11:29:50+00:00 UTC — final two live jobs polled
+
+- iiitd reports E08-02 at 78/80 rounds (PID 120775) and E08-03 at 77/80 rounds (PID 120776); both status receipts remain `running`. L40 free VRAM was 40,003 MiB. No pending training entries; the authoritative ledger remains 46/48 verified complete and 2 running, with all 38 data dependencies verified.
+- Next action: continue polling the same processes, then run production result validation and deep artifact checks for each terminal result before staging and final aggregate analysis.
+
+### 2026-11-25T11:36:24+00:00 UTC — final two Task-IL runs completed and passed deep audit
+
+- E08-02 and E08-03 each exited 0 after 80/80 rounds and passed the production validator and independent terminal artifact audit: 3,400 evaluation rows each, complete communication records, finite terminal model/checkpoint tensors, and matching terminal model/checkpoint state. Final accuracy: E08-02 0.57145, E08-03 0.45875; forgetting: 0.0935733 and 0.1228.
+- The authoritative training ledger now records **48/48 VERIFIED_COMPLETE**, with 0 running and 0 unlaunched; all 38 dataset dependencies remain verified. Audit JSONL receipts are under `coordination/terminal_rechecks/iiitd/`. The 48-run analysis and final campaign acceptance checks remain outstanding.
+
+### 2026-11-25T11:44:23+00:00 UTC — full campaign verification and analysis complete
+
+- Reconciled 86 logical ledger jobs: 48/48 training entries and 38/38 data dependencies are `VERIFIED_COMPLETE`; zero pending, running, failed, or audit-needed jobs remain.
+- Reconciled the attempt ledger to 90 attempt records for 86 logical jobs. Four earlier attempts are retained: three checkpointed SIGTERM migrations for E08-01/02/03, and one superseded duplicate E06-03 attempt. Their replacement attempts completed and passed; no unresolved live attempts remain.
+- The final run input ledger contains 48 unique training entries, and the production validator passed all 48. The analysis receipt reports 48/48 completed and zero incomplete. The output includes all required result CSVs and plots.
+- Copied the analysis, verification receipts, input manifest, and resolved analysis ledger from iiitd to `research_results/task_il_48/final_analysis_iiitd_20261125/`. All 299 transferred files match the iiitd SHA-256 manifest; manifest SHA-256 is `5ee22ceab8424a7452e5a11e0256a8f7fdb8d3dc01564dec66380903cf4945da`.
+- Full final report: `research_results/task_il_48/final_analysis_iiitd_20261125/final_report.md`. It summarizes all ten families and points to per-run metrics, diagnostic tables, plots, verification receipts, and provenance.

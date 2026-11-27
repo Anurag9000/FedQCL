@@ -1,0 +1,43 @@
+{
+  "E05-04-s42-d3b11f96be08": {
+    "artifact_sha256": {
+      "/home/anurag24092/Projects/FedQCL_Task/research_results/task_il_48/E05-04-s42-d3b11f96be08/client_metrics.jsonl": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "/home/anurag24092/Projects/FedQCL_Task/research_results/task_il_48/E05-04-s42-d3b11f96be08/communication_events.jsonl": "51d362064628b753969ba792b5dcf85c5d46d2eb24447504687def92e84216b4",
+      "/home/anurag24092/Projects/FedQCL_Task/research_results/task_il_48/E05-04-s42-d3b11f96be08/config.json": "0b2b5188febb74440d396c63c42e002fc3b6f3e1a66b9d58e2b307b71454973a",
+      "/home/anurag24092/Projects/FedQCL_Task/research_results/task_il_48/E05-04-s42-d3b11f96be08/final_summary.json": "b57d4c9b37482b9d3b25ebf090eaa00d8a665c9f1ed18210125ee8479cdfcc32",
+      "/home/anurag24092/Projects/FedQCL_Task/research_results/task_il_48/E05-04-s42-d3b11f96be08/provenance.json": "f0fcffae2b03dd0d05eb4ba466a02765ae7dfea5dc976897f551e55a19e5d80a",
+      "/home/anurag24092/Projects/FedQCL_Task/research_results/task_il_48/E05-04-s42-d3b11f96be08/rounds.jsonl": "42c0eeea30f2abb75e897eee1f45ef078c0c6f2015c0addf79d41c8826e24bb8",
+      "/home/anurag24092/Projects/FedQCL_Task/research_results/task_il_48/E05-04-s42-d3b11f96be08/schedule.json": "58366cfa7c86e74c203557d9c7f871f1d42b3f8d3aa86f9f7e55e3228d298277",
+      "/home/anurag24092/Projects/FedQCL_Task/research_results/task_il_48/E05-04-s42-d3b11f96be08/server.pt": "861b6d8356ffb617f06280f7d2e3d7a54449480895b85cb2bf2e074a950491c7",
+      "/home/anurag24092/Projects/FedQCL_Task/research_results/task_il_48/E05-04-s42-d3b11f96be08/server_metrics.jsonl": "f5005b202c1ba617a52a5998939b94a520d3ea2ff21216190f2dfdc44895533f",
+      "/home/anurag24092/Projects/FedQCL_Task/research_results/task_il_48/E05-04-s42-d3b11f96be08/status.json": "7ccc76c79702d3036f1f73acdf5cc4c333fa7d9721df7437015a74558db32533"
+    },
+    "dependency_artifacts": {
+      "validate-64faa617ac20850df16a": {
+        "/home/anurag24092/Projects/FedQCL_Task/research_data/task_il_48/64faa617ac20850df16a/validation_receipt.json": "edba56a9fd20b535a3a826214b5d4e9c3fcead15d3af84ab9caf24d05ffe6148"
+      }
+    },
+    "exit_code": 0,
+    "status": "completed"
+  },
+  "data-64faa617ac20850df16a": {
+    "artifact_sha256": {
+      "/home/anurag24092/Projects/FedQCL_Task/research_data/task_il_48/64faa617ac20850df16a/manifest.json": "45abedc62fa827d494c3a5afb285a9e230059b443e846a68ebda1f219cf070fa"
+    },
+    "dependency_artifacts": {},
+    "exit_code": 0,
+    "status": "completed"
+  },
+  "validate-64faa617ac20850df16a": {
+    "artifact_sha256": {
+      "/home/anurag24092/Projects/FedQCL_Task/research_data/task_il_48/64faa617ac20850df16a/validation_receipt.json": "edba56a9fd20b535a3a826214b5d4e9c3fcead15d3af84ab9caf24d05ffe6148"
+    },
+    "dependency_artifacts": {
+      "data-64faa617ac20850df16a": {
+        "/home/anurag24092/Projects/FedQCL_Task/research_data/task_il_48/64faa617ac20850df16a/manifest.json": "45abedc62fa827d494c3a5afb285a9e230059b443e846a68ebda1f219cf070fa"
+      }
+    },
+    "exit_code": 0,
+    "status": "completed"
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "content_mismatches": [],
+  "destination_host": "iiitd",
+  "destination_manifest_sha256": "ab4e45fc1ffc2f1f6e055a89ef9177d4c5c1225779524fae58acd5647150c991",
+  "destination_root": "/home/anurag/Projects/FedQCL_Task/research_results/task_il_48/central_stage/MtechDEServer1",
+  "extra_files": [],
+  "file_count": 385,
+  "manifest_match": true,
+  "method": "rsync -a; direct Mtech-to-iiitd LAN, 109.76 MiB/s measured",
+  "missing_files": [],
+  "run_count": 35,
+  "source_host": "MtechDEServer1",
+  "source_manifest_sha256": "ab4e45fc1ffc2f1f6e055a89ef9177d4c5c1225779524fae58acd5647150c991",
+  "total_bytes": 12389258975,
+  "verified_at": "2026-11-25T11:12:50+00:00"
+}

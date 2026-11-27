@@ -1,0 +1,6 @@
+{
+  "attempt_id": "oom_retry2",
+  "dataset_symlink": "/home/anurag24092/Projects/FedQCL_Task/campaigns/cifar100_12_local_epoch_runs_20261122_012754/retries_oom_full_visibility_20261122_1445/full_epochs_2_oom_retry2/dataset",
+  "hostname": "MtechDEServer1",
+  "python_executable": "/home/anurag24092/Projects/Correlation-Aware-FCL/.venv/bin/python"
+}

@@ -1,0 +1,5 @@
+
+COMMAND: /home/anurag24092/.venvs/fedqcl-taskil-py312/bin/python /home/anurag24092/Projects/FedQCL_Task/scripts/run_campaign.py --ledger research_results/task_il_48/coordination/attempt_ledgers/validate-638fb5f8df27258cd1ad.jsonl --job-id validate-638fb5f8df27258cd1ad --resume --workers 1 --gpu-id 0 --device cuda
+
+COMMAND: /home/anurag24092/.venvs/fedqcl-taskil-py312/bin/python scripts/task_il_data.py validate --plan /home/anurag24092/Projects/FedQCL_Task/experiments/task_il_48/manifests/38192b43b1f0/638fb5f8df27258cd1ad.data.json --output /home/anurag24092/Projects/FedQCL_Task/research_data/task_il_48/638fb5f8df27258cd1ad
+{"valid": true, "manifest_id": "27466de0ae1c74b430aaedc84fcc91f02490ffe902c438761a897e40d58e0eb9", "plan_id": "a403c6916e68dc6b4c571ea4f4ec3bd7a9b51ad08f54d14186f6116b5ba5739e", "private_examples": 45000, "validation_examples": 5000, "test_examples": 10000, "ownership_sha256": "e518573a3a1d49de8454e3dec8535e732914d2dfae629a78f771aa3481491eae", "cross_client_overlap": 0}

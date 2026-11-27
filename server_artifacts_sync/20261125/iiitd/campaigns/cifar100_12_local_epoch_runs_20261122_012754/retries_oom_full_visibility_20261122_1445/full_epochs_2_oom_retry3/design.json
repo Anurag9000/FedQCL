@@ -1,0 +1,9 @@
+{
+  "attempt_id": "oom_retry3",
+  "goal": "cifar100_full_e2_oom_retry3",
+  "local_epochs_per_sync": 2,
+  "seed": 42,
+  "source": "FedQCL_Task/system/main.py",
+  "unique_cell": "full_epochs_2",
+  "visibility": "full"
+}

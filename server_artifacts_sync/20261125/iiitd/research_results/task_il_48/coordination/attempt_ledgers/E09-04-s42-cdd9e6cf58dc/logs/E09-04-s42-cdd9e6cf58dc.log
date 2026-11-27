@@ -1,0 +1,2 @@
+
+COMMAND: /home/anurag/.venvs/fedqcl-taskil-py312/bin/python task_il_main.py --config /home/anurag/Projects/FedQCL_Task/experiments/task_il_48/manifests/38192b43b1f0/E09-04-s42-cdd9e6cf58dc.config.json --schedule /home/anurag/Projects/FedQCL_Task/experiments/task_il_48/manifests/38192b43b1f0/E09-04-s42-cdd9e6cf58dc.schedule.json --data /home/anurag/Projects/FedQCL_Task/research_data/task_il_48/d8e07254e9af27ba1a2a --output /home/anurag/Projects/FedQCL_Task/research_results/task_il_48/E09-04-s42-cdd9e6cf58dc -dev cuda -did 0

@@ -1,0 +1,2 @@
+  File "/home/anurag24092/Projects/FedQCL_Task/system/main.py", line 11
+SyntaxError: Non-ASCII character '\xef' in file /home/anurag24092/Projects/FedQCL_Task/system/main.py on line 11, but no encoding declared; see http://python.org/dev/peps/pep-0263/ for details

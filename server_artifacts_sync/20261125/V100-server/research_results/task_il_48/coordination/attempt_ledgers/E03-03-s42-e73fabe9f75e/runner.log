@@ -1,0 +1,2 @@
+
+COMMAND: /home/anurag24092/.venvs/fedqcl-taskil-py312/bin/python /home/anurag24092/Projects/FedQCL_Task/scripts/run_campaign.py --ledger research_results/task_il_48/coordination/attempt_ledgers/E03-03-s42-e73fabe9f75e/E03-03-s42-e73fabe9f75e.jsonl --job-id E03-03-s42-e73fabe9f75e --resume --workers 1 --gpu-id 0 --device cuda

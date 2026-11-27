@@ -1,0 +1,23 @@
+{
+  "extension_counts": {
+    "": 4,
+    ".exit": 1,
+    ".exit_code": 1,
+    ".gz": 1,
+    ".json": 675,
+    ".jsonl": 79,
+    ".lock": 35,
+    ".log": 50,
+    ".md": 11,
+    ".npz": 788,
+    ".py": 93,
+    ".sh": 7,
+    ".txt": 1,
+    ".txt~": 1,
+    ".yml": 1
+  },
+  "files_and_symlinks": 1748,
+  "logical_bytes": 3944123967,
+  "manifest": "/tmp/artifacts_manifest_V100-server.jsonl",
+  "root": "/home/anurag24092/Projects/FedQCL_Task"
+}

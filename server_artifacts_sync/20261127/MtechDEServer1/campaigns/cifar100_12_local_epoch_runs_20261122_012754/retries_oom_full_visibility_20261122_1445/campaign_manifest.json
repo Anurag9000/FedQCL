@@ -1,0 +1,37 @@
+{
+  "active": [
+    {
+      "pid": 22307,
+      "run_id": "fedqcl_full_e1_retry1"
+    },
+    {
+      "pid": 22355,
+      "run_id": "fedqcl_full_e2_retry1"
+    }
+  ],
+  "attempts": [
+    {
+      "attempt_id": "oom_retry1",
+      "cell": "full_epochs_1",
+      "output": "/home/anurag24092/Projects/FedQCL_Task/campaigns/cifar100_12_local_epoch_runs_20261122_012754/retries_oom_full_visibility_20261122_1445/full_epochs_1_oom_retry1",
+      "pid": 22307,
+      "run_id": "fedqcl_full_e1_retry1",
+      "status": "running"
+    },
+    {
+      "attempt_id": "oom_retry1",
+      "cell": "full_epochs_2",
+      "output": "/home/anurag24092/Projects/FedQCL_Task/campaigns/cifar100_12_local_epoch_runs_20261122_012754/retries_oom_full_visibility_20261122_1445/full_epochs_2_oom_retry1",
+      "pid": 22355,
+      "run_id": "fedqcl_full_e2_retry1",
+      "status": "running"
+    }
+  ],
+  "campaign": "FedQCL_Task OOM recovery for full-visibility epoch cells",
+  "original_cells": [
+    "full_epochs_1",
+    "full_epochs_2"
+  ],
+  "seed": 42,
+  "updated_at": 1795342362.13334
+}

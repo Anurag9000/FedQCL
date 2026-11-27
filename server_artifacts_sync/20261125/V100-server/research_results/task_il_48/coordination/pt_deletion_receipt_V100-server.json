@@ -1,0 +1,98 @@
+{
+  "deleted_at": "2026-11-25T12:06:23.742388+00:00",
+  "files": [
+    {
+      "bytes": 198994030,
+      "kind": "file",
+      "path": "research_results/task_il_48/E03-03-s42-e73fabe9f75e/checkpoint.pt",
+      "sha256": "303d74b050d6656b13ad8c4f261d3fcd8b30c25ed6fbf5241e269a85b8297500"
+    },
+    {
+      "bytes": 44981850,
+      "kind": "file",
+      "path": "research_results/task_il_48/E03-03-s42-e73fabe9f75e/server.pt",
+      "sha256": "ccc3e1cef52341a9bf66a59b999e6e90d9b809a45aa6afecbcb954728edd68ba"
+    },
+    {
+      "bytes": 199401774,
+      "kind": "file",
+      "path": "research_results/task_il_48/E03-04-s42-da874185138b/checkpoint.pt",
+      "sha256": "c476b0f12c035f45cd2b3dfdf493d81d57bc0d2a33c4a41aef6766b39bec3289"
+    },
+    {
+      "bytes": 44981850,
+      "kind": "file",
+      "path": "research_results/task_il_48/E03-04-s42-da874185138b/server.pt",
+      "sha256": "0ef39bacd8f92dca1f4e548f95a085eb2130311de964dcb4723b3872f632bea0"
+    },
+    {
+      "bytes": 301388574,
+      "kind": "file",
+      "path": "research_results/task_il_48/E05-05-s42-08dd079c8ed9/checkpoint.pt",
+      "sha256": "03331a3a0abc13755e7a56836d484aaf4916cbccc30462a2d8859dfe43089f77"
+    },
+    {
+      "bytes": 44963214,
+      "kind": "file",
+      "path": "research_results/task_il_48/E05-05-s42-08dd079c8ed9/server.pt",
+      "sha256": "f5bc76a1879579c37f20c627c13683633be433820540faa735d77b04cdc5d800"
+    },
+    {
+      "bytes": 301382558,
+      "kind": "file",
+      "path": "research_results/task_il_48/E05-06-s42-08ed4a33a14c/checkpoint.pt",
+      "sha256": "ff1c1395b9e36361cac789eff789e05a069b1dc481de802bd8fdf761d58fee0e"
+    },
+    {
+      "bytes": 44963214,
+      "kind": "file",
+      "path": "research_results/task_il_48/E05-06-s42-08ed4a33a14c/server.pt",
+      "sha256": "ea9b8fc1f7a2018d581bd9711a685501c86188fb63b648a2212b16dff44f667b"
+    },
+    {
+      "bytes": 301879406,
+      "kind": "file",
+      "path": "research_results/task_il_48/E06-01-s42-68627d35b3ff/checkpoint.pt",
+      "sha256": "e1c59ab3c7cbaab400c8b2466770291902fc58a4cf187668172d3a2cbbcc9beb"
+    },
+    {
+      "bytes": 44981850,
+      "kind": "file",
+      "path": "research_results/task_il_48/E06-01-s42-68627d35b3ff/server.pt",
+      "sha256": "617b2e5e89bab5c9f4af0f086ad26983606b36e4c17d19a47bd4324a7e7d500c"
+    },
+    {
+      "bytes": 301885614,
+      "kind": "file",
+      "path": "research_results/task_il_48/E06-02-s42-77c4f703924e/checkpoint.pt",
+      "sha256": "36f6bfeae91919358979bce72bdd49be9369b68ac3662e58fa4caf92fe2d7db7"
+    },
+    {
+      "bytes": 44981850,
+      "kind": "file",
+      "path": "research_results/task_il_48/E06-02-s42-77c4f703924e/server.pt",
+      "sha256": "58cbebc866b9cb5726ad42db09620168c4cc99c68460e7ec533a7e8b0cfac6d2"
+    },
+    {
+      "bytes": 301880622,
+      "kind": "file",
+      "path": "research_results/task_il_48/E06-03-s42-b390ad95787c/checkpoint.pt",
+      "sha256": "528b859d3f48b0a7995799d62dc5ddb8893765527dd3207b887e3318332888ad"
+    },
+    {
+      "bytes": 44981850,
+      "kind": "file",
+      "path": "research_results/task_il_48/E06-03-s42-b390ad95787c/server.pt",
+      "sha256": "3a5c987d7b367637ced0e040c43b798e6bee3aa4ed4bbc4ec97c1f6eb0f3bfbc"
+    }
+  ],
+  "files_after": 0,
+  "files_before": 14,
+  "host": "V100-server",
+  "logical_bytes_before": 2221648256,
+  "manifest_path": "research_results/task_il_48/coordination/pt_deletion_manifest_V100-server.json",
+  "manifest_sha256": "09969fa1b280e7cd176479ffaf0bf41c3522b44c39347ca0a89e814e7e6e884a",
+  "recorded_at": "2026-11-25T12:06:23.289398+00:00",
+  "remaining": [],
+  "repo": "/home/anurag24092/Projects/FedQCL_Task"
+}

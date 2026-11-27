@@ -1,0 +1,861 @@
+{
+  "files": [
+    {
+      "bytes": 303415278,
+      "kind": "file",
+      "path": "research_results/task_il_48/E01-01-s42-4a074ebf5647/checkpoint.pt",
+      "sha256": "66897e39f15b83a4f0db8f9637623ea2c1fe9291c5237cc8c357a93a35ea39df"
+    },
+    {
+      "bytes": 44981850,
+      "kind": "file",
+      "path": "research_results/task_il_48/E01-01-s42-4a074ebf5647/server.pt",
+      "sha256": "8d6dbacc8a632239de0580787ec2618682815610e2871a7da5a2d3c4bcaf65e3"
+    },
+    {
+      "bytes": 303340014,
+      "kind": "file",
+      "path": "research_results/task_il_48/E01-02-s42-4685bb2e8cf9/checkpoint.pt",
+      "sha256": "90d5f0421962304dc27097515bb9795302f017042a2b57f9746f41df9cbf9e9a"
+    },
+    {
+      "bytes": 44981850,
+      "kind": "file",
+      "path": "research_results/task_il_48/E01-02-s42-4685bb2e8cf9/server.pt",
+      "sha256": "b77d5c17f0184791d527895ef8529be87b0957df96b53d2900a58514c9317a95"
+    },
+    {
+      "bytes": 303264750,
+      "kind": "file",
+      "path": "research_results/task_il_48/E01-03-s42-a570025c808f/checkpoint.pt",
+      "sha256": "e23c7a86adebe33ebebf1b2aac79cee6129309f8541a1275b0d87b6f4ebc4dde"
+    },
+    {
+      "bytes": 44981850,
+      "kind": "file",
+      "path": "research_results/task_il_48/E01-03-s42-a570025c808f/server.pt",
+      "sha256": "5a820032df5cbc1f9c9e0485f61d85f46ce2e3cb59cc28568434744c80cb6114"
+    },
+    {
+      "bytes": 303189486,
+      "kind": "file",
+      "path": "research_results/task_il_48/E01-04-s42-2ee5c8cd1ae6/checkpoint.pt",
+      "sha256": "f31cbaf6b5c14387f09c0144bb3ddc85e9eddae50a703961f0ef331561805460"
+    },
+    {
+      "bytes": 44981850,
+      "kind": "file",
+      "path": "research_results/task_il_48/E01-04-s42-2ee5c8cd1ae6/server.pt",
+      "sha256": "540c989c7370448dff257e6f1755dc5ac1faae8e6dd1cf095c612cd36f7b58dd"
+    },
+    {
+      "bytes": 301794606,
+      "kind": "file",
+      "path": "research_results/task_il_48/E01-05-s42-cfc371a4098c/checkpoint.pt",
+      "sha256": "ddf0b1a97859ba7277a2aa53cf95df85f8b4c168ae84d513bac60c8952ab621a"
+    },
+    {
+      "bytes": 44981850,
+      "kind": "file",
+      "path": "research_results/task_il_48/E01-05-s42-cfc371a4098c/server.pt",
+      "sha256": "ef4b11c6cea04404395a951608620b2a4bc603fce5af08c959390ff99007d9c0"
+    },
+    {
+      "bytes": 301779566,
+      "kind": "file",
+      "path": "research_results/task_il_48/E01-06-s42-78abc3c42701/checkpoint.pt",
+      "sha256": "3a6f4816335aec165c872450f1b14b2c63e160c951074a1783858252297013e3"
+    },
+    {
+      "bytes": 44981850,
+      "kind": "file",
+      "path": "research_results/task_il_48/E01-06-s42-78abc3c42701/server.pt",
+      "sha256": "6e24bbcd49305557a5a5e268227a7c409b11d04ec9a1ba919b5567efd68a0bc7"
+    },
+    {
+      "bytes": 301764526,
+      "kind": "file",
+      "path": "research_results/task_il_48/E01-07-s42-a8e68ec6a46c/checkpoint.pt",
+      "sha256": "cf647835aedae580147727de00d8cb3c28888cfd5abd055d84d9a1a5cd534d12"
+    },
+    {
+      "bytes": 44981850,
+      "kind": "file",
+      "path": "research_results/task_il_48/E01-07-s42-a8e68ec6a46c/server.pt",
+      "sha256": "ee056373e905b815b43d101a9b5b965e17a7843b708002b94dba40a904257911"
+    },
+    {
+      "bytes": 301749486,
+      "kind": "file",
+      "path": "research_results/task_il_48/E01-08-s42-fd1a24bab0b1/checkpoint.pt",
+      "sha256": "231b242f8ba009a555be1137822dabd57bdd53933e221d5ba69dbb0b782fa768"
+    },
+    {
+      "bytes": 44981850,
+      "kind": "file",
+      "path": "research_results/task_il_48/E01-08-s42-fd1a24bab0b1/server.pt",
+      "sha256": "433cd8945344a7822e2171be2b5cf706a1fdad523e82d0209f332dfe154deb01"
+    },
+    {
+      "bytes": 301514798,
+      "kind": "file",
+      "path": "research_results/task_il_48/E02-01-s42-55e49a23d183/checkpoint.pt",
+      "sha256": "dee9f6c06e2663440573da721a63e31f14af9413f4e98300bfb28d51d458f998"
+    },
+    {
+      "bytes": 44981850,
+      "kind": "file",
+      "path": "research_results/task_il_48/E02-01-s42-55e49a23d183/server.pt",
+      "sha256": "9ad3f7dbf568ae331161d35f9bdb8d723fc8cb83c4acfc71206183cc2edc2a9c"
+    },
+    {
+      "bytes": 301584814,
+      "kind": "file",
+      "path": "research_results/task_il_48/E02-02-s42-e8edddd84311/checkpoint.pt",
+      "sha256": "3408128ccde1863714fe635f93c321d3cc569620c93c531ad5b5fd8a0db6808f"
+    },
+    {
+      "bytes": 44981850,
+      "kind": "file",
+      "path": "research_results/task_il_48/E02-02-s42-e8edddd84311/server.pt",
+      "sha256": "1f488b8630457f3cdb8cbb9fa49d289790f6a8c52095f51d01855762d05786fd"
+    },
+    {
+      "bytes": 302144622,
+      "kind": "file",
+      "path": "research_results/task_il_48/E02-03-s42-0d5ba6910761/checkpoint.pt",
+      "sha256": "20b6dd0089a4b59fef52e449d85a8a4fb7cb831da818d20ba2a02be5f4d96d49"
+    },
+    {
+      "bytes": 44981850,
+      "kind": "file",
+      "path": "research_results/task_il_48/E02-03-s42-0d5ba6910761/server.pt",
+      "sha256": "796821a2f9dbe27a8cf1e29e811cbcda5d03c904833bf42b9fdc97f7a6eb3e81"
+    },
+    {
+      "bytes": 147751374,
+      "kind": "file",
+      "path": "research_results/task_il_48/E03-01-s42-9f1fdedaf4b4/checkpoint.pt",
+      "sha256": "a18054b7b7a37f5f48944ce27b224556427067915f0c6a97a161632f81be20c8"
+    },
+    {
+      "bytes": 44981850,
+      "kind": "file",
+      "path": "research_results/task_il_48/E03-01-s42-9f1fdedaf4b4/server.pt",
+      "sha256": "021747e64b2993f6742934c66abfea5c68369ddc880bdbe43a65111177659093"
+    },
+    {
+      "bytes": 148294350,
+      "kind": "file",
+      "path": "research_results/task_il_48/E03-02-s42-90197e86cae8/checkpoint.pt",
+      "sha256": "f280cf690f14737fbe776750d7a8750db15b08fd5eddf24ca8a5beb9d5ba6617"
+    },
+    {
+      "bytes": 44981850,
+      "kind": "file",
+      "path": "research_results/task_il_48/E03-02-s42-90197e86cae8/server.pt",
+      "sha256": "eba1e387691a32d2852ab2d6e13e0452cd8670605270289384d966f172c89028"
+    },
+    {
+      "bytes": 557819470,
+      "kind": "file",
+      "path": "research_results/task_il_48/E03-05-s42-025228c05254/checkpoint.pt",
+      "sha256": "989b6ec749d55b169b5636cecb829af9b07716c34f7587d3e4f20ca01bf22b02"
+    },
+    {
+      "bytes": 557927246,
+      "kind": "file",
+      "path": "research_results/task_il_48/E03-06-s42-5a3c7c57ac61/checkpoint.pt",
+      "sha256": "28079177e3520e5b4f7fb8e24419c0795692b9c748281ec2b49b58a7e38cd86e"
+    },
+    {
+      "bytes": 301874670,
+      "kind": "file",
+      "path": "research_results/task_il_48/E04-01-s42-17af39105a07/checkpoint.pt",
+      "sha256": "3d914e3d3c51d63de2bae516ca07a47de7dcf7301bc7b80f8826f7143d129d48"
+    },
+    {
+      "bytes": 44981850,
+      "kind": "file",
+      "path": "research_results/task_il_48/E04-01-s42-17af39105a07/server.pt",
+      "sha256": "927200d33f7b27da938858612757083c89577c5b062fcfdd3dbfeb4e618ba2f1"
+    },
+    {
+      "bytes": 301548462,
+      "kind": "file",
+      "path": "research_results/task_il_48/E04-02-s42-42d7a8fdb7d4/checkpoint.pt",
+      "sha256": "9e7fab089d46f8a1e5a7c61a9e5444e8c933aee1c8f2a641716e7f658d5ae772"
+    },
+    {
+      "bytes": 301546734,
+      "kind": "file",
+      "path": "research_results/task_il_48/E04-03-s42-60ec995f95ec/checkpoint.pt",
+      "sha256": "8a049f04db271ada8d713956207b183860756077bff53fb4fe2b5c6f2c1af21b"
+    },
+    {
+      "bytes": 301447062,
+      "kind": "file",
+      "path": "research_results/task_il_48/E05-01-s42-0d73508bc7d1/checkpoint.pt",
+      "sha256": "108091d64573319edd3d80beda1281e38ff4831b2b3da8f6ff8d4d0fcbde1e02"
+    },
+    {
+      "bytes": 44966320,
+      "kind": "file",
+      "path": "research_results/task_il_48/E05-01-s42-0d73508bc7d1/server.pt",
+      "sha256": "5019e5d8de33aff688657423bb9a179906c468a77bc0c85da482bafcfd89c1b9"
+    },
+    {
+      "bytes": 301439510,
+      "kind": "file",
+      "path": "research_results/task_il_48/E05-02-s42-5ab8d0980dc5/checkpoint.pt",
+      "sha256": "49486f2aafc5148f280a257d16ce5ad52f3203d63e222a983ff9cb6e546acd48"
+    },
+    {
+      "bytes": 44966320,
+      "kind": "file",
+      "path": "research_results/task_il_48/E05-02-s42-5ab8d0980dc5/server.pt",
+      "sha256": "dba0a4af4ac60e5465e2f1acad23ba2c62bd79f43e23705babf27b7e0da2db61"
+    },
+    {
+      "bytes": 301432022,
+      "kind": "file",
+      "path": "research_results/task_il_48/E05-03-s42-0b9dbd6ac336/checkpoint.pt",
+      "sha256": "f7eea885ce93d8a4f2aa71534550c444ea0019efad357f09525e9df5c6bffa62"
+    },
+    {
+      "bytes": 44966320,
+      "kind": "file",
+      "path": "research_results/task_il_48/E05-03-s42-0b9dbd6ac336/server.pt",
+      "sha256": "f01a6b97aac5e4e64e140468783d868f0678cb599aa40b2b846b87fd5b9ba538"
+    },
+    {
+      "bytes": 301424534,
+      "kind": "file",
+      "path": "research_results/task_il_48/E05-04-s42-d3b11f96be08/checkpoint.pt",
+      "sha256": "969e76678674f7b4d00e9eb13a1bc711f6e2934fd7de92e26f70dad1dff1325d"
+    },
+    {
+      "bytes": 44966320,
+      "kind": "file",
+      "path": "research_results/task_il_48/E05-04-s42-d3b11f96be08/server.pt",
+      "sha256": "861b6d8356ffb617f06280f7d2e3d7a54449480895b85cb2bf2e074a950491c7"
+    },
+    {
+      "bytes": 301352350,
+      "kind": "file",
+      "path": "research_results/task_il_48/E05-07-s42-26714f85bdfc/checkpoint.pt",
+      "sha256": "0dc4edc2ed176733514ae857793956b6c11c9e166af3f21c5f552d81b8a76804"
+    },
+    {
+      "bytes": 301347294,
+      "kind": "file",
+      "path": "research_results/task_il_48/E05-08-s42-37b75e62167b/checkpoint.pt",
+      "sha256": "3245e149624e6dd92a52610734c53a2c3f96b50d19cfcc64369b168619fc7611"
+    },
+    {
+      "bytes": 301602222,
+      "kind": "file",
+      "path": "research_results/task_il_48/E06-03-s42-b390ad95787c/checkpoint.pt",
+      "sha256": "0a9c2b9f87d787deeba3d2045802ba34ca4991fc2527bd3c4471c51fbc58b377"
+    },
+    {
+      "bytes": 50462720,
+      "kind": "file",
+      "path": "research_results/task_il_48/E08-01-s42-bc85a037a7e3-iiitd-a002.partial-transfer-20261125T1552/checkpoint.pt",
+      "sha256": "424e6947f86b52932a959f67c5339d97b8ee57d6b9a051cb9cafbc22efa9c90e"
+    },
+    {
+      "bytes": 306092478,
+      "kind": "file",
+      "path": "research_results/task_il_48/E08-01-s42-bc85a037a7e3-iiitd-a002/checkpoint.pt",
+      "sha256": "fc2a93827b0b5dd94404db57699ca61b12ec6c0bb9b198d18a4146fbadee4be5"
+    },
+    {
+      "bytes": 45614822,
+      "kind": "file",
+      "path": "research_results/task_il_48/E08-01-s42-bc85a037a7e3-iiitd-a002/server.pt",
+      "sha256": "990faa2a25a7dc1e36f86c7d304c7f9288529550751c64be5c0d4d669684e40c"
+    },
+    {
+      "bytes": 306094526,
+      "kind": "file",
+      "path": "research_results/task_il_48/E08-02-s42-fba7b5a4712d-iiitd-a002/checkpoint.pt",
+      "sha256": "a40df524293cf90942c7d4752a1ae96bdaf220edda712be58a894af8f6512d13"
+    },
+    {
+      "bytes": 45614822,
+      "kind": "file",
+      "path": "research_results/task_il_48/E08-02-s42-fba7b5a4712d-iiitd-a002/server.pt",
+      "sha256": "ff326fc4167944bc81f324f3fd4e2fc0003a1e672dd811fdd2da5827f2083505"
+    },
+    {
+      "bytes": 306095038,
+      "kind": "file",
+      "path": "research_results/task_il_48/E08-03-s42-107bf22191c5-iiitd-a002/checkpoint.pt",
+      "sha256": "37ca114769d58386c4673ffde5090540a5eb852a95e33cca2faf1e46dfc23545"
+    },
+    {
+      "bytes": 45614822,
+      "kind": "file",
+      "path": "research_results/task_il_48/E08-03-s42-107bf22191c5-iiitd-a002/server.pt",
+      "sha256": "4d94433b54cd9e3095d350bc5ad31956a2070b5fcb278fa22e2ce9d473100e1f"
+    },
+    {
+      "bytes": 301894190,
+      "kind": "file",
+      "path": "research_results/task_il_48/E09-03-s42-01facd9498f2/checkpoint.pt",
+      "sha256": "17fbb76c0964e924aabec499fc02f8251a8846a64cfb2efccdde468647481680"
+    },
+    {
+      "bytes": 44981850,
+      "kind": "file",
+      "path": "research_results/task_il_48/E09-03-s42-01facd9498f2/server.pt",
+      "sha256": "8de1ae3166c975a0eb37781266aa26490ef319b21d64ca3cd5cdfd395796d5a4"
+    },
+    {
+      "bytes": 301894958,
+      "kind": "file",
+      "path": "research_results/task_il_48/E09-04-s42-cdd9e6cf58dc/checkpoint.pt",
+      "sha256": "2b882898f748092ef8bbb2775599027fc3b1ef94d936cb28bc9666e96df2452c"
+    },
+    {
+      "bytes": 44981850,
+      "kind": "file",
+      "path": "research_results/task_il_48/E09-04-s42-cdd9e6cf58dc/server.pt",
+      "sha256": "4a7006f74991649e9216d493dbc07091561a977e7bb53691467d363c0b59b672"
+    },
+    {
+      "bytes": 301895726,
+      "kind": "file",
+      "path": "research_results/task_il_48/E09-05-s42-b76dbca27aee/checkpoint.pt",
+      "sha256": "b4d8df7921038b0d44140c8de74fbc569c1a0cb9a8c50adc631f4ffdf026fc38"
+    },
+    {
+      "bytes": 44981850,
+      "kind": "file",
+      "path": "research_results/task_il_48/E09-05-s42-b76dbca27aee/server.pt",
+      "sha256": "a9d0e66c31f591bcc84fb48b7b8cf831169c0677906f4e74340cab8de0e3c79d"
+    },
+    {
+      "bytes": 301283118,
+      "kind": "file",
+      "path": "research_results/task_il_48/E10-03-s42-7105f38445d2/checkpoint.pt",
+      "sha256": "eddd9f651ce662222534749ea17eb2c180491b298c8fe33abb47a217db78f4c4"
+    },
+    {
+      "bytes": 44957002,
+      "kind": "file",
+      "path": "research_results/task_il_48/E10-03-s42-7105f38445d2/server.pt",
+      "sha256": "17da26d8e096affe5e45b45b70773a5cd2f4111c137714d3064d412e55bf9038"
+    },
+    {
+      "bytes": 303415278,
+      "kind": "file",
+      "path": "research_results/task_il_48/central_stage/MtechDEServer1/E01-01-s42-4a074ebf5647/checkpoint.pt",
+      "sha256": "66897e39f15b83a4f0db8f9637623ea2c1fe9291c5237cc8c357a93a35ea39df"
+    },
+    {
+      "bytes": 44981850,
+      "kind": "file",
+      "path": "research_results/task_il_48/central_stage/MtechDEServer1/E01-01-s42-4a074ebf5647/server.pt",
+      "sha256": "8d6dbacc8a632239de0580787ec2618682815610e2871a7da5a2d3c4bcaf65e3"
+    },
+    {
+      "bytes": 303340014,
+      "kind": "file",
+      "path": "research_results/task_il_48/central_stage/MtechDEServer1/E01-02-s42-4685bb2e8cf9/checkpoint.pt",
+      "sha256": "90d5f0421962304dc27097515bb9795302f017042a2b57f9746f41df9cbf9e9a"
+    },
+    {
+      "bytes": 44981850,
+      "kind": "file",
+      "path": "research_results/task_il_48/central_stage/MtechDEServer1/E01-02-s42-4685bb2e8cf9/server.pt",
+      "sha256": "b77d5c17f0184791d527895ef8529be87b0957df96b53d2900a58514c9317a95"
+    },
+    {
+      "bytes": 303264750,
+      "kind": "file",
+      "path": "research_results/task_il_48/central_stage/MtechDEServer1/E01-03-s42-a570025c808f/checkpoint.pt",
+      "sha256": "e23c7a86adebe33ebebf1b2aac79cee6129309f8541a1275b0d87b6f4ebc4dde"
+    },
+    {
+      "bytes": 44981850,
+      "kind": "file",
+      "path": "research_results/task_il_48/central_stage/MtechDEServer1/E01-03-s42-a570025c808f/server.pt",
+      "sha256": "5a820032df5cbc1f9c9e0485f61d85f46ce2e3cb59cc28568434744c80cb6114"
+    },
+    {
+      "bytes": 303189486,
+      "kind": "file",
+      "path": "research_results/task_il_48/central_stage/MtechDEServer1/E01-04-s42-2ee5c8cd1ae6/checkpoint.pt",
+      "sha256": "f31cbaf6b5c14387f09c0144bb3ddc85e9eddae50a703961f0ef331561805460"
+    },
+    {
+      "bytes": 44981850,
+      "kind": "file",
+      "path": "research_results/task_il_48/central_stage/MtechDEServer1/E01-04-s42-2ee5c8cd1ae6/server.pt",
+      "sha256": "540c989c7370448dff257e6f1755dc5ac1faae8e6dd1cf095c612cd36f7b58dd"
+    },
+    {
+      "bytes": 301794606,
+      "kind": "file",
+      "path": "research_results/task_il_48/central_stage/MtechDEServer1/E01-05-s42-cfc371a4098c/checkpoint.pt",
+      "sha256": "ddf0b1a97859ba7277a2aa53cf95df85f8b4c168ae84d513bac60c8952ab621a"
+    },
+    {
+      "bytes": 44981850,
+      "kind": "file",
+      "path": "research_results/task_il_48/central_stage/MtechDEServer1/E01-05-s42-cfc371a4098c/server.pt",
+      "sha256": "ef4b11c6cea04404395a951608620b2a4bc603fce5af08c959390ff99007d9c0"
+    },
+    {
+      "bytes": 301779566,
+      "kind": "file",
+      "path": "research_results/task_il_48/central_stage/MtechDEServer1/E01-06-s42-78abc3c42701/checkpoint.pt",
+      "sha256": "3a6f4816335aec165c872450f1b14b2c63e160c951074a1783858252297013e3"
+    },
+    {
+      "bytes": 44981850,
+      "kind": "file",
+      "path": "research_results/task_il_48/central_stage/MtechDEServer1/E01-06-s42-78abc3c42701/server.pt",
+      "sha256": "6e24bbcd49305557a5a5e268227a7c409b11d04ec9a1ba919b5567efd68a0bc7"
+    },
+    {
+      "bytes": 301764526,
+      "kind": "file",
+      "path": "research_results/task_il_48/central_stage/MtechDEServer1/E01-07-s42-a8e68ec6a46c/checkpoint.pt",
+      "sha256": "cf647835aedae580147727de00d8cb3c28888cfd5abd055d84d9a1a5cd534d12"
+    },
+    {
+      "bytes": 44981850,
+      "kind": "file",
+      "path": "research_results/task_il_48/central_stage/MtechDEServer1/E01-07-s42-a8e68ec6a46c/server.pt",
+      "sha256": "ee056373e905b815b43d101a9b5b965e17a7843b708002b94dba40a904257911"
+    },
+    {
+      "bytes": 301749486,
+      "kind": "file",
+      "path": "research_results/task_il_48/central_stage/MtechDEServer1/E01-08-s42-fd1a24bab0b1/checkpoint.pt",
+      "sha256": "231b242f8ba009a555be1137822dabd57bdd53933e221d5ba69dbb0b782fa768"
+    },
+    {
+      "bytes": 44981850,
+      "kind": "file",
+      "path": "research_results/task_il_48/central_stage/MtechDEServer1/E01-08-s42-fd1a24bab0b1/server.pt",
+      "sha256": "433cd8945344a7822e2171be2b5cf706a1fdad523e82d0209f332dfe154deb01"
+    },
+    {
+      "bytes": 301514798,
+      "kind": "file",
+      "path": "research_results/task_il_48/central_stage/MtechDEServer1/E02-01-s42-55e49a23d183/checkpoint.pt",
+      "sha256": "dee9f6c06e2663440573da721a63e31f14af9413f4e98300bfb28d51d458f998"
+    },
+    {
+      "bytes": 44981850,
+      "kind": "file",
+      "path": "research_results/task_il_48/central_stage/MtechDEServer1/E02-01-s42-55e49a23d183/server.pt",
+      "sha256": "9ad3f7dbf568ae331161d35f9bdb8d723fc8cb83c4acfc71206183cc2edc2a9c"
+    },
+    {
+      "bytes": 301584814,
+      "kind": "file",
+      "path": "research_results/task_il_48/central_stage/MtechDEServer1/E02-02-s42-e8edddd84311/checkpoint.pt",
+      "sha256": "3408128ccde1863714fe635f93c321d3cc569620c93c531ad5b5fd8a0db6808f"
+    },
+    {
+      "bytes": 44981850,
+      "kind": "file",
+      "path": "research_results/task_il_48/central_stage/MtechDEServer1/E02-02-s42-e8edddd84311/server.pt",
+      "sha256": "1f488b8630457f3cdb8cbb9fa49d289790f6a8c52095f51d01855762d05786fd"
+    },
+    {
+      "bytes": 302144622,
+      "kind": "file",
+      "path": "research_results/task_il_48/central_stage/MtechDEServer1/E02-03-s42-0d5ba6910761/checkpoint.pt",
+      "sha256": "20b6dd0089a4b59fef52e449d85a8a4fb7cb831da818d20ba2a02be5f4d96d49"
+    },
+    {
+      "bytes": 44981850,
+      "kind": "file",
+      "path": "research_results/task_il_48/central_stage/MtechDEServer1/E02-03-s42-0d5ba6910761/server.pt",
+      "sha256": "796821a2f9dbe27a8cf1e29e811cbcda5d03c904833bf42b9fdc97f7a6eb3e81"
+    },
+    {
+      "bytes": 147751374,
+      "kind": "file",
+      "path": "research_results/task_il_48/central_stage/MtechDEServer1/E03-01-s42-9f1fdedaf4b4/checkpoint.pt",
+      "sha256": "a18054b7b7a37f5f48944ce27b224556427067915f0c6a97a161632f81be20c8"
+    },
+    {
+      "bytes": 44981850,
+      "kind": "file",
+      "path": "research_results/task_il_48/central_stage/MtechDEServer1/E03-01-s42-9f1fdedaf4b4/server.pt",
+      "sha256": "021747e64b2993f6742934c66abfea5c68369ddc880bdbe43a65111177659093"
+    },
+    {
+      "bytes": 148294350,
+      "kind": "file",
+      "path": "research_results/task_il_48/central_stage/MtechDEServer1/E03-02-s42-90197e86cae8/checkpoint.pt",
+      "sha256": "f280cf690f14737fbe776750d7a8750db15b08fd5eddf24ca8a5beb9d5ba6617"
+    },
+    {
+      "bytes": 44981850,
+      "kind": "file",
+      "path": "research_results/task_il_48/central_stage/MtechDEServer1/E03-02-s42-90197e86cae8/server.pt",
+      "sha256": "eba1e387691a32d2852ab2d6e13e0452cd8670605270289384d966f172c89028"
+    },
+    {
+      "bytes": 557874958,
+      "kind": "file",
+      "path": "research_results/task_il_48/central_stage/MtechDEServer1/E03-05-s42-025228c05254/checkpoint.pt",
+      "sha256": "76c6c97fc55769584cc43c1ce243b5219a42c263e8504f0f3b70bf9091332b4a"
+    },
+    {
+      "bytes": 44981850,
+      "kind": "file",
+      "path": "research_results/task_il_48/central_stage/MtechDEServer1/E03-05-s42-025228c05254/server.pt",
+      "sha256": "fb73ecf9c8a207015f7f98cfa182ced9a5daa52d2cb70be99ea1a5676ff8d8d5"
+    },
+    {
+      "bytes": 558067022,
+      "kind": "file",
+      "path": "research_results/task_il_48/central_stage/MtechDEServer1/E03-06-s42-5a3c7c57ac61/checkpoint.pt",
+      "sha256": "68ad31f49ea5e71bedf0e989c57c7e76ace2b138344efb2095bed6c321d7d682"
+    },
+    {
+      "bytes": 44981850,
+      "kind": "file",
+      "path": "research_results/task_il_48/central_stage/MtechDEServer1/E03-06-s42-5a3c7c57ac61/server.pt",
+      "sha256": "d7608c55782aa0584c01c1fbfcd4730426382aa6eba83356e6991b230bdc0ba3"
+    },
+    {
+      "bytes": 301874670,
+      "kind": "file",
+      "path": "research_results/task_il_48/central_stage/MtechDEServer1/E04-01-s42-17af39105a07/checkpoint.pt",
+      "sha256": "3d914e3d3c51d63de2bae516ca07a47de7dcf7301bc7b80f8826f7143d129d48"
+    },
+    {
+      "bytes": 44981850,
+      "kind": "file",
+      "path": "research_results/task_il_48/central_stage/MtechDEServer1/E04-01-s42-17af39105a07/server.pt",
+      "sha256": "927200d33f7b27da938858612757083c89577c5b062fcfdd3dbfeb4e618ba2f1"
+    },
+    {
+      "bytes": 301880686,
+      "kind": "file",
+      "path": "research_results/task_il_48/central_stage/MtechDEServer1/E04-02-s42-42d7a8fdb7d4/checkpoint.pt",
+      "sha256": "55c9258457cb5548e969ade5a6461706dd3251e0365f373b7748a3506e437c9b"
+    },
+    {
+      "bytes": 44981850,
+      "kind": "file",
+      "path": "research_results/task_il_48/central_stage/MtechDEServer1/E04-02-s42-42d7a8fdb7d4/server.pt",
+      "sha256": "33029b4f150a1979db459cf1afbd20b1a789671aea41826ac3f4cd9dba347b9d"
+    },
+    {
+      "bytes": 301865262,
+      "kind": "file",
+      "path": "research_results/task_il_48/central_stage/MtechDEServer1/E04-03-s42-60ec995f95ec/checkpoint.pt",
+      "sha256": "99a8cf0be4340e71155789c516bbc0228e906322f4db66c6a171de49e68e7616"
+    },
+    {
+      "bytes": 44981850,
+      "kind": "file",
+      "path": "research_results/task_il_48/central_stage/MtechDEServer1/E04-03-s42-60ec995f95ec/server.pt",
+      "sha256": "af95062e64420b69d96de1d137ab183fe18dbe7a071a11b5672b6a85c6e22880"
+    },
+    {
+      "bytes": 301447062,
+      "kind": "file",
+      "path": "research_results/task_il_48/central_stage/MtechDEServer1/E05-01-s42-0d73508bc7d1/checkpoint.pt",
+      "sha256": "108091d64573319edd3d80beda1281e38ff4831b2b3da8f6ff8d4d0fcbde1e02"
+    },
+    {
+      "bytes": 44966320,
+      "kind": "file",
+      "path": "research_results/task_il_48/central_stage/MtechDEServer1/E05-01-s42-0d73508bc7d1/server.pt",
+      "sha256": "5019e5d8de33aff688657423bb9a179906c468a77bc0c85da482bafcfd89c1b9"
+    },
+    {
+      "bytes": 301439510,
+      "kind": "file",
+      "path": "research_results/task_il_48/central_stage/MtechDEServer1/E05-02-s42-5ab8d0980dc5/checkpoint.pt",
+      "sha256": "49486f2aafc5148f280a257d16ce5ad52f3203d63e222a983ff9cb6e546acd48"
+    },
+    {
+      "bytes": 44966320,
+      "kind": "file",
+      "path": "research_results/task_il_48/central_stage/MtechDEServer1/E05-02-s42-5ab8d0980dc5/server.pt",
+      "sha256": "dba0a4af4ac60e5465e2f1acad23ba2c62bd79f43e23705babf27b7e0da2db61"
+    },
+    {
+      "bytes": 301432022,
+      "kind": "file",
+      "path": "research_results/task_il_48/central_stage/MtechDEServer1/E05-03-s42-0b9dbd6ac336/checkpoint.pt",
+      "sha256": "f7eea885ce93d8a4f2aa71534550c444ea0019efad357f09525e9df5c6bffa62"
+    },
+    {
+      "bytes": 44966320,
+      "kind": "file",
+      "path": "research_results/task_il_48/central_stage/MtechDEServer1/E05-03-s42-0b9dbd6ac336/server.pt",
+      "sha256": "f01a6b97aac5e4e64e140468783d868f0678cb599aa40b2b846b87fd5b9ba538"
+    },
+    {
+      "bytes": 301424534,
+      "kind": "file",
+      "path": "research_results/task_il_48/central_stage/MtechDEServer1/E05-04-s42-d3b11f96be08/checkpoint.pt",
+      "sha256": "969e76678674f7b4d00e9eb13a1bc711f6e2934fd7de92e26f70dad1dff1325d"
+    },
+    {
+      "bytes": 44966320,
+      "kind": "file",
+      "path": "research_results/task_il_48/central_stage/MtechDEServer1/E05-04-s42-d3b11f96be08/server.pt",
+      "sha256": "861b6d8356ffb617f06280f7d2e3d7a54449480895b85cb2bf2e074a950491c7"
+    },
+    {
+      "bytes": 301376606,
+      "kind": "file",
+      "path": "research_results/task_il_48/central_stage/MtechDEServer1/E05-07-s42-26714f85bdfc/checkpoint.pt",
+      "sha256": "6d3bfc8bbd7f57c33e363679a7ee85919f339d162230c5aa925f41c16dcb6d56"
+    },
+    {
+      "bytes": 44963214,
+      "kind": "file",
+      "path": "research_results/task_il_48/central_stage/MtechDEServer1/E05-07-s42-26714f85bdfc/server.pt",
+      "sha256": "37aac4d93312bddc57661b49e1e6530daefcfec58895982c09993d68dd4bcec6"
+    },
+    {
+      "bytes": 301370590,
+      "kind": "file",
+      "path": "research_results/task_il_48/central_stage/MtechDEServer1/E05-08-s42-37b75e62167b/checkpoint.pt",
+      "sha256": "b081064a3c7d03b3841b199e35e052a67c199bc6880ba4fb6467027007779c37"
+    },
+    {
+      "bytes": 44963214,
+      "kind": "file",
+      "path": "research_results/task_il_48/central_stage/MtechDEServer1/E05-08-s42-37b75e62167b/server.pt",
+      "sha256": "d63d7dc6c140417530799d0f13b73829de84c4a181180e60725911f5759ad07b"
+    },
+    {
+      "bytes": 301929646,
+      "kind": "file",
+      "path": "research_results/task_il_48/central_stage/MtechDEServer1/E07-01-s42-9512a43d2771/checkpoint.pt",
+      "sha256": "e9c004f8fd5387f9e6d438bd0075cc19d0a9add7ce563543cf4e33d387616cae"
+    },
+    {
+      "bytes": 44981850,
+      "kind": "file",
+      "path": "research_results/task_il_48/central_stage/MtechDEServer1/E07-01-s42-9512a43d2771/server.pt",
+      "sha256": "f575f55194f5c4a81d3f3bce349eba16ff19878152fd2036122908cb6a2623b2"
+    },
+    {
+      "bytes": 301929390,
+      "kind": "file",
+      "path": "research_results/task_il_48/central_stage/MtechDEServer1/E07-02-s42-94ed7e3f8c43/checkpoint.pt",
+      "sha256": "ece307a2905005f7768563ba6b246478b1a81e13e15c982953e48e644c61a96f"
+    },
+    {
+      "bytes": 44981850,
+      "kind": "file",
+      "path": "research_results/task_il_48/central_stage/MtechDEServer1/E07-02-s42-94ed7e3f8c43/server.pt",
+      "sha256": "ab33f7861e72db7cb35dfe3ab8adac8b8729e0d6a1554bfe6a1e97008ff28443"
+    },
+    {
+      "bytes": 301929070,
+      "kind": "file",
+      "path": "research_results/task_il_48/central_stage/MtechDEServer1/E07-03-s42-5e0e529e7fe6/checkpoint.pt",
+      "sha256": "49baa25fc8affef3c0394ef3e665c5086cf37b09de7896d281c815ae8a2106b0"
+    },
+    {
+      "bytes": 44981850,
+      "kind": "file",
+      "path": "research_results/task_il_48/central_stage/MtechDEServer1/E07-03-s42-5e0e529e7fe6/server.pt",
+      "sha256": "60a5191d37a95b1747accc055b55efa982e02c1f1e8ffe296ee738978884350a"
+    },
+    {
+      "bytes": 301928494,
+      "kind": "file",
+      "path": "research_results/task_il_48/central_stage/MtechDEServer1/E07-04-s42-3a0700e04b37/checkpoint.pt",
+      "sha256": "25c3ec5ab095c26e34516ee5dd20cf64428eacaac6e0daeb3b4f86faa2d18ae9"
+    },
+    {
+      "bytes": 44981850,
+      "kind": "file",
+      "path": "research_results/task_il_48/central_stage/MtechDEServer1/E07-04-s42-3a0700e04b37/server.pt",
+      "sha256": "ca42fca5250373a842d893d9689efac0f930e0f63edce6e8c714fc268c61915f"
+    },
+    {
+      "bytes": 301926958,
+      "kind": "file",
+      "path": "research_results/task_il_48/central_stage/MtechDEServer1/E07-05-s42-5b1da0f4b671/checkpoint.pt",
+      "sha256": "58a7c5e87349d6b45f5ee663119d51af5dcb0aa06a4674d31304cbd9ab98f2fd"
+    },
+    {
+      "bytes": 44981850,
+      "kind": "file",
+      "path": "research_results/task_il_48/central_stage/MtechDEServer1/E07-05-s42-5b1da0f4b671/server.pt",
+      "sha256": "d8d500ccaf7b96e109a24c6394d957727db9f6228be7a1f7acb8a2cf83c8caa7"
+    },
+    {
+      "bytes": 301916398,
+      "kind": "file",
+      "path": "research_results/task_il_48/central_stage/MtechDEServer1/E07-06-s42-5655dbc507f7/checkpoint.pt",
+      "sha256": "28da215e038ed87608ff9444b93c43be597f6ae8c0435ca5ff238223f1815c5b"
+    },
+    {
+      "bytes": 44981850,
+      "kind": "file",
+      "path": "research_results/task_il_48/central_stage/MtechDEServer1/E07-06-s42-5655dbc507f7/server.pt",
+      "sha256": "279201527585799b3c0f4f610686604ecec8255f3c85649030190bddbed717a0"
+    },
+    {
+      "bytes": 301892078,
+      "kind": "file",
+      "path": "research_results/task_il_48/central_stage/MtechDEServer1/E09-01-s42-19fa4fec62a2/checkpoint.pt",
+      "sha256": "0ae05dbf076d1a5405693bbb5ef136d0ac25656f0c7c41e2d45d044146719080"
+    },
+    {
+      "bytes": 44981850,
+      "kind": "file",
+      "path": "research_results/task_il_48/central_stage/MtechDEServer1/E09-01-s42-19fa4fec62a2/server.pt",
+      "sha256": "effb4ebc57ab4c7c3a0345db0cd87d231796a0070eecbf981cc636abd4311194"
+    },
+    {
+      "bytes": 301890862,
+      "kind": "file",
+      "path": "research_results/task_il_48/central_stage/MtechDEServer1/E09-02-s42-01958b5ee588/checkpoint.pt",
+      "sha256": "9edbab0a10d0c36f15315652f07ed25d477adb89c4ed34f5732eff16e1a12708"
+    },
+    {
+      "bytes": 44981850,
+      "kind": "file",
+      "path": "research_results/task_il_48/central_stage/MtechDEServer1/E09-02-s42-01958b5ee588/server.pt",
+      "sha256": "f6c6bc9d1cc564cb273f850ec66c24cd36489e0bb91c3816500ff979813ee1d3"
+    },
+    {
+      "bytes": 301567342,
+      "kind": "file",
+      "path": "research_results/task_il_48/central_stage/MtechDEServer1/E10-01-s42-fdbbd81ea9f7/checkpoint.pt",
+      "sha256": "1e97535661b461eee8b047b2f91d07ed972cf0ada4047bcd60aa31232eae796e"
+    },
+    {
+      "bytes": 44971898,
+      "kind": "file",
+      "path": "research_results/task_il_48/central_stage/MtechDEServer1/E10-01-s42-fdbbd81ea9f7/server.pt",
+      "sha256": "5652abc8bc300281b8e883c709be0da202980d42c20aa717bc2999f8ccdab227"
+    },
+    {
+      "bytes": 301388574,
+      "kind": "file",
+      "path": "research_results/task_il_48/central_stage/MtechDEServer1/E10-02-s42-0fa136cab18f/checkpoint.pt",
+      "sha256": "03331a3a0abc13755e7a56836d484aaf4916cbccc30462a2d8859dfe43089f77"
+    },
+    {
+      "bytes": 44963214,
+      "kind": "file",
+      "path": "research_results/task_il_48/central_stage/MtechDEServer1/E10-02-s42-0fa136cab18f/server.pt",
+      "sha256": "f5bc76a1879579c37f20c627c13683633be433820540faa735d77b04cdc5d800"
+    },
+    {
+      "bytes": 301283118,
+      "kind": "file",
+      "path": "research_results/task_il_48/central_stage/MtechDEServer1/E10-03-s42-7105f38445d2/checkpoint.pt",
+      "sha256": "eddd9f651ce662222534749ea17eb2c180491b298c8fe33abb47a217db78f4c4"
+    },
+    {
+      "bytes": 44957002,
+      "kind": "file",
+      "path": "research_results/task_il_48/central_stage/MtechDEServer1/E10-03-s42-7105f38445d2/server.pt",
+      "sha256": "17da26d8e096affe5e45b45b70773a5cd2f4111c137714d3064d412e55bf9038"
+    },
+    {
+      "bytes": 198994030,
+      "kind": "file",
+      "path": "research_results/task_il_48/central_stage/V100-server/E03-03-s42-e73fabe9f75e/checkpoint.pt",
+      "sha256": "303d74b050d6656b13ad8c4f261d3fcd8b30c25ed6fbf5241e269a85b8297500"
+    },
+    {
+      "bytes": 44981850,
+      "kind": "file",
+      "path": "research_results/task_il_48/central_stage/V100-server/E03-03-s42-e73fabe9f75e/server.pt",
+      "sha256": "ccc3e1cef52341a9bf66a59b999e6e90d9b809a45aa6afecbcb954728edd68ba"
+    },
+    {
+      "bytes": 199401774,
+      "kind": "file",
+      "path": "research_results/task_il_48/central_stage/V100-server/E03-04-s42-da874185138b/checkpoint.pt",
+      "sha256": "c476b0f12c035f45cd2b3dfdf493d81d57bc0d2a33c4a41aef6766b39bec3289"
+    },
+    {
+      "bytes": 44981850,
+      "kind": "file",
+      "path": "research_results/task_il_48/central_stage/V100-server/E03-04-s42-da874185138b/server.pt",
+      "sha256": "0ef39bacd8f92dca1f4e548f95a085eb2130311de964dcb4723b3872f632bea0"
+    },
+    {
+      "bytes": 301388574,
+      "kind": "file",
+      "path": "research_results/task_il_48/central_stage/V100-server/E05-05-s42-08dd079c8ed9/checkpoint.pt",
+      "sha256": "03331a3a0abc13755e7a56836d484aaf4916cbccc30462a2d8859dfe43089f77"
+    },
+    {
+      "bytes": 44963214,
+      "kind": "file",
+      "path": "research_results/task_il_48/central_stage/V100-server/E05-05-s42-08dd079c8ed9/server.pt",
+      "sha256": "f5bc76a1879579c37f20c627c13683633be433820540faa735d77b04cdc5d800"
+    },
+    {
+      "bytes": 301382558,
+      "kind": "file",
+      "path": "research_results/task_il_48/central_stage/V100-server/E05-06-s42-08ed4a33a14c/checkpoint.pt",
+      "sha256": "ff1c1395b9e36361cac789eff789e05a069b1dc481de802bd8fdf761d58fee0e"
+    },
+    {
+      "bytes": 44963214,
+      "kind": "file",
+      "path": "research_results/task_il_48/central_stage/V100-server/E05-06-s42-08ed4a33a14c/server.pt",
+      "sha256": "ea9b8fc1f7a2018d581bd9711a685501c86188fb63b648a2212b16dff44f667b"
+    },
+    {
+      "bytes": 301879406,
+      "kind": "file",
+      "path": "research_results/task_il_48/central_stage/V100-server/E06-01-s42-68627d35b3ff/checkpoint.pt",
+      "sha256": "e1c59ab3c7cbaab400c8b2466770291902fc58a4cf187668172d3a2cbbcc9beb"
+    },
+    {
+      "bytes": 44981850,
+      "kind": "file",
+      "path": "research_results/task_il_48/central_stage/V100-server/E06-01-s42-68627d35b3ff/server.pt",
+      "sha256": "617b2e5e89bab5c9f4af0f086ad26983606b36e4c17d19a47bd4324a7e7d500c"
+    },
+    {
+      "bytes": 301885614,
+      "kind": "file",
+      "path": "research_results/task_il_48/central_stage/V100-server/E06-02-s42-77c4f703924e/checkpoint.pt",
+      "sha256": "36f6bfeae91919358979bce72bdd49be9369b68ac3662e58fa4caf92fe2d7db7"
+    },
+    {
+      "bytes": 44981850,
+      "kind": "file",
+      "path": "research_results/task_il_48/central_stage/V100-server/E06-02-s42-77c4f703924e/server.pt",
+      "sha256": "58cbebc866b9cb5726ad42db09620168c4cc99c68460e7ec533a7e8b0cfac6d2"
+    },
+    {
+      "bytes": 301880622,
+      "kind": "file",
+      "path": "research_results/task_il_48/central_stage/V100-server/E06-03-s42-b390ad95787c/checkpoint.pt",
+      "sha256": "528b859d3f48b0a7995799d62dc5ddb8893765527dd3207b887e3318332888ad"
+    },
+    {
+      "bytes": 44981850,
+      "kind": "file",
+      "path": "research_results/task_il_48/central_stage/V100-server/E06-03-s42-b390ad95787c/server.pt",
+      "sha256": "3a5c987d7b367637ced0e040c43b798e6bee3aa4ed4bbc4ec97c1f6eb0f3bfbc"
+    }
+  ],
+  "files_before": 142,
+  "host": "iiitd",
+  "logical_bytes_before": 25621502898,
+  "recorded_at": "2026-11-25T12:08:53.927748+00:00",
+  "repo": "/home/anurag/Projects/FedQCL_Task"
+}

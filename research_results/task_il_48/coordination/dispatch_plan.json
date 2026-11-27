@@ -1,0 +1,122 @@
+{
+  "artifact_fingerprints": {
+    "mtech_resolved_ledger_sha256": "247d7d0cc66a4b01d8dc775eba1ac2625469fc3c492f7da8709a020ff5b48a93",
+    "mtech_subset_ledger_sha256": "d5a57f25e64494368658b9e117e91235dfab00e6f61074865b2450d77ea9b0a0",
+    "portable_dag_sha256": "5bb83a285e0da38227b7fa1904179e4709c1d82b422e648e53c3a1699d3be45b",
+    "portable_ledger_sha256": "3b7d5ebd45f82184f4f55a31fd05e258b8f0ce116d14c8ac84949254c50645bc",
+    "raw_cifar100_tar_sha256": "85cd44d02ba6437773c5bbd22e183051d648de2e7d6b014e1ef29b855ba677a7",
+    "v100_resolved_ledger_sha256": "c1dfd4c41937aecdd9f13e30f7a26bc6dd3988019e753ed01d673658b494b213",
+    "v100_subset_ledger_sha256": "cbbeb9c131b4d3fcfbd0ff52d66b04f850b0fde13ef8da49a6eab64b95ea5c2b"
+  },
+  "created_at": "2026-11-24T21:48:59.263520+00:00",
+  "hosts": {
+    "mtech": {
+      "cuda_runtime": "12.1",
+      "current_utilization_percent": 0,
+      "gpu_index": 0,
+      "gpu_total_bytes": 34359738368,
+      "gpu_uuid": "GPU-4a3a716d-814a-aa0c-a7ae-9d05bc707ac9",
+      "hostname": "MtechDEServer1",
+      "numpy": "2.5.4",
+      "observed_free_bytes": 34075574272,
+      "observed_used_bytes": 4194304,
+      "python": "3.12.15",
+      "session": "fedqcl-taskil-38192b4-mtech",
+      "state": "READY",
+      "torch": "2.5.1+cu121",
+      "torchvision": "0.20.1+cu121"
+    },
+    "v100": {
+      "cuda_runtime": "12.1",
+      "current_utilization_percent": 100,
+      "environment": "/home/anurag24092/.venvs/fedqcl-taskil-py312",
+      "gpu_index": 0,
+      "gpu_total_bytes": 34359738368,
+      "gpu_uuid": "GPU-caa08ca6-bf93-0643-1e43-236d1b7eaaf9",
+      "hostname": "V100-server",
+      "numpy": "2.5.4",
+      "observed_free_bytes": 7417626624,
+      "observed_used_bytes": 26661093376,
+      "pillow": "13.0.0",
+      "python": "3.12.15",
+      "session": "fedqcl-taskil-v100-prepare",
+      "state": "READY_GPU_BUSY",
+      "torch": "2.5.1+cu121",
+      "torchvision": "0.20.1+cu121"
+    }
+  },
+  "mtech_experiments": [
+    "E01-01",
+    "E01-02",
+    "E01-03",
+    "E01-04",
+    "E01-05",
+    "E01-06",
+    "E01-07",
+    "E01-08",
+    "E02-01",
+    "E02-02",
+    "E02-03",
+    "E03-01",
+    "E03-02",
+    "E04-01",
+    "E05-01",
+    "E05-02",
+    "E05-03",
+    "E05-04",
+    "E07-01",
+    "E07-02",
+    "E07-03",
+    "E07-04",
+    "E07-05",
+    "E07-06"
+  ],
+  "partition": {
+    "mtech": {
+      "generate": 5,
+      "train": 24,
+      "validate": 5
+    },
+    "v100": {
+      "generate": 14,
+      "train": 24,
+      "validate": 14
+    }
+  },
+  "portable_dependency_jobs": {
+    "generate": 19,
+    "validate": 19
+  },
+  "portable_training_entries": 48,
+  "rationale": "V100 dependencies are fully verified; its GPU remains occupied by unrelated Boltz jobs, so the 24 training entries are ready but held from admission until the device becomes available.",
+  "raw_cifar100_tar_sha256": "85cd44d02ba6437773c5bbd22e183051d648de2e7d6b014e1ef29b855ba677a7",
+  "resolved_jobs": 86,
+  "source_commit": "38192b43b1f084333db415de388a240b8f3f35d1",
+  "updated_at": "2026-11-24T22:33:59.411958+00:00",
+  "v100_experiments": [
+    "E03-03",
+    "E03-04",
+    "E03-05",
+    "E03-06",
+    "E04-02",
+    "E04-03",
+    "E05-05",
+    "E05-06",
+    "E05-07",
+    "E05-08",
+    "E06-01",
+    "E06-02",
+    "E06-03",
+    "E08-01",
+    "E08-02",
+    "E08-03",
+    "E09-01",
+    "E09-02",
+    "E09-03",
+    "E09-04",
+    "E09-05",
+    "E10-01",
+    "E10-02",
+    "E10-03"
+  ]
+}

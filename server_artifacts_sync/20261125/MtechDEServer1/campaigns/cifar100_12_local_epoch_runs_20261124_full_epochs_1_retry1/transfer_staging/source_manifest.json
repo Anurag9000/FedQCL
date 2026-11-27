@@ -1,0 +1,110 @@
+{
+  "repo_head": "49d709b0227e63198cf0207d94d7016b46f6c476",
+  "source_files": [
+    {
+      "path": "system/flcore/clients/clientavg_er.py",
+      "size_bytes": 14447,
+      "sha256": "d22e1c062dff38bcb739f8e84dbbc48aee4a7068b17d8e9b360d21480abf7a62"
+    },
+    {
+      "path": "system/flcore/clients/clientavg_tl.py",
+      "size_bytes": 22162,
+      "sha256": "4e64264aa61060ad506e7fe253ef81d8e6f3ef22409986fb3b677c649be80477"
+    },
+    {
+      "path": "system/flcore/clients/clientbase.py",
+      "size_bytes": 10653,
+      "sha256": "500b3692770629c65e87d8ad76de48e810bfeb2538434a2d87530b66eba04370"
+    },
+    {
+      "path": "system/flcore/optimizers/fedoptimizer.py",
+      "size_bytes": 3507,
+      "sha256": "f15f9959fa6b2ce5e47789b2d2826c713133290202ff1e2393cf71b66151e27b"
+    },
+    {
+      "path": "system/flcore/servers/helper.py",
+      "size_bytes": 2869,
+      "sha256": "7950a101396ad525b5bb61fbb1654994004b390f80e3c4672942e2cc40301afb"
+    },
+    {
+      "path": "system/flcore/servers/serveravg.py",
+      "size_bytes": 8315,
+      "sha256": "73d8bd18d7b1284e51a63f7c67a9bee709acdb11c735bbeb88af7cd1ff666f6a"
+    },
+    {
+      "path": "system/flcore/servers/serverbase.py",
+      "size_bytes": 19043,
+      "sha256": "9014e27fd4205ad918f1b061426fbf3ff8f2c503e3b99cad514dab699b4c37c2"
+    },
+    {
+      "path": "system/flcore/trainmodel/alexnet.py",
+      "size_bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "system/flcore/trainmodel/custom_resnet18.py",
+      "size_bytes": 4769,
+      "sha256": "16e7dc46854f47a659787b49cdd75edf4b9dfa46f0a97f6aab18d2e837f668bf"
+    },
+    {
+      "path": "system/flcore/trainmodel/models.py",
+      "size_bytes": 21244,
+      "sha256": "e0dcc601eb2d2121aaadb1d546314aeccbbd82c86fe37c230f4a451618ff22e3"
+    },
+    {
+      "path": "system/flcore/trainmodel/resnet.py",
+      "size_bytes": 3098,
+      "sha256": "ddb927659f6df27b75bfdce7bd7218a6a5a40e1ac95f63065ecac7e0e245b0af"
+    },
+    {
+      "path": "system/flcore/trainmodel/resnet_cil.py",
+      "size_bytes": 3873,
+      "sha256": "1dbfd3c30973a38bb6630e70581cadf1b213594cb1c3c804183d0e1fe132038e"
+    },
+    {
+      "path": "system/flcore/trainmodel/whisper.py",
+      "size_bytes": 3354,
+      "sha256": "daf09041c42049089e465f068c9d32c3bfcaf66672b5d4eeaa76f009a2051d41"
+    },
+    {
+      "path": "system/main.py",
+      "size_bytes": 12750,
+      "sha256": "4605323405b59ac822c8db378c59e3b990e5ce04a677353740c93dce3e3777b5"
+    },
+    {
+      "path": "system/utils/ALA.py",
+      "size_bytes": 7070,
+      "sha256": "26a73810469fdf22af01001baa85bddd393c3d1922db1ddd9a2b3d018ad85d2c"
+    },
+    {
+      "path": "system/utils/data_utils.py",
+      "size_bytes": 1744,
+      "sha256": "69ae6e82349dbefbf7ce96e8759ccc8f3cf06fc1071e4b1a4ff09ce550934e29"
+    },
+    {
+      "path": "system/utils/dlg.py",
+      "size_bytes": 3027,
+      "sha256": "199ddfd83828f28be4a8ece4f73d238d741a2566d0f8c531652d1698105553dd"
+    },
+    {
+      "path": "system/utils/mem_utils.py",
+      "size_bytes": 8769,
+      "sha256": "ac0291e97318c59b0376ebf7c641e1f48b6914575aa673ba6088d003d9929703"
+    },
+    {
+      "path": "system/utils/privacy.py",
+      "size_bytes": 1386,
+      "sha256": "1bf4d6ef96b723e79b934de9d3d4bac6e8c66d21133d19487dcad41930c6a173"
+    },
+    {
+      "path": "system/utils/result_utils.py",
+      "size_bytes": 1922,
+      "sha256": "9069574a230e7dd1ad0610c9e654a78157bd2055cdbd2b83674b487d85d5c4ce"
+    },
+    {
+      "path": "launch_cifar100_12_runs.sh",
+      "size_bytes": 4163,
+      "sha256": "927c5e9ca7e3efc47779e66c02de7a853a8ae2221d268d305676d269c2cbe0fc"
+    }
+  ]
+}

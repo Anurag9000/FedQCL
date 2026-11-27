@@ -1,0 +1,921 @@
+{
+  "counts": [
+    10,
+    8,
+    8,
+    8,
+    8,
+    8,
+    8,
+    8,
+    8,
+    8,
+    8,
+    8,
+    8,
+    8,
+    8,
+    8,
+    8,
+    8,
+    8,
+    8,
+    8,
+    8,
+    8,
+    8,
+    8,
+    8,
+    8,
+    8,
+    8,
+    8,
+    8,
+    8,
+    8,
+    8,
+    8,
+    8,
+    8,
+    8,
+    8,
+    8,
+    8,
+    8,
+    8,
+    8,
+    8,
+    8,
+    8,
+    8,
+    8,
+    8
+  ],
+  "max_skip": 4,
+  "rounds": [
+    {
+      "cumulative_bytes": 449194140,
+      "expected_bytes": 449194140,
+      "round": -1,
+      "slack": 0,
+      "source_cap": 449194140
+    },
+    {
+      "cumulative_bytes": 1347586570,
+      "expected_bytes": 898392430,
+      "round": 0,
+      "selected": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9
+      ],
+      "slack": 0,
+      "source_cap": 1347586570
+    },
+    {
+      "cumulative_bytes": 2066301296,
+      "expected_bytes": 718714726,
+      "round": 1,
+      "selected": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        9
+      ],
+      "slack": 1760,
+      "source_cap": 2066303056
+    },
+    {
+      "cumulative_bytes": 2785016022,
+      "expected_bytes": 718714726,
+      "round": 2,
+      "selected": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        7,
+        8,
+        9
+      ],
+      "slack": 3520,
+      "source_cap": 2785019542
+    },
+    {
+      "cumulative_bytes": 3503730748,
+      "expected_bytes": 718714726,
+      "round": 3,
+      "selected": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        7,
+        8,
+        9
+      ],
+      "slack": 5280,
+      "source_cap": 3503736028
+    },
+    {
+      "cumulative_bytes": 4222445474,
+      "expected_bytes": 718714726,
+      "round": 4,
+      "selected": [
+        1,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9
+      ],
+      "slack": 7040,
+      "source_cap": 4222452514
+    },
+    {
+      "cumulative_bytes": 4941160200,
+      "expected_bytes": 718714726,
+      "round": 5,
+      "selected": [
+        0,
+        1,
+        2,
+        4,
+        5,
+        6,
+        8,
+        9
+      ],
+      "slack": 8800,
+      "source_cap": 4941169000
+    },
+    {
+      "cumulative_bytes": 5659874926,
+      "expected_bytes": 718714726,
+      "round": 6,
+      "selected": [
+        0,
+        1,
+        2,
+        5,
+        6,
+        7,
+        8,
+        9
+      ],
+      "slack": 10560,
+      "source_cap": 5659885486
+    },
+    {
+      "cumulative_bytes": 6378589652,
+      "expected_bytes": 718714726,
+      "round": 7,
+      "selected": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        6,
+        8,
+        9
+      ],
+      "slack": 12320,
+      "source_cap": 6378601972
+    },
+    {
+      "cumulative_bytes": 7097304378,
+      "expected_bytes": 718714726,
+      "round": 8,
+      "selected": [
+        0,
+        1,
+        3,
+        4,
+        6,
+        7,
+        8,
+        9
+      ],
+      "slack": 14080,
+      "source_cap": 7097318458
+    },
+    {
+      "cumulative_bytes": 7816019120,
+      "expected_bytes": 718714742,
+      "round": 9,
+      "selected": [
+        0,
+        1,
+        2,
+        3,
+        5,
+        6,
+        7,
+        9
+      ],
+      "slack": 15840,
+      "source_cap": 7816034960
+    },
+    {
+      "cumulative_bytes": 8534733941,
+      "expected_bytes": 718714821,
+      "round": 10,
+      "selected": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        7,
+        9
+      ],
+      "slack": 17609,
+      "source_cap": 8534751550
+    },
+    {
+      "cumulative_bytes": 9253448762,
+      "expected_bytes": 718714821,
+      "round": 11,
+      "selected": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        8
+      ],
+      "slack": 19516,
+      "source_cap": 9253468278
+    },
+    {
+      "cumulative_bytes": 9972163584,
+      "expected_bytes": 718714822,
+      "round": 12,
+      "selected": [
+        0,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8
+      ],
+      "slack": 21450,
+      "source_cap": 9972185034
+    },
+    {
+      "cumulative_bytes": 10690878406,
+      "expected_bytes": 718714822,
+      "round": 13,
+      "selected": [
+        0,
+        1,
+        2,
+        4,
+        5,
+        6,
+        7,
+        9
+      ],
+      "slack": 23390,
+      "source_cap": 10690901796
+    },
+    {
+      "cumulative_bytes": 11409593228,
+      "expected_bytes": 718714822,
+      "round": 14,
+      "selected": [
+        0,
+        1,
+        3,
+        4,
+        5,
+        6,
+        7,
+        9
+      ],
+      "slack": 25332,
+      "source_cap": 11409618560
+    },
+    {
+      "cumulative_bytes": 12128308050,
+      "expected_bytes": 718714822,
+      "round": 15,
+      "selected": [
+        0,
+        1,
+        2,
+        3,
+        5,
+        7,
+        8,
+        9
+      ],
+      "slack": 27276,
+      "source_cap": 12128335326
+    },
+    {
+      "cumulative_bytes": 12847022872,
+      "expected_bytes": 718714822,
+      "round": 16,
+      "selected": [
+        0,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        9
+      ],
+      "slack": 29219,
+      "source_cap": 12847052091
+    },
+    {
+      "cumulative_bytes": 13565737694,
+      "expected_bytes": 718714822,
+      "round": 17,
+      "selected": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        6,
+        7,
+        8
+      ],
+      "slack": 31161,
+      "source_cap": 13565768855
+    },
+    {
+      "cumulative_bytes": 14284452516,
+      "expected_bytes": 718714822,
+      "round": 18,
+      "selected": [
+        0,
+        1,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9
+      ],
+      "slack": 33104,
+      "source_cap": 14284485620
+    },
+    {
+      "cumulative_bytes": 15003167338,
+      "expected_bytes": 718714822,
+      "round": 19,
+      "selected": [
+        0,
+        1,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9
+      ],
+      "slack": 35044,
+      "source_cap": 15003202382
+    },
+    {
+      "cumulative_bytes": 15721882160,
+      "expected_bytes": 718714822,
+      "round": 20,
+      "selected": [
+        1,
+        2,
+        3,
+        5,
+        6,
+        7,
+        8,
+        9
+      ],
+      "slack": 36814,
+      "source_cap": 15721918974
+    },
+    {
+      "cumulative_bytes": 16440596982,
+      "expected_bytes": 718714822,
+      "round": 21,
+      "selected": [
+        1,
+        2,
+        3,
+        5,
+        6,
+        7,
+        8,
+        9
+      ],
+      "slack": 38718,
+      "source_cap": 16440635700
+    },
+    {
+      "cumulative_bytes": 17159311804,
+      "expected_bytes": 718714822,
+      "round": 22,
+      "selected": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        7,
+        8,
+        9
+      ],
+      "slack": 40659,
+      "source_cap": 17159352463
+    },
+    {
+      "cumulative_bytes": 17878026626,
+      "expected_bytes": 718714822,
+      "round": 23,
+      "selected": [
+        0,
+        1,
+        3,
+        5,
+        6,
+        7,
+        8,
+        9
+      ],
+      "slack": 42602,
+      "source_cap": 17878069228
+    },
+    {
+      "cumulative_bytes": 18596741448,
+      "expected_bytes": 718714822,
+      "round": 24,
+      "selected": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        8,
+        9
+      ],
+      "slack": 44548,
+      "source_cap": 18596785996
+    },
+    {
+      "cumulative_bytes": 19315456270,
+      "expected_bytes": 718714822,
+      "round": 25,
+      "selected": [
+        0,
+        2,
+        3,
+        5,
+        6,
+        7,
+        8,
+        9
+      ],
+      "slack": 46489,
+      "source_cap": 19315502759
+    },
+    {
+      "cumulative_bytes": 20034171092,
+      "expected_bytes": 718714822,
+      "round": 26,
+      "selected": [
+        0,
+        1,
+        2,
+        4,
+        6,
+        7,
+        8,
+        9
+      ],
+      "slack": 48435,
+      "source_cap": 20034219527
+    },
+    {
+      "cumulative_bytes": 20752885914,
+      "expected_bytes": 718714822,
+      "round": 27,
+      "selected": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        7,
+        9
+      ],
+      "slack": 50385,
+      "source_cap": 20752936299
+    },
+    {
+      "cumulative_bytes": 21471600736,
+      "expected_bytes": 718714822,
+      "round": 28,
+      "selected": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        7,
+        8,
+        9
+      ],
+      "slack": 52331,
+      "source_cap": 21471653067
+    },
+    {
+      "cumulative_bytes": 22190315558,
+      "expected_bytes": 718714822,
+      "round": 29,
+      "selected": [
+        0,
+        1,
+        3,
+        4,
+        5,
+        6,
+        7,
+        9
+      ],
+      "slack": 54276,
+      "source_cap": 22190369834
+    },
+    {
+      "cumulative_bytes": 22909030380,
+      "expected_bytes": 718714822,
+      "round": 30,
+      "selected": [
+        0,
+        1,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8
+      ],
+      "slack": 56045,
+      "source_cap": 22909086425
+    },
+    {
+      "cumulative_bytes": 23627745202,
+      "expected_bytes": 718714822,
+      "round": 31,
+      "selected": [
+        0,
+        1,
+        2,
+        3,
+        6,
+        7,
+        8,
+        9
+      ],
+      "slack": 57952,
+      "source_cap": 23627803154
+    },
+    {
+      "cumulative_bytes": 24346460024,
+      "expected_bytes": 718714822,
+      "round": 32,
+      "selected": [
+        0,
+        1,
+        2,
+        3,
+        5,
+        6,
+        8,
+        9
+      ],
+      "slack": 59897,
+      "source_cap": 24346519921
+    },
+    {
+      "cumulative_bytes": 25065174846,
+      "expected_bytes": 718714822,
+      "round": 33,
+      "selected": [
+        0,
+        2,
+        3,
+        5,
+        6,
+        7,
+        8,
+        9
+      ],
+      "slack": 61844,
+      "source_cap": 25065236690
+    },
+    {
+      "cumulative_bytes": 25783889668,
+      "expected_bytes": 718714822,
+      "round": 34,
+      "selected": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "slack": 63789,
+      "source_cap": 25783953457
+    },
+    {
+      "cumulative_bytes": 26502604490,
+      "expected_bytes": 718714822,
+      "round": 35,
+      "selected": [
+        0,
+        2,
+        3,
+        4,
+        5,
+        6,
+        8,
+        9
+      ],
+      "slack": 65733,
+      "source_cap": 26502670223
+    },
+    {
+      "cumulative_bytes": 27221319312,
+      "expected_bytes": 718714822,
+      "round": 36,
+      "selected": [
+        0,
+        1,
+        3,
+        4,
+        5,
+        7,
+        8,
+        9
+      ],
+      "slack": 67679,
+      "source_cap": 27221386991
+    },
+    {
+      "cumulative_bytes": 27940034134,
+      "expected_bytes": 718714822,
+      "round": 37,
+      "selected": [
+        0,
+        1,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8
+      ],
+      "slack": 69626,
+      "source_cap": 27940103760
+    },
+    {
+      "cumulative_bytes": 28658748956,
+      "expected_bytes": 718714822,
+      "round": 38,
+      "selected": [
+        1,
+        2,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9
+      ],
+      "slack": 71575,
+      "source_cap": 28658820531
+    },
+    {
+      "cumulative_bytes": 29377463778,
+      "expected_bytes": 718714822,
+      "round": 39,
+      "selected": [
+        1,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9
+      ],
+      "slack": 73525,
+      "source_cap": 29377537303
+    },
+    {
+      "cumulative_bytes": 30096178600,
+      "expected_bytes": 718714822,
+      "round": 40,
+      "selected": [
+        1,
+        2,
+        3,
+        5,
+        6,
+        7,
+        8,
+        9
+      ],
+      "slack": 75294,
+      "source_cap": 30096253894
+    },
+    {
+      "cumulative_bytes": 30814893422,
+      "expected_bytes": 718714822,
+      "round": 41,
+      "selected": [
+        1,
+        2,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9
+      ],
+      "slack": 77200,
+      "source_cap": 30814970622
+    },
+    {
+      "cumulative_bytes": 31533608244,
+      "expected_bytes": 718714822,
+      "round": 42,
+      "selected": [
+        0,
+        1,
+        2,
+        5,
+        6,
+        7,
+        8,
+        9
+      ],
+      "slack": 79146,
+      "source_cap": 31533687390
+    },
+    {
+      "cumulative_bytes": 32252323066,
+      "expected_bytes": 718714822,
+      "round": 43,
+      "selected": [
+        0,
+        1,
+        2,
+        3,
+        6,
+        7,
+        8,
+        9
+      ],
+      "slack": 81090,
+      "source_cap": 32252404156
+    },
+    {
+      "cumulative_bytes": 32971037888,
+      "expected_bytes": 718714822,
+      "round": 44,
+      "selected": [
+        0,
+        1,
+        2,
+        4,
+        5,
+        6,
+        7,
+        8
+      ],
+      "slack": 83038,
+      "source_cap": 32971120926
+    },
+    {
+      "cumulative_bytes": 33689752710,
+      "expected_bytes": 718714822,
+      "round": 45,
+      "selected": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        6,
+        7,
+        8
+      ],
+      "slack": 84983,
+      "source_cap": 33689837693
+    },
+    {
+      "cumulative_bytes": 34408467532,
+      "expected_bytes": 718714822,
+      "round": 46,
+      "selected": [
+        0,
+        1,
+        2,
+        3,
+        5,
+        6,
+        7,
+        8
+      ],
+      "slack": 86931,
+      "source_cap": 34408554463
+    },
+    {
+      "cumulative_bytes": 35127182354,
+      "expected_bytes": 718714822,
+      "round": 47,
+      "selected": [
+        0,
+        1,
+        2,
+        3,
+        5,
+        6,
+        8,
+        9
+      ],
+      "slack": 88881,
+      "source_cap": 35127271235
+    },
+    {
+      "cumulative_bytes": 35845897176,
+      "expected_bytes": 718714822,
+      "round": 48,
+      "selected": [
+        0,
+        1,
+        3,
+        5,
+        6,
+        7,
+        8,
+        9
+      ],
+      "slack": 90828,
+      "source_cap": 35845988004
+    },
+    {
+      "cumulative_bytes": 36564611998,
+      "expected_bytes": 718714822,
+      "round": 49,
+      "selected": [
+        0,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8
+      ],
+      "slack": 92776,
+      "source_cap": 36564704774
+    }
+  ],
+  "schema": 1,
+  "seed": 42,
+  "source_total_bytes": 36564704774,
+  "total_bytes": 36564611998,
+  "unused_bytes": 92776
+}

@@ -1,0 +1,785 @@
+{
+  "allocation_index_columns": [
+    "source_sample_id",
+    "round",
+    "client",
+    "global_class",
+    "brightness_rank_bin"
+  ],
+  "axes": {
+    "counts": [
+      "round",
+      "client",
+      "global_class"
+    ],
+    "joint_counts": [
+      "round",
+      "client",
+      "global_class",
+      "brightness_rank_bin"
+    ],
+    "spatiotemporal": "round-major, client-minor"
+  },
+  "manifest_id": "d3edff492fc49708fd9e2a2677b7b05d7723e95307ce62e426dcd8db3fc1bede",
+  "max_joint_tv": 0.09466067415730336,
+  "max_label_tv": 0.01203351955307258,
+  "max_pairwise_label_error": 0.013072625698323903,
+  "metrics": {
+    "conditional": "overlap-weighted within-class TV; NaN if no shared classes",
+    "similarity": "1-total variation",
+    "spatial_js": "base-2 JS divergence (distance)"
+  },
+  "schedule": [
+    {
+      "groups": [
+        0,
+        1,
+        2,
+        3,
+        4
+      ],
+      "regime": "moderate",
+      "round": 0,
+      "task": 0,
+      "transition": false,
+      "window": 0
+    },
+    {
+      "groups": [
+        0,
+        1,
+        2,
+        3,
+        4
+      ],
+      "regime": "moderate",
+      "round": 1,
+      "task": 0,
+      "transition": false,
+      "window": 1
+    },
+    {
+      "groups": [
+        0,
+        1,
+        2,
+        3,
+        4
+      ],
+      "regime": "moderate",
+      "round": 2,
+      "task": 0,
+      "transition": false,
+      "window": 2
+    },
+    {
+      "groups": [
+        0,
+        1,
+        2,
+        3,
+        4
+      ],
+      "regime": "moderate",
+      "round": 3,
+      "task": 0,
+      "transition": false,
+      "window": 3
+    },
+    {
+      "groups": [
+        0,
+        1,
+        2,
+        3,
+        4
+      ],
+      "regime": "moderate",
+      "round": 4,
+      "task": 0,
+      "transition": false,
+      "window": 4
+    },
+    {
+      "groups": [
+        0,
+        1,
+        2,
+        3,
+        4
+      ],
+      "regime": "moderate",
+      "round": 5,
+      "task": 0,
+      "transition": false,
+      "window": 5
+    },
+    {
+      "groups": [
+        0,
+        1,
+        2,
+        3,
+        4
+      ],
+      "regime": "moderate",
+      "round": 6,
+      "task": 0,
+      "transition": false,
+      "window": 6
+    },
+    {
+      "groups": [
+        0,
+        1,
+        2,
+        3,
+        4
+      ],
+      "regime": "moderate",
+      "round": 7,
+      "task": 0,
+      "transition": false,
+      "window": 7
+    },
+    {
+      "groups": [
+        0,
+        1,
+        2,
+        3,
+        4
+      ],
+      "regime": "moderate",
+      "round": 8,
+      "task": 0,
+      "transition": false,
+      "window": 8
+    },
+    {
+      "groups": [
+        0,
+        1,
+        2,
+        3,
+        4
+      ],
+      "regime": "moderate",
+      "round": 9,
+      "task": 0,
+      "transition": false,
+      "window": 9
+    },
+    {
+      "groups": [
+        0,
+        1,
+        2,
+        3,
+        4
+      ],
+      "regime": "moderate",
+      "round": 10,
+      "task": 1,
+      "transition": false,
+      "window": 0
+    },
+    {
+      "groups": [
+        0,
+        1,
+        2,
+        3,
+        4
+      ],
+      "regime": "moderate",
+      "round": 11,
+      "task": 1,
+      "transition": false,
+      "window": 1
+    },
+    {
+      "groups": [
+        0,
+        1,
+        2,
+        3,
+        4
+      ],
+      "regime": "moderate",
+      "round": 12,
+      "task": 1,
+      "transition": false,
+      "window": 2
+    },
+    {
+      "groups": [
+        0,
+        1,
+        2,
+        3,
+        4
+      ],
+      "regime": "moderate",
+      "round": 13,
+      "task": 1,
+      "transition": false,
+      "window": 3
+    },
+    {
+      "groups": [
+        0,
+        1,
+        2,
+        3,
+        4
+      ],
+      "regime": "moderate",
+      "round": 14,
+      "task": 1,
+      "transition": false,
+      "window": 4
+    },
+    {
+      "groups": [
+        0,
+        1,
+        2,
+        3,
+        4
+      ],
+      "regime": "moderate",
+      "round": 15,
+      "task": 1,
+      "transition": false,
+      "window": 5
+    },
+    {
+      "groups": [
+        0,
+        1,
+        2,
+        3,
+        4
+      ],
+      "regime": "moderate",
+      "round": 16,
+      "task": 1,
+      "transition": false,
+      "window": 6
+    },
+    {
+      "groups": [
+        0,
+        1,
+        2,
+        3,
+        4
+      ],
+      "regime": "moderate",
+      "round": 17,
+      "task": 1,
+      "transition": false,
+      "window": 7
+    },
+    {
+      "groups": [
+        0,
+        1,
+        2,
+        3,
+        4
+      ],
+      "regime": "moderate",
+      "round": 18,
+      "task": 1,
+      "transition": false,
+      "window": 8
+    },
+    {
+      "groups": [
+        0,
+        1,
+        2,
+        3,
+        4
+      ],
+      "regime": "moderate",
+      "round": 19,
+      "task": 1,
+      "transition": false,
+      "window": 9
+    },
+    {
+      "groups": [
+        0,
+        1,
+        2,
+        3,
+        4
+      ],
+      "regime": "moderate",
+      "round": 20,
+      "task": 2,
+      "transition": false,
+      "window": 0
+    },
+    {
+      "groups": [
+        0,
+        1,
+        2,
+        3,
+        4
+      ],
+      "regime": "moderate",
+      "round": 21,
+      "task": 2,
+      "transition": false,
+      "window": 1
+    },
+    {
+      "groups": [
+        0,
+        1,
+        2,
+        3,
+        4
+      ],
+      "regime": "moderate",
+      "round": 22,
+      "task": 2,
+      "transition": false,
+      "window": 2
+    },
+    {
+      "groups": [
+        0,
+        1,
+        2,
+        3,
+        4
+      ],
+      "regime": "moderate",
+      "round": 23,
+      "task": 2,
+      "transition": false,
+      "window": 3
+    },
+    {
+      "groups": [
+        0,
+        1,
+        2,
+        3,
+        4
+      ],
+      "regime": "moderate",
+      "round": 24,
+      "task": 2,
+      "transition": false,
+      "window": 4
+    },
+    {
+      "groups": [
+        0,
+        1,
+        2,
+        3,
+        4
+      ],
+      "regime": "moderate",
+      "round": 25,
+      "task": 2,
+      "transition": false,
+      "window": 5
+    },
+    {
+      "groups": [
+        0,
+        1,
+        2,
+        3,
+        4
+      ],
+      "regime": "moderate",
+      "round": 26,
+      "task": 2,
+      "transition": false,
+      "window": 6
+    },
+    {
+      "groups": [
+        0,
+        1,
+        2,
+        3,
+        4
+      ],
+      "regime": "moderate",
+      "round": 27,
+      "task": 2,
+      "transition": false,
+      "window": 7
+    },
+    {
+      "groups": [
+        0,
+        1,
+        2,
+        3,
+        4
+      ],
+      "regime": "moderate",
+      "round": 28,
+      "task": 2,
+      "transition": false,
+      "window": 8
+    },
+    {
+      "groups": [
+        0,
+        1,
+        2,
+        3,
+        4
+      ],
+      "regime": "moderate",
+      "round": 29,
+      "task": 2,
+      "transition": false,
+      "window": 9
+    },
+    {
+      "groups": [
+        0,
+        1,
+        2,
+        3,
+        4
+      ],
+      "regime": "moderate",
+      "round": 30,
+      "task": 3,
+      "transition": false,
+      "window": 0
+    },
+    {
+      "groups": [
+        0,
+        1,
+        2,
+        3,
+        4
+      ],
+      "regime": "moderate",
+      "round": 31,
+      "task": 3,
+      "transition": false,
+      "window": 1
+    },
+    {
+      "groups": [
+        0,
+        1,
+        2,
+        3,
+        4
+      ],
+      "regime": "moderate",
+      "round": 32,
+      "task": 3,
+      "transition": false,
+      "window": 2
+    },
+    {
+      "groups": [
+        0,
+        1,
+        2,
+        3,
+        4
+      ],
+      "regime": "moderate",
+      "round": 33,
+      "task": 3,
+      "transition": false,
+      "window": 3
+    },
+    {
+      "groups": [
+        0,
+        1,
+        2,
+        3,
+        4
+      ],
+      "regime": "moderate",
+      "round": 34,
+      "task": 3,
+      "transition": false,
+      "window": 4
+    },
+    {
+      "groups": [
+        0,
+        1,
+        2,
+        3,
+        4
+      ],
+      "regime": "moderate",
+      "round": 35,
+      "task": 3,
+      "transition": false,
+      "window": 5
+    },
+    {
+      "groups": [
+        0,
+        1,
+        2,
+        3,
+        4
+      ],
+      "regime": "moderate",
+      "round": 36,
+      "task": 3,
+      "transition": false,
+      "window": 6
+    },
+    {
+      "groups": [
+        0,
+        1,
+        2,
+        3,
+        4
+      ],
+      "regime": "moderate",
+      "round": 37,
+      "task": 3,
+      "transition": false,
+      "window": 7
+    },
+    {
+      "groups": [
+        0,
+        1,
+        2,
+        3,
+        4
+      ],
+      "regime": "moderate",
+      "round": 38,
+      "task": 3,
+      "transition": false,
+      "window": 8
+    },
+    {
+      "groups": [
+        0,
+        1,
+        2,
+        3,
+        4
+      ],
+      "regime": "moderate",
+      "round": 39,
+      "task": 3,
+      "transition": false,
+      "window": 9
+    },
+    {
+      "groups": [
+        0,
+        1,
+        2,
+        3,
+        4
+      ],
+      "regime": "moderate",
+      "round": 40,
+      "task": 4,
+      "transition": false,
+      "window": 0
+    },
+    {
+      "groups": [
+        0,
+        1,
+        2,
+        3,
+        4
+      ],
+      "regime": "moderate",
+      "round": 41,
+      "task": 4,
+      "transition": false,
+      "window": 1
+    },
+    {
+      "groups": [
+        0,
+        1,
+        2,
+        3,
+        4
+      ],
+      "regime": "moderate",
+      "round": 42,
+      "task": 4,
+      "transition": false,
+      "window": 2
+    },
+    {
+      "groups": [
+        0,
+        1,
+        2,
+        3,
+        4
+      ],
+      "regime": "moderate",
+      "round": 43,
+      "task": 4,
+      "transition": false,
+      "window": 3
+    },
+    {
+      "groups": [
+        0,
+        1,
+        2,
+        3,
+        4
+      ],
+      "regime": "moderate",
+      "round": 44,
+      "task": 4,
+      "transition": false,
+      "window": 4
+    },
+    {
+      "groups": [
+        0,
+        1,
+        2,
+        3,
+        4
+      ],
+      "regime": "moderate",
+      "round": 45,
+      "task": 4,
+      "transition": false,
+      "window": 5
+    },
+    {
+      "groups": [
+        0,
+        1,
+        2,
+        3,
+        4
+      ],
+      "regime": "moderate",
+      "round": 46,
+      "task": 4,
+      "transition": false,
+      "window": 6
+    },
+    {
+      "groups": [
+        0,
+        1,
+        2,
+        3,
+        4
+      ],
+      "regime": "moderate",
+      "round": 47,
+      "task": 4,
+      "transition": false,
+      "window": 7
+    },
+    {
+      "groups": [
+        0,
+        1,
+        2,
+        3,
+        4
+      ],
+      "regime": "moderate",
+      "round": 48,
+      "task": 4,
+      "transition": false,
+      "window": 8
+    },
+    {
+      "groups": [
+        0,
+        1,
+        2,
+        3,
+        4
+      ],
+      "regime": "moderate",
+      "round": 49,
+      "task": 4,
+      "transition": false,
+      "window": 9
+    }
+  ],
+  "schema": 1,
+  "setting_id": "S02",
+  "specification": {
+    "alpha": 10,
+    "analysis_thresholds": {
+      "distribution_tv": 0.2,
+      "signal_distance": 0.1
+    },
+    "clients": 5,
+    "counterfactual_rounds": [
+      1,
+      3,
+      11,
+      13,
+      21,
+      23,
+      31,
+      33,
+      41,
+      43
+    ],
+    "domain": "brightness",
+    "domain_bins": 5,
+    "domain_specialization": 0.9,
+    "label_specialization": 0.9,
+    "mode": "named",
+    "regimes": [
+      "similar",
+      "clustered",
+      "separated",
+      "reassigned",
+      "conditional"
+    ],
+    "schema": 1,
+    "setting": "moderate",
+    "setting_id": "S02",
+    "setting_name": "Moderately heterogeneous diffuse",
+    "tasks": 5,
+    "temporal_persistence": 0.75,
+    "tolerances": {
+      "between_cluster_tv": 0.65,
+      "conditional_joint_tv": 0.55,
+      "joint_tv": 0.25,
+      "label_tv": 0.12,
+      "near_pair_tv": 0.15,
+      "separated_tv": 0.65,
+      "within_cluster_tv": 0.18
+    },
+    "windows": 10
+  },
+  "stream_spec_sha256": "56efe4345db7b2c750d0be6f92f337908b8cdbb22cff746297a5196d69eafd61"
+}

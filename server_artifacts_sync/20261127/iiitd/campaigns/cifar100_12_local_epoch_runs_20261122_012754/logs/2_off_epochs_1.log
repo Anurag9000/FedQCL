@@ -1,0 +1,2817 @@
+[transformers] Disabling PyTorch because PyTorch >= 2.6 is required but found 2.5.1+cu121
+[transformers] PyTorch was not found. Models won't be available and only tokenizers, configuration and file/data utilities can be used.
+SimpleCnn(
+  (conv1): Conv2d(28, 16, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+  (conv2): Conv2d(16, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+  (pool): MaxPool2d(kernel_size=2, stride=2, padding=0, dilation=1, ceil_mode=False)
+  (fc1): Linear(in_features=1568, out_features=128, bias=True)
+  (fc2): Linear(in_features=128, out_features=10, bias=True)
+)
+==================================================
+Algorithm: FedAvg
+Local batch size: 13
+Local epochs: 1
+Local learing rate: 0.005
+Local learing rate decay: False
+Total number of clients: 5
+Clients join in each round: 1.0
+Clients randomly join: False
+Client drop rate: 0.0
+Client select regarding time: False
+Running times: 1
+Dataset: /home/anurag24092/Projects/FedQCL_Task/dataset/CIFAR100_NONIID_alpha10.0_clients5_tasks5
+Number of classes: 20
+Backbone: resnet18
+Using device: cuda
+Using DP: False
+Auto break: False
+Global rounds: 49
+Cuda device id: 0
+DLG attack: False
+Total number of new clients: 0
+Fine tuning epoches on new clients: 0
+==================================================
+
+============= Running time: 0th =============
+Creating server and clients ...
+ResNet18_dpp(
+  (conv1): Conv2d(3, 64, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False)
+  (bn1): BatchNorm2d(64, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+  (layer1): Sequential(
+    (0): BasicBlock(
+      (conv1): Conv2d(64, 64, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False)
+      (bn1): BatchNorm2d(64, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+      (conv2): Conv2d(64, 64, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False)
+      (bn2): BatchNorm2d(64, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+    )
+    (1): BasicBlock(
+      (conv1): Conv2d(64, 64, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False)
+      (bn1): BatchNorm2d(64, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+      (conv2): Conv2d(64, 64, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False)
+      (bn2): BatchNorm2d(64, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+    )
+  )
+  (layer2): Sequential(
+    (0): BasicBlock(
+      (conv1): Conv2d(64, 128, kernel_size=(3, 3), stride=(2, 2), padding=(1, 1), bias=False)
+      (bn1): BatchNorm2d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+      (conv2): Conv2d(128, 128, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False)
+      (bn2): BatchNorm2d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+      (downsample): Sequential(
+        (0): Conv2d(64, 128, kernel_size=(1, 1), stride=(2, 2), bias=False)
+        (1): BatchNorm2d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+      )
+    )
+    (1): BasicBlock(
+      (conv1): Conv2d(128, 128, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False)
+      (bn1): BatchNorm2d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+      (conv2): Conv2d(128, 128, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False)
+      (bn2): BatchNorm2d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+    )
+  )
+  (layer3): Sequential(
+    (0): BasicBlock(
+      (conv1): Conv2d(128, 256, kernel_size=(3, 3), stride=(2, 2), padding=(1, 1), bias=False)
+      (bn1): BatchNorm2d(256, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+      (conv2): Conv2d(256, 256, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False)
+      (bn2): BatchNorm2d(256, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+      (downsample): Sequential(
+        (0): Conv2d(128, 256, kernel_size=(1, 1), stride=(2, 2), bias=False)
+        (1): BatchNorm2d(256, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+      )
+    )
+    (1): BasicBlock(
+      (conv1): Conv2d(256, 256, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False)
+      (bn1): BatchNorm2d(256, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+      (conv2): Conv2d(256, 256, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False)
+      (bn2): BatchNorm2d(256, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+    )
+  )
+  (layer4): Sequential(
+    (0): BasicBlock(
+      (conv1): Conv2d(256, 512, kernel_size=(3, 3), stride=(2, 2), padding=(1, 1), bias=False)
+      (bn1): BatchNorm2d(512, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+      (conv2): Conv2d(512, 512, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False)
+      (bn2): BatchNorm2d(512, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+      (downsample): Sequential(
+        (0): Conv2d(256, 512, kernel_size=(1, 1), stride=(2, 2), bias=False)
+        (1): BatchNorm2d(512, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+      )
+    )
+    (1): BasicBlock(
+      (conv1): Conv2d(512, 512, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False)
+      (bn1): BatchNorm2d(512, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+      (conv2): Conv2d(512, 512, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False)
+      (bn2): BatchNorm2d(512, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+    )
+  )
+  (avgpool): AdaptiveAvgPool2d(output_size=(1, 1))
+  (heads): ModuleList(
+    (0-4): 5 x Linear(in_features=512, out_features=20, bias=True)
+  )
+)
+Hello currently in serverbase
+Number of clients: 0
+
+Join ratio / total clients: 1.0 / 5
+Finished creating server and clients.
+Hello currently in serverbase
+currently in setclients in servebase
+Constructed dataset path in set clients: /home/anurag24092/Projects/FedQCL_Task/dataset/CIFAR100_NONIID_alpha10.0_clients5_tasks5/task_0
+Length of train samples for client 0 is 2000
+[Client 0] Loaded dataloaders for all 5 tasks.
+[Client 0] Initialized clientAVG: round_per_task=10, num_tasks=5, memory_size=500
+Loading data from client base for client0
+Task 0 → Unique labels: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19]
+Task 1 → Unique labels: [20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39]
+Task 2 → Unique labels: [40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59]
+Task 3 → Unique labels: [60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79]
+Task 4 → Unique labels: [80, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 91, 92, 93, 94, 95, 96, 97, 98, 99]
+currently in setclients in servebase
+Constructed dataset path in set clients: /home/anurag24092/Projects/FedQCL_Task/dataset/CIFAR100_NONIID_alpha10.0_clients5_tasks5/task_0
+Length of train samples for client 1 is 2000
+[Client 1] Loaded dataloaders for all 5 tasks.
+[Client 1] Initialized clientAVG: round_per_task=10, num_tasks=5, memory_size=500
+Loading data from client base for client1
+Task 0 → Unique labels: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19]
+Task 1 → Unique labels: [20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39]
+Task 2 → Unique labels: [40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59]
+Task 3 → Unique labels: [60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79]
+Task 4 → Unique labels: [80, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 91, 92, 93, 94, 95, 96, 97, 98, 99]
+currently in setclients in servebase
+Constructed dataset path in set clients: /home/anurag24092/Projects/FedQCL_Task/dataset/CIFAR100_NONIID_alpha10.0_clients5_tasks5/task_0
+Length of train samples for client 2 is 2000
+[Client 2] Loaded dataloaders for all 5 tasks.
+[Client 2] Initialized clientAVG: round_per_task=10, num_tasks=5, memory_size=500
+Loading data from client base for client2
+Task 0 → Unique labels: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19]
+Task 1 → Unique labels: [20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39]
+Task 2 → Unique labels: [40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59]
+Task 3 → Unique labels: [60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79]
+Task 4 → Unique labels: [80, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 91, 92, 93, 94, 95, 96, 97, 98, 99]
+currently in setclients in servebase
+Constructed dataset path in set clients: /home/anurag24092/Projects/FedQCL_Task/dataset/CIFAR100_NONIID_alpha10.0_clients5_tasks5/task_0
+Length of train samples for client 3 is 2000
+[Client 3] Loaded dataloaders for all 5 tasks.
+[Client 3] Initialized clientAVG: round_per_task=10, num_tasks=5, memory_size=500
+Loading data from client base for client3
+Task 0 → Unique labels: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19]
+Task 1 → Unique labels: [20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39]
+Task 2 → Unique labels: [40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59]
+Task 3 → Unique labels: [60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79]
+Task 4 → Unique labels: [80, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 91, 92, 93, 94, 95, 96, 97, 98, 99]
+currently in setclients in servebase
+Constructed dataset path in set clients: /home/anurag24092/Projects/FedQCL_Task/dataset/CIFAR100_NONIID_alpha10.0_clients5_tasks5/task_0
+Length of train samples for client 4 is 2000
+[Client 4] Loaded dataloaders for all 5 tasks.
+[Client 4] Initialized clientAVG: round_per_task=10, num_tasks=5, memory_size=500
+Loading data from client base for client4
+Task 0 → Unique labels: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19]
+Task 1 → Unique labels: [20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39]
+Task 2 → Unique labels: [40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59]
+Task 3 → Unique labels: [60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79]
+Task 4 → Unique labels: [80, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 91, 92, 93, 94, 95, 96, 97, 98, 99]
+Number of clients: 5
+
+-------------Round number: 0-------------
+Hidden clients for round 0: [1, 3]
+Selected clients: 3
+Q:[0.0, 0.0, 0.0, 0.0, 0.0]
+Q:[0.0, 0.0, 0.0, 0.0, 0.0]
+Q:[0.0, 0.0, 0.0, 0.0, 0.0]
+[Client 2] Task 0, Epoch 1/1, Loss=804.8682, Train Acc=5.98%
+[Client 2] train() finished for round=0. Time cost=30.596s, total_rounds=1
+[Client 4] Task 0, Epoch 1/1, Loss=868.0115, Train Acc=5.43%
+[Client 4] train() finished for round=0. Time cost=30.604s, total_rounds=1
+[Client 0] Task 0, Epoch 1/1, Loss=818.7841, Train Acc=6.33%
+[Client 0] train() finished for round=0. Time cost=30.608s, total_rounds=1
+************************* length of uploaded models ************************* 3
+
+Evaluate global model
+evaluation for task 0
+Averaged Test Accuracy: 4.05%
+Averaged Test Loss: 166106.6920
+Task-wise accuracies: ['4.05%']
+Mean accuracy across tasks: 4.05%
+------------------------- Time cost ------------------------- 33.92169189453125
+
+-------------Round number: 1-------------
+Hidden clients for round 1: [0, 3]
+Selected clients: 3
+Q:[0.0, 0.0, 0.0, 0.0, 0.0]
+Q:[0.0, 0.0, 0.0, 0.0, 0.0]
+Q:[0.0, 0.0, 0.0, 0.0, 0.0]
+[Client 4] Task 0, Epoch 1/1, Loss=602.4840, Train Acc=7.19%
+[Client 4] train() finished for round=1. Time cost=26.879s, total_rounds=2
+[Client 1] Task 0, Epoch 1/1, Loss=777.8855, Train Acc=7.29%
+[Client 1] train() finished for round=1. Time cost=26.884s, total_rounds=1
+[Client 2] Task 0, Epoch 1/1, Loss=602.3821, Train Acc=6.69%
+[Client 2] train() finished for round=1. Time cost=26.889s, total_rounds=2
+************************* length of uploaded models ************************* 3
+
+Evaluate global model
+evaluation for task 0
+Averaged Test Accuracy: 4.00%
+Averaged Test Loss: 110842.3180
+Task-wise accuracies: ['4.00%']
+Mean accuracy across tasks: 4.00%
+------------------------- Time cost ------------------------- 29.90556240081787
+
+-------------Round number: 2-------------
+Hidden clients for round 2: [1, 3]
+Selected clients: 3
+Q:[0.0, 0.0, 0.0, 0.0, 0.0]
+Q:[0.0, 0.0, 0.0, 0.0, 0.0]
+Q:[0.0, 0.0, 0.0, 0.0, 0.0]
+[Client 2] Task 0, Epoch 1/1, Loss=592.3959, Train Acc=7.64%
+[Client 2] train() finished for round=2. Time cost=26.654s, total_rounds=3
+[Client 4] Task 0, Epoch 1/1, Loss=593.1209, Train Acc=6.94%
+[Client 4] train() finished for round=2. Time cost=26.664s, total_rounds=3
+[Client 0] Task 0, Epoch 1/1, Loss=600.0397, Train Acc=7.34%
+[Client 0] train() finished for round=2. Time cost=26.665s, total_rounds=2
+************************* length of uploaded models ************************* 3
+
+Evaluate global model
+evaluation for task 0
+Averaged Test Accuracy: 4.95%
+Averaged Test Loss: 2837.0812
+Task-wise accuracies: ['4.95%']
+Mean accuracy across tasks: 4.95%
+------------------------- Time cost ------------------------- 29.88267970085144
+
+-------------Round number: 3-------------
+Hidden clients for round 3: [2, 4]
+Selected clients: 3
+Q:[0.0, 0.0, 0.0, 0.0, 0.0]
+Q:[0.0, 0.0, 0.0, 0.0, 0.0]
+Q:[0.0, 0.0, 0.0, 0.0, 0.0]
+[Client 0] Task 0, Epoch 1/1, Loss=582.5659, Train Acc=9.65%
+[Client 0] train() finished for round=3. Time cost=27.235s, total_rounds=3
+[Client 1] Task 0, Epoch 1/1, Loss=592.4989, Train Acc=7.14%
+[Client 1] train() finished for round=3. Time cost=27.234s, total_rounds=2
+[Client 3] Task 0, Epoch 1/1, Loss=810.1870, Train Acc=6.13%
+[Client 3] train() finished for round=3. Time cost=27.231s, total_rounds=1
+************************* length of uploaded models ************************* 3
+
+Evaluate global model
+evaluation for task 0
+Averaged Test Accuracy: 5.15%
+Averaged Test Loss: 11003.0593
+Task-wise accuracies: ['5.15%']
+Mean accuracy across tasks: 5.15%
+------------------------- Time cost ------------------------- 30.12314200401306
+
+-------------Round number: 4-------------
+Hidden clients for round 4: [2, 4]
+Selected clients: 3
+Q:[0.0, 0.0, 0.0, 0.0, 0.0]
+Q:[0.0, 0.0, 0.0, 0.0, 0.0]
+Q:[0.0, 0.0, 0.0, 0.0, 0.0]
+[Client 0] Task 0, Epoch 1/1, Loss=587.5755, Train Acc=8.30%
+[Client 0] train() finished for round=4. Time cost=27.539s, total_rounds=4
+[Client 3] Task 0, Epoch 1/1, Loss=595.0286, Train Acc=7.64%
+[Client 3] train() finished for round=4. Time cost=27.542s, total_rounds=2
+[Client 1] Task 0, Epoch 1/1, Loss=591.7554, Train Acc=7.39%
+[Client 1] train() finished for round=4. Time cost=27.545s, total_rounds=3
+************************* length of uploaded models ************************* 3
+
+Evaluate global model
+evaluation for task 0
+Averaged Test Accuracy: 8.55%
+Averaged Test Loss: 6.2709
+Task-wise accuracies: ['8.55%']
+Mean accuracy across tasks: 8.55%
+------------------------- Time cost ------------------------- 30.47916054725647
+
+-------------Round number: 5-------------
+Hidden clients for round 5: [0, 3]
+Selected clients: 3
+Q:[0.0, 0.0, 0.0, 0.0, 0.0]
+Q:[0.0, 0.0, 0.0, 0.0, 0.0]
+Q:[0.0, 0.0, 0.0, 0.0, 0.0]
+[Client 1] Task 0, Epoch 1/1, Loss=572.4068, Train Acc=9.35%
+[Client 1] train() finished for round=5. Time cost=26.970s, total_rounds=4
+[Client 2] Task 0, Epoch 1/1, Loss=578.7210, Train Acc=11.06%
+[Client 2] train() finished for round=5. Time cost=26.983s, total_rounds=4
+[Client 4] Task 0, Epoch 1/1, Loss=578.1098, Train Acc=11.01%
+[Client 4] train() finished for round=5. Time cost=26.983s, total_rounds=4
+************************* length of uploaded models ************************* 3
+
+Evaluate global model
+evaluation for task 0
+Averaged Test Accuracy: 9.50%
+Averaged Test Loss: 5.1309
+Task-wise accuracies: ['9.50%']
+Mean accuracy across tasks: 9.50%
+------------------------- Time cost ------------------------- 30.149189472198486
+
+-------------Round number: 6-------------
+Hidden clients for round 6: [1, 2]
+Selected clients: 3
+Q:[0.0, 0.0, 0.0, 0.0, 0.0]
+Q:[0.0, 0.0, 0.0, 0.0, 0.0]
+Q:[0.0, 0.0, 0.0, 0.0, 0.0]
+[Client 4] Task 0, Epoch 1/1, Loss=565.5666, Train Acc=11.92%
+[Client 4] train() finished for round=6. Time cost=27.496s, total_rounds=5
+[Client 3] Task 0, Epoch 1/1, Loss=572.9598, Train Acc=10.91%
+[Client 3] train() finished for round=6. Time cost=27.507s, total_rounds=3
+[Client 0] Task 0, Epoch 1/1, Loss=579.1139, Train Acc=9.50%
+[Client 0] train() finished for round=6. Time cost=27.508s, total_rounds=5
+************************* length of uploaded models ************************* 3
+
+Evaluate global model
+evaluation for task 0
+Averaged Test Accuracy: 11.25%
+Averaged Test Loss: 5.3685
+Task-wise accuracies: ['11.25%']
+Mean accuracy across tasks: 11.25%
+------------------------- Time cost ------------------------- 30.718962907791138
+
+-------------Round number: 7-------------
+Hidden clients for round 7: [2, 4]
+Selected clients: 3
+Q:[0.0, 0.0, 0.0, 0.0, 0.0]
+Q:[0.0, 0.0, 0.0, 0.0, 0.0]
+Q:[0.0, 0.0, 0.0, 0.0, 0.0]
+[Client 1] Task 0, Epoch 1/1, Loss=570.9893, Train Acc=11.61%
+[Client 1] train() finished for round=7. Time cost=26.489s, total_rounds=5
+[Client 0] Task 0, Epoch 1/1, Loss=562.0682, Train Acc=12.07%
+[Client 0] train() finished for round=7. Time cost=26.491s, total_rounds=6
+[Client 3] Task 0, Epoch 1/1, Loss=561.8833, Train Acc=11.41%
+[Client 3] train() finished for round=7. Time cost=26.490s, total_rounds=4
+************************* length of uploaded models ************************* 3
+
+Evaluate global model
+evaluation for task 0
+Averaged Test Accuracy: 15.25%
+Averaged Test Loss: 2.9119
+Task-wise accuracies: ['15.25%']
+Mean accuracy across tasks: 15.25%
+------------------------- Time cost ------------------------- 29.546672582626343
+
+-------------Round number: 8-------------
+Hidden clients for round 8: [0, 4]
+Selected clients: 3
+Q:[0.0, 0.0, 0.0, 0.0, 0.0]
+Q:[0.0, 0.0, 0.0, 0.0, 0.0]
+Q:[0.0, 0.0, 0.0, 0.0, 0.0]
+[Client 1] Task 0, Epoch 1/1, Loss=552.3121, Train Acc=14.73%
+[Client 1] train() finished for round=8. Time cost=27.640s, total_rounds=6
+[Client 3] Task 0, Epoch 1/1, Loss=553.3467, Train Acc=13.52%
+[Client 3] train() finished for round=8. Time cost=27.647s, total_rounds=5
+[Client 2] Task 0, Epoch 1/1, Loss=569.9864, Train Acc=10.41%
+[Client 2] train() finished for round=8. Time cost=27.649s, total_rounds=5
+************************* length of uploaded models ************************* 3
+
+Evaluate global model
+evaluation for task 0
+Averaged Test Accuracy: 14.30%
+Averaged Test Loss: 2.9025
+Task-wise accuracies: ['14.30%']
+Mean accuracy across tasks: 14.30%
+------------------------- Time cost ------------------------- 30.845863819122314
+
+-------------Round number: 9-------------
+Hidden clients for round 9: [0, 2]
+Selected clients: 3
+Q:[0.0, 0.0, 0.0, 0.0, 0.0]
+Q:[0.0, 0.0, 0.0, 0.0, 0.0]
+Q:[0.0, 0.0, 0.0, 0.0, 0.0]
+[Client 1] Task 0, Epoch 1/1, Loss=549.2823, Train Acc=15.18%
+[Client 1] Detected end of task 0 at round 9; saving memory 
+[Client 4] Task 0, Epoch 1/1, Loss=558.0300, Train Acc=12.42%
+[Client 4] Detected end of task 0 at round 9; saving memory 
+
+[DEBUG] BEFORE update — Client 1, Task 0
+  → Total stored samples BEFORE update = 0
+
+[DEBUG] Balanced Reservoir: base=500, remainder=0
+
+[DEBUG] BEFORE update — Client 4, Task 0
+  → Total stored samples BEFORE update = 0
+
+[DEBUG] Balanced Reservoir: base=500, remainder=0
+[Client 1] Balanced reservoir stored 500 samples for task 0
+[Client 1] Memory loader for task 0 now has 500 samples
+
+[DEBUG] AFTER update — Client 1, Task 0
+  • Task 0: 500 samples
+  → Total stored samples AFTER update = 500
+---------------------------------------------------------
+
+[Client 1] train() finished for round=9. Time cost=26.843s, total_rounds=7
+[Client 4] Balanced reservoir stored 500 samples for task 0
+[Client 4] Memory loader for task 0 now has 500 samples
+
+[DEBUG] AFTER update — Client 4, Task 0
+  • Task 0: 500 samples
+  → Total stored samples AFTER update = 500
+---------------------------------------------------------
+
+[Client 4] train() finished for round=9. Time cost=26.837s, total_rounds=6
+[Client 3] Task 0, Epoch 1/1, Loss=539.1431, Train Acc=16.24%
+[Client 3] Detected end of task 0 at round 9; saving memory 
+
+[DEBUG] BEFORE update — Client 3, Task 0
+  → Total stored samples BEFORE update = 0
+
+[DEBUG] Balanced Reservoir: base=500, remainder=0
+[Client 3] Balanced reservoir stored 500 samples for task 0
+[Client 3] Memory loader for task 0 now has 500 samples
+
+[DEBUG] AFTER update — Client 3, Task 0
+  • Task 0: 500 samples
+  → Total stored samples AFTER update = 500
+---------------------------------------------------------
+
+[Client 3] train() finished for round=9. Time cost=26.846s, total_rounds=6
+************************* length of uploaded models ************************* 3
+
+Evaluate global model
+evaluation for task 0
+Averaged Test Accuracy: 16.75%
+Averaged Test Loss: 2.6987
+Task-wise accuracies: ['16.75%']
+Mean accuracy across tasks: 16.75%
+------------------------- Time cost ------------------------- 29.85623025894165
+
+-------------Round number: 10-------------
+Hidden clients for round 10: [0, 2]
+Selected clients: 3
+Q:[0.0, 0.0, 0.0, 0.0, 0.0]
+Q:[0.0, 0.0, 0.0, 0.0, 0.0]
+Q:[0.0, 0.0, 0.0, 0.0, 0.0]
+saving the weights in theta_prev for task{task_id} 
+[Client 1] Saved theta_prev BEFORE training for task 1
+saving the weights in theta_prev for task{task_id} 
+[Client 3] Saved theta_prev BEFORE training for task 1
+saving the weights in theta_prev for task{task_id} 
+[Client 4] Saved theta_prev BEFORE training for task 1
+[Client 1] old_model prepared from theta_prev for task 1
+[Client 4] old_model prepared from theta_prev for task 1
+[Client 3] old_model prepared from theta_prev for task 1
+[Client 1] Task 1, Epoch 1/1, Loss=543.9670, Train Acc=15.23%
+Updating Q Values
+[Client 1] Updating Q for previous task 0
+[Client 4] Task 1, Epoch 1/1, Loss=536.9845, Train Acc=17.04%
+Updating Q Values
+[Client 4] Updating Q for previous task 0
+[Client 3] Task 1, Epoch 1/1, Loss=541.0104, Train Acc=16.99%
+Updating Q Values
+[Client 3] Updating Q for previous task 0
+[Client 1] Q-update task 0: loss_cur=102.8636, loss_prev=107.7028, delta=1.0000, Q[0] from 0.0000 -> 0.0000
+[Client 1] Finished end-of-task actions for task 1. Q_history length=1
+[Client 1] train() finished for round=10. Time cost=62.240s, total_rounds=8
+[Client 4] Q-update task 0: loss_cur=104.9660, loss_prev=103.1632, delta=1.0000, Q[0] from 0.0000 -> 0.8029
+[Client 4] Finished end-of-task actions for task 1. Q_history length=1
+[Client 4] train() finished for round=10. Time cost=62.616s, total_rounds=7
+[Client 3] Q-update task 0: loss_cur=102.0127, loss_prev=100.8780, delta=1.0000, Q[0] from 0.0000 -> 0.1347
+[Client 3] Finished end-of-task actions for task 1. Q_history length=1
+[Client 3] train() finished for round=10. Time cost=62.657s, total_rounds=7
+************************* length of uploaded models ************************* 3
+
+Evaluate global model
+evaluation for task 0
+Averaged Test Accuracy: 16.30%
+Averaged Test Loss: 2.7136
+evaluation for task 1
+Averaged Test Accuracy: 13.75%
+Averaged Test Loss: 2.7881
+Task-wise accuracies: ['16.30%', '13.75%']
+Mean accuracy across tasks: 15.02%
+------------------------- Time cost ------------------------- 69.08680295944214
+
+-------------Round number: 11-------------
+Hidden clients for round 11: [2, 3]
+Selected clients: 3
+Q:[0.0, 0.0, 0.0, 0.0, 0.0]
+Q:[0.0, 0.0, 0.0, 0.0, 0.0]
+Q:[0.8028736114501953, 0.0, 0.0, 0.0, 0.0]
+[Client 4] old_model prepared from theta_prev for task 1
+[Client 1] old_model prepared from theta_prev for task 1
+[Client 0] Task 1, Epoch 1/1, Loss=553.1171, Train Acc=13.57%
+Updating Q Values
+[Client 0] Updating Q for previous task 0
+[Client 0] No stored memory for task 0; skipping Q update
+[Client 0] Finished end-of-task actions for task 1. Q_history length=1
+[Client 0] train() finished for round=11. Time cost=29.697s, total_rounds=7
+[Client 1] Task 1, Epoch 1/1, Loss=516.3793, Train Acc=20.97%
+Updating Q Values
+[Client 1] Updating Q for previous task 0
+[Client 4] Task 1, Epoch 1/1, Loss=502.4938, Train Acc=22.72%
+Updating Q Values
+[Client 4] Updating Q for previous task 0
+[Client 1] Q-update task 0: loss_cur=104.4203, loss_prev=107.8876, delta=1.0000, Q[0] from 0.0000 -> 0.0000
+[Client 1] Finished end-of-task actions for task 1. Q_history length=2
+[Client 1] train() finished for round=11. Time cost=51.787s, total_rounds=9
+[Client 4] Q-update task 0: loss_cur=104.0146, loss_prev=102.8960, delta=1.0000, Q[0] from 0.8029 -> 0.9215
+[Client 4] Finished end-of-task actions for task 1. Q_history length=2
+[Client 4] train() finished for round=11. Time cost=51.833s, total_rounds=8
+************************* length of uploaded models ************************* 3
+
+Evaluate global model
+evaluation for task 0
+Averaged Test Accuracy: 16.85%
+Averaged Test Loss: 2.6920
+evaluation for task 1
+Averaged Test Accuracy: 19.80%
+Averaged Test Loss: 2.6129
+Task-wise accuracies: ['16.85%', '19.80%']
+Mean accuracy across tasks: 18.33%
+------------------------- Time cost ------------------------- 58.64884352684021
+
+-------------Round number: 12-------------
+Hidden clients for round 12: [0, 3]
+Selected clients: 3
+Q:[0.0, 0.0, 0.0, 0.0, 0.0]
+Q:[0.0, 0.0, 0.0, 0.0, 0.0]
+Q:[0.9215068817138672, 0.0, 0.0, 0.0, 0.0]
+[Client 1] old_model prepared from theta_prev for task 1
+[Client 4] old_model prepared from theta_prev for task 1
+[Client 2] Task 1, Epoch 1/1, Loss=553.5450, Train Acc=14.33%
+Updating Q Values
+[Client 2] Updating Q for previous task 0
+[Client 2] No stored memory for task 0; skipping Q update
+[Client 2] Finished end-of-task actions for task 1. Q_history length=1
+[Client 2] train() finished for round=12. Time cost=29.900s, total_rounds=6
+[Client 1] Task 1, Epoch 1/1, Loss=497.9601, Train Acc=22.42%
+Updating Q Values
+[Client 1] Updating Q for previous task 0
+[Client 4] Task 1, Epoch 1/1, Loss=507.6759, Train Acc=20.66%
+Updating Q Values
+[Client 4] Updating Q for previous task 0
+[Client 1] Q-update task 0: loss_cur=110.3529, loss_prev=107.5882, delta=1.0000, Q[0] from 0.0000 -> 1.7647
+[Client 1] Finished end-of-task actions for task 1. Q_history length=3
+[Client 1] train() finished for round=12. Time cost=52.573s, total_rounds=10
+[Client 4] Q-update task 0: loss_cur=103.4609, loss_prev=103.2975, delta=1.0000, Q[0] from 0.9215 -> 0.0850
+[Client 4] Finished end-of-task actions for task 1. Q_history length=3
+[Client 4] train() finished for round=12. Time cost=52.578s, total_rounds=9
+************************* length of uploaded models ************************* 3
+
+Evaluate global model
+evaluation for task 0
+Averaged Test Accuracy: 16.85%
+Averaged Test Loss: 2.6742
+evaluation for task 1
+Averaged Test Accuracy: 20.35%
+Averaged Test Loss: 2.5555
+Task-wise accuracies: ['16.85%', '20.35%']
+Mean accuracy across tasks: 18.60%
+------------------------- Time cost ------------------------- 59.095887422561646
+
+-------------Round number: 13-------------
+Hidden clients for round 13: [1, 3]
+Selected clients: 3
+Q:[0.0, 0.0, 0.0, 0.0, 0.0]
+Q:[0.0849907398223877, 0.0, 0.0, 0.0, 0.0]
+Q:[0.0, 0.0, 0.0, 0.0, 0.0]
+[Client 4] old_model prepared from theta_prev for task 1
+[Client 2] Task 1, Epoch 1/1, Loss=499.3898, Train Acc=24.03%
+Updating Q Values
+[Client 2] Updating Q for previous task 0
+[Client 2] No stored memory for task 0; skipping Q update
+[Client 2] Finished end-of-task actions for task 1. Q_history length=2
+[Client 2] train() finished for round=13. Time cost=30.766s, total_rounds=7
+[Client 0] Task 1, Epoch 1/1, Loss=500.4453, Train Acc=21.77%
+Updating Q Values
+[Client 0] Updating Q for previous task 0
+[Client 0] No stored memory for task 0; skipping Q update
+[Client 0] Finished end-of-task actions for task 1. Q_history length=2
+[Client 0] train() finished for round=13. Time cost=30.770s, total_rounds=8
+[Client 4] Task 1, Epoch 1/1, Loss=484.9241, Train Acc=23.58%
+Updating Q Values
+[Client 4] Updating Q for previous task 0
+[Client 4] Q-update task 0: loss_cur=105.0399, loss_prev=103.1519, delta=1.0000, Q[0] from 0.0850 -> 0.9730
+[Client 4] Finished end-of-task actions for task 1. Q_history length=4
+[Client 4] train() finished for round=13. Time cost=42.175s, total_rounds=10
+************************* length of uploaded models ************************* 3
+
+Evaluate global model
+evaluation for task 0
+Averaged Test Accuracy: 18.15%
+Averaged Test Loss: 2.6384
+evaluation for task 1
+Averaged Test Accuracy: 24.25%
+Averaged Test Loss: 2.4655
+Task-wise accuracies: ['18.15%', '24.25%']
+Mean accuracy across tasks: 21.20%
+------------------------- Time cost ------------------------- 48.746296405792236
+
+-------------Round number: 14-------------
+Hidden clients for round 14: [1, 2]
+Selected clients: 3
+Q:[0.0, 0.0, 0.0, 0.0, 0.0]
+Q:[0.1347339153289795, 0.0, 0.0, 0.0, 0.0]
+Q:[0.9730322360992432, 0.0, 0.0, 0.0, 0.0]
+[Client 4] old_model prepared from theta_prev for task 1
+[Client 3] old_model prepared from theta_prev for task 1
+[Client 0] Task 1, Epoch 1/1, Loss=482.1383, Train Acc=25.09%
+Updating Q Values
+[Client 0] Updating Q for previous task 0
+[Client 0] No stored memory for task 0; skipping Q update
+[Client 0] Finished end-of-task actions for task 1. Q_history length=3
+[Client 0] train() finished for round=14. Time cost=30.263s, total_rounds=9
+[Client 4] Task 1, Epoch 1/1, Loss=468.8384, Train Acc=27.70%
+Updating Q Values
+[Client 4] Updating Q for previous task 0
+[Client 3] Task 1, Epoch 1/1, Loss=508.4444, Train Acc=21.47%
+Updating Q Values
+[Client 3] Updating Q for previous task 0
+[Client 4] Q-update task 0: loss_cur=102.8062, loss_prev=103.2755, delta=1.0000, Q[0] from 0.9730 -> 0.0000
+[Client 4] Finished end-of-task actions for task 1. Q_history length=5
+[Client 4] train() finished for round=14. Time cost=52.463s, total_rounds=11
+[Client 3] Q-update task 0: loss_cur=102.3568, loss_prev=100.9040, delta=1.0000, Q[0] from 0.1347 -> 0.5875
+[Client 3] Finished end-of-task actions for task 1. Q_history length=2
+[Client 3] train() finished for round=14. Time cost=52.530s, total_rounds=8
+************************* length of uploaded models ************************* 3
+
+Evaluate global model
+evaluation for task 0
+Averaged Test Accuracy: 19.20%
+Averaged Test Loss: 2.5997
+evaluation for task 1
+Averaged Test Accuracy: 25.95%
+Averaged Test Loss: 2.4040
+Task-wise accuracies: ['19.20%', '25.95%']
+Mean accuracy across tasks: 22.57%
+------------------------- Time cost ------------------------- 58.65520715713501
+
+-------------Round number: 15-------------
+Hidden clients for round 15: [0, 4]
+Selected clients: 3
+Q:[1.764732837677002, 0.0, 0.0, 0.0, 0.0]
+Q:[0.0, 0.0, 0.0, 0.0, 0.0]
+Q:[0.5875394344329834, 0.0, 0.0, 0.0, 0.0]
+[Client 1] old_model prepared from theta_prev for task 1
+[Client 3] old_model prepared from theta_prev for task 1
+[Client 2] Task 1, Epoch 1/1, Loss=489.8960, Train Acc=24.84%
+Updating Q Values
+[Client 2] Updating Q for previous task 0
+[Client 2] No stored memory for task 0; skipping Q update
+[Client 2] Finished end-of-task actions for task 1. Q_history length=3
+[Client 2] train() finished for round=15. Time cost=32.088s, total_rounds=8
+[Client 1] Task 1, Epoch 1/1, Loss=500.3808, Train Acc=23.48%
+Updating Q Values
+[Client 1] Updating Q for previous task 0
+[Client 3] Task 1, Epoch 1/1, Loss=476.2893, Train Acc=27.90%
+Updating Q Values
+[Client 3] Updating Q for previous task 0
+[Client 1] Q-update task 0: loss_cur=102.7665, loss_prev=107.8381, delta=1.0000, Q[0] from 1.7647 -> 0.0000
+[Client 1] Finished end-of-task actions for task 1. Q_history length=4
+[Client 1] train() finished for round=15. Time cost=53.995s, total_rounds=11
+[Client 3] Q-update task 0: loss_cur=101.3143, loss_prev=101.2553, delta=1.0000, Q[0] from 0.5875 -> 0.0000
+[Client 3] Finished end-of-task actions for task 1. Q_history length=3
+[Client 3] train() finished for round=15. Time cost=54.084s, total_rounds=9
+************************* length of uploaded models ************************* 3
+
+Evaluate global model
+evaluation for task 0
+Averaged Test Accuracy: 19.25%
+Averaged Test Loss: 2.5777
+evaluation for task 1
+Averaged Test Accuracy: 28.85%
+Averaged Test Loss: 2.3448
+Task-wise accuracies: ['19.25%', '28.85%']
+Mean accuracy across tasks: 24.05%
+------------------------- Time cost ------------------------- 60.99426031112671
+
+-------------Round number: 16-------------
+Hidden clients for round 16: [0, 3]
+Selected clients: 3
+Q:[0.0, 0.0, 0.0, 0.0, 0.0]
+Q:[0.0, 0.0, 0.0, 0.0, 0.0]
+Q:[0.0, 0.0, 0.0, 0.0, 0.0]
+[Client 1] old_model prepared from theta_prev for task 1
+[Client 4] old_model prepared from theta_prev for task 1
+[Client 2] Task 1, Epoch 1/1, Loss=476.7642, Train Acc=26.34%
+Updating Q Values
+[Client 2] Updating Q for previous task 0
+[Client 2] No stored memory for task 0; skipping Q update
+[Client 2] Finished end-of-task actions for task 1. Q_history length=4
+[Client 2] train() finished for round=16. Time cost=30.817s, total_rounds=9
+[Client 1] Task 1, Epoch 1/1, Loss=466.1233, Train Acc=28.05%
+Updating Q Values
+[Client 1] Updating Q for previous task 0
+[Client 4] Task 1, Epoch 1/1, Loss=463.6918, Train Acc=29.56%
+Updating Q Values
+[Client 4] Updating Q for previous task 0
+[Client 1] Q-update task 0: loss_cur=103.5738, loss_prev=107.6916, delta=1.0000, Q[0] from 0.0000 -> 0.0000
+[Client 1] Finished end-of-task actions for task 1. Q_history length=5
+[Client 1] train() finished for round=16. Time cost=54.146s, total_rounds=12
+[Client 4] Q-update task 0: loss_cur=105.6438, loss_prev=103.0739, delta=1.0000, Q[0] from 0.0000 -> 1.5699
+[Client 4] Finished end-of-task actions for task 1. Q_history length=6
+[Client 4] train() finished for round=16. Time cost=54.156s, total_rounds=12
+************************* length of uploaded models ************************* 3
+
+Evaluate global model
+evaluation for task 0
+Averaged Test Accuracy: 20.10%
+Averaged Test Loss: 2.5925
+evaluation for task 1
+Averaged Test Accuracy: 29.65%
+Averaged Test Loss: 2.3044
+Task-wise accuracies: ['20.10%', '29.65%']
+Mean accuracy across tasks: 24.88%
+------------------------- Time cost ------------------------- 59.69409728050232
+
+-------------Round number: 17-------------
+Hidden clients for round 17: [2, 4]
+Selected clients: 3
+Q:[0.0, 0.0, 0.0, 0.0, 0.0]
+Q:[0.0, 0.0, 0.0, 0.0, 0.0]
+Q:[0.0, 0.0, 0.0, 0.0, 0.0]
+[Client 3] old_model prepared from theta_prev for task 1
+[Client 1] old_model prepared from theta_prev for task 1
+[Client 0] Task 1, Epoch 1/1, Loss=477.9144, Train Acc=26.14%
+Updating Q Values
+[Client 0] Updating Q for previous task 0
+[Client 0] No stored memory for task 0; skipping Q update
+[Client 0] Finished end-of-task actions for task 1. Q_history length=4
+[Client 0] train() finished for round=17. Time cost=30.346s, total_rounds=10
+[Client 1] Task 1, Epoch 1/1, Loss=456.1088, Train Acc=29.91%
+Updating Q Values
+[Client 1] Updating Q for previous task 0
+[Client 3] Task 1, Epoch 1/1, Loss=473.9457, Train Acc=27.00%
+Updating Q Values
+[Client 3] Updating Q for previous task 0
+[Client 1] Q-update task 0: loss_cur=105.4784, loss_prev=107.6997, delta=1.0000, Q[0] from 0.0000 -> 0.0000
+[Client 1] Finished end-of-task actions for task 1. Q_history length=6
+[Client 1] train() finished for round=17. Time cost=52.203s, total_rounds=13
+[Client 3] Q-update task 0: loss_cur=103.3939, loss_prev=101.0225, delta=1.0000, Q[0] from 0.0000 -> 1.3714
+[Client 3] Finished end-of-task actions for task 1. Q_history length=4
+[Client 3] train() finished for round=17. Time cost=52.222s, total_rounds=10
+************************* length of uploaded models ************************* 3
+
+Evaluate global model
+evaluation for task 0
+Averaged Test Accuracy: 20.30%
+Averaged Test Loss: 2.5829
+evaluation for task 1
+Averaged Test Accuracy: 32.35%
+Averaged Test Loss: 2.2551
+Task-wise accuracies: ['20.30%', '32.35%']
+Mean accuracy across tasks: 26.32%
+------------------------- Time cost ------------------------- 59.22744274139404
+
+-------------Round number: 18-------------
+Hidden clients for round 18: [0, 3]
+Selected clients: 3
+Q:[0.0, 0.0, 0.0, 0.0, 0.0]
+Q:[0.0, 0.0, 0.0, 0.0, 0.0]
+Q:[1.5698952674865723, 0.0, 0.0, 0.0, 0.0]
+[Client 1] old_model prepared from theta_prev for task 1
+[Client 4] old_model prepared from theta_prev for task 1
+[Client 2] Task 1, Epoch 1/1, Loss=454.1406, Train Acc=30.77%
+Updating Q Values
+[Client 2] Updating Q for previous task 0
+[Client 2] No stored memory for task 0; skipping Q update
+[Client 2] Finished end-of-task actions for task 1. Q_history length=5
+[Client 2] train() finished for round=18. Time cost=30.198s, total_rounds=10
+[Client 1] Task 1, Epoch 1/1, Loss=445.3434, Train Acc=31.12%
+Updating Q Values
+[Client 1] Updating Q for previous task 0
+[Client 4] Task 1, Epoch 1/1, Loss=439.9289, Train Acc=34.04%
+Updating Q Values
+[Client 4] Updating Q for previous task 0
+[Client 1] Q-update task 0: loss_cur=104.3427, loss_prev=107.6899, delta=1.0000, Q[0] from 0.0000 -> 0.0000
+[Client 1] Finished end-of-task actions for task 1. Q_history length=7
+[Client 1] train() finished for round=18. Time cost=52.232s, total_rounds=14
+[Client 4] Q-update task 0: loss_cur=102.0084, loss_prev=103.0273, delta=1.0000, Q[0] from 1.5699 -> 0.0000
+[Client 4] Finished end-of-task actions for task 1. Q_history length=7
+[Client 4] train() finished for round=18. Time cost=52.370s, total_rounds=13
+************************* length of uploaded models ************************* 3
+
+Evaluate global model
+evaluation for task 0
+Averaged Test Accuracy: 21.45%
+Averaged Test Loss: 2.5597
+evaluation for task 1
+Averaged Test Accuracy: 34.30%
+Averaged Test Loss: 2.2421
+Task-wise accuracies: ['21.45%', '34.30%']
+Mean accuracy across tasks: 27.88%
+------------------------- Time cost ------------------------- 58.96171689033508
+
+-------------Round number: 19-------------
+Hidden clients for round 19: [1, 4]
+Selected clients: 3
+Q:[0.0, 0.0, 0.0, 0.0, 0.0]
+Q:[0.0, 0.0, 0.0, 0.0, 0.0]
+Q:[1.3713572025299072, 0.0, 0.0, 0.0, 0.0]
+[Client 3] old_model prepared from theta_prev for task 1
+[Client 0] Task 1, Epoch 1/1, Loss=450.8678, Train Acc=29.91%
+[Client 0] Detected end of task 1 at round 19; saving memory 
+
+[DEBUG] BEFORE update — Client 0, Task 1
+  → Total stored samples BEFORE update = 0
+
+[DEBUG] Balanced Reservoir: base=500, remainder=0
+[Client 0] Balanced reservoir stored 500 samples for task 1
+[Client 0] Memory loader for task 1 now has 500 samples
+
+[DEBUG] AFTER update — Client 0, Task 1
+  • Task 1: 500 samples
+  → Total stored samples AFTER update = 500
+---------------------------------------------------------
+
+Updating Q Values
+[Client 0] Updating Q for previous task 0
+[Client 0] No stored memory for task 0; skipping Q update
+[Client 0] Finished end-of-task actions for task 1. Q_history length=5
+[Client 0] train() finished for round=19. Time cost=31.179s, total_rounds=11
+[Client 2] Task 1, Epoch 1/1, Loss=438.1605, Train Acc=32.98%
+[Client 2] Detected end of task 1 at round 19; saving memory 
+
+[DEBUG] BEFORE update — Client 2, Task 1
+  → Total stored samples BEFORE update = 0
+
+[DEBUG] Balanced Reservoir: base=500, remainder=0
+[Client 2] Balanced reservoir stored 500 samples for task 1
+[Client 2] Memory loader for task 1 now has 500 samples
+
+[DEBUG] AFTER update — Client 2, Task 1
+  • Task 1: 500 samples
+  → Total stored samples AFTER update = 500
+---------------------------------------------------------
+
+Updating Q Values
+[Client 2] Updating Q for previous task 0
+[Client 2] No stored memory for task 0; skipping Q update
+[Client 2] Finished end-of-task actions for task 1. Q_history length=6
+[Client 2] train() finished for round=19. Time cost=31.185s, total_rounds=11
+[Client 3] Task 1, Epoch 1/1, Loss=450.4728, Train Acc=31.77%
+[Client 3] Detected end of task 1 at round 19; saving memory 
+
+[DEBUG] BEFORE update — Client 3, Task 1
+  • Task 0: 500 samples
+  → Total stored samples BEFORE update = 500
+
+[DEBUG] Balanced Reservoir: base=250, remainder=0
+[Client 3] Balanced reservoir stored 250 samples for task 1
+[Client 3] Memory loader for task 0 now has 250 samples
+[Client 3] Memory loader for task 1 now has 250 samples
+
+[DEBUG] AFTER update — Client 3, Task 1
+  • Task 0: 250 samples
+  • Task 1: 250 samples
+  → Total stored samples AFTER update = 500
+---------------------------------------------------------
+
+Updating Q Values
+[Client 3] Updating Q for previous task 0
+[Client 3] Q-update task 0: loss_cur=52.2688, loss_prev=50.5253, delta=1.0000, Q[0] from 1.3714 -> 2.1148
+[Client 3] Finished end-of-task actions for task 1. Q_history length=5
+[Client 3] train() finished for round=19. Time cost=42.547s, total_rounds=11
+************************* length of uploaded models ************************* 3
+
+Evaluate global model
+evaluation for task 0
+Averaged Test Accuracy: 21.40%
+Averaged Test Loss: 2.5740
+evaluation for task 1
+Averaged Test Accuracy: 34.50%
+Averaged Test Loss: 2.1626
+Task-wise accuracies: ['21.40%', '34.50%']
+Mean accuracy across tasks: 27.95%
+------------------------- Time cost ------------------------- 48.73886704444885
+
+-------------Round number: 20-------------
+Hidden clients for round 20: [2, 3]
+Selected clients: 3
+Q:[0.0, 0.0, 0.0, 0.0, 0.0]
+Q:[0.0, 0.0, 0.0, 0.0, 0.0]
+Q:[0.0, 0.0, 0.0, 0.0, 0.0]
+saving the weights in theta_prev for task{task_id} 
+[Client 4] Saved theta_prev BEFORE training for task 2
+saving the weights in theta_prev for task{task_id} 
+[Client 1] Saved theta_prev BEFORE training for task 2
+saving the weights in theta_prev for task{task_id} 
+[Client 0] Saved theta_prev BEFORE training for task 2
+[Client 4] old_model prepared from theta_prev for task 2
+[Client 0] old_model prepared from theta_prev for task 2
+[Client 1] old_model prepared from theta_prev for task 2
+[Client 4] Task 2, Epoch 1/1, Loss=483.4031, Train Acc=24.28%
+Updating Q Values
+[Client 4] Updating Q for previous task 0
+[Client 0] Task 2, Epoch 1/1, Loss=484.0678, Train Acc=24.48%
+Updating Q Values
+[Client 0] Updating Q for previous task 0
+[Client 0] No stored memory for task 0; skipping Q update
+[Client 0] Updating Q for previous task 1
+[Client 1] Task 2, Epoch 1/1, Loss=494.8735, Train Acc=23.58%
+Updating Q Values
+[Client 1] Updating Q for previous task 0
+[Client 4] Q-update task 0: loss_cur=102.2388, loss_prev=99.5724, delta=1.0000, Q[0] from 0.0000 -> 1.6664
+[Client 4] Updating Q for previous task 1
+[Client 4] No stored memory for task 1; skipping Q update
+[Client 4] Finished end-of-task actions for task 2. Q_history length=8
+[Client 4] train() finished for round=20. Time cost=62.334s, total_rounds=14
+[Client 1] Q-update task 0: loss_cur=102.8107, loss_prev=101.7974, delta=1.0000, Q[0] from 0.0000 -> 0.0134
+[Client 1] Updating Q for previous task 1
+[Client 1] No stored memory for task 1; skipping Q update
+[Client 1] Finished end-of-task actions for task 2. Q_history length=8
+[Client 1] train() finished for round=20. Time cost=62.885s, total_rounds=15
+[Client 0] Q-update task 1: loss_cur=85.1103, loss_prev=79.1815, delta=1.0000, Q[1] from 0.0000 -> 4.9287
+[Client 0] Finished end-of-task actions for task 2. Q_history length=6
+[Client 0] train() finished for round=20. Time cost=62.897s, total_rounds=12
+************************* length of uploaded models ************************* 3
+
+Evaluate global model
+evaluation for task 0
+Averaged Test Accuracy: 21.45%
+Averaged Test Loss: 2.5731
+evaluation for task 1
+Averaged Test Accuracy: 33.25%
+Averaged Test Loss: 2.1920
+evaluation for task 2
+Averaged Test Accuracy: 19.85%
+Averaged Test Loss: 2.5117
+Task-wise accuracies: ['21.45%', '33.25%', '19.85%']
+Mean accuracy across tasks: 24.85%
+------------------------- Time cost ------------------------- 72.26233911514282
+
+-------------Round number: 21-------------
+Hidden clients for round 21: [0, 1]
+Selected clients: 3
+Q:[0.0, 0.0, 0.0, 0.0, 0.0]
+Q:[2.1148438453674316, 0.0, 0.0, 0.0, 0.0]
+Q:[1.6664495468139648, 0.0, 0.0, 0.0, 0.0]
+[Client 4] old_model prepared from theta_prev for task 2
+[Client 3] old_model prepared from theta_prev for task 2
+[Client 2] Task 2, Epoch 1/1, Loss=496.5771, Train Acc=22.17%
+Updating Q Values
+[Client 2] Updating Q for previous task 0
+[Client 2] No stored memory for task 0; skipping Q update
+[Client 2] Updating Q for previous task 1
+[Client 4] Task 2, Epoch 1/1, Loss=428.0381, Train Acc=32.13%
+Updating Q Values
+[Client 4] Updating Q for previous task 0
+[Client 2] Q-update task 1: loss_cur=86.8235, loss_prev=0.0000, delta=1.0000, Q[1] from 0.0000 -> 85.8235
+[Client 2] Finished end-of-task actions for task 2. Q_history length=7
+[Client 2] train() finished for round=21. Time cost=61.145s, total_rounds=12
+[Client 4] Q-update task 0: loss_cur=103.1453, loss_prev=100.0007, delta=1.0000, Q[0] from 1.6664 -> 3.8110
+[Client 4] Updating Q for previous task 1
+[Client 4] No stored memory for task 1; skipping Q update
+[Client 4] Finished end-of-task actions for task 2. Q_history length=9
+[Client 4] train() finished for round=21. Time cost=64.874s, total_rounds=15
+[Client 3] Task 2, Epoch 1/1, Loss=491.0533, Train Acc=23.73%
+Updating Q Values
+[Client 3] Updating Q for previous task 0
+[Client 3] Q-update task 0: loss_cur=50.3838, loss_prev=50.7299, delta=1.0000, Q[0] from 2.1148 -> 0.7688
+[Client 3] Updating Q for previous task 1
+[Client 3] Q-update task 1: loss_cur=41.7069, loss_prev=59.9745, delta=1.0000, Q[1] from 0.0000 -> 0.0000
+[Client 3] Finished end-of-task actions for task 2. Q_history length=6
+[Client 3] train() finished for round=21. Time cost=71.228s, total_rounds=12
+************************* length of uploaded models ************************* 3
+
+Evaluate global model
+evaluation for task 0
+Averaged Test Accuracy: 20.85%
+Averaged Test Loss: 2.5682
+evaluation for task 1
+Averaged Test Accuracy: 32.70%
+Averaged Test Loss: 2.2464
+evaluation for task 2
+Averaged Test Accuracy: 30.85%
+Averaged Test Loss: 2.2323
+Task-wise accuracies: ['20.85%', '32.70%', '30.85%']
+Mean accuracy across tasks: 28.13%
+------------------------- Time cost ------------------------- 80.17679286003113
+
+-------------Round number: 22-------------
+Hidden clients for round 22: [0, 3]
+Selected clients: 3
+Q:[0.013373374938964844, 0.0, 0.0, 0.0, 0.0]
+Q:[3.8110384941101074, 0.0, 0.0, 0.0, 0.0]
+Q:[0.0, 85.82347464561462, 0.0, 0.0, 0.0]
+[Client 1] old_model prepared from theta_prev for task 2
+[Client 4] old_model prepared from theta_prev for task 2
+[Client 2] Task 2, Epoch 1/1, Loss=595.5316, Train Acc=32.58%
+Updating Q Values
+[Client 2] Updating Q for previous task 0
+[Client 2] No stored memory for task 0; skipping Q update
+[Client 2] Updating Q for previous task 1
+[Client 2] Q-update task 1: loss_cur=63.6397, loss_prev=0.0000, delta=1.0000, Q[1] from 85.8235 -> 148.4632
+[Client 2] Finished end-of-task actions for task 2. Q_history length=8
+[Client 2] train() finished for round=22. Time cost=53.015s, total_rounds=13
+[Client 1] Task 2, Epoch 1/1, Loss=441.4913, Train Acc=30.52%
+Updating Q Values
+[Client 1] Updating Q for previous task 0
+[Client 4] Task 2, Epoch 1/1, Loss=415.7491, Train Acc=35.34%
+Updating Q Values
+[Client 4] Updating Q for previous task 0
+[Client 1] Q-update task 0: loss_cur=102.2572, loss_prev=101.4912, delta=1.0000, Q[0] from 0.0134 -> 0.0000
+[Client 1] Updating Q for previous task 1
+[Client 1] No stored memory for task 1; skipping Q update
+[Client 1] Finished end-of-task actions for task 2. Q_history length=9
+[Client 1] train() finished for round=22. Time cost=58.028s, total_rounds=16
+[Client 4] Q-update task 0: loss_cur=99.2675, loss_prev=99.9241, delta=1.0000, Q[0] from 3.8110 -> 2.1545
+[Client 4] Updating Q for previous task 1
+[Client 4] No stored memory for task 1; skipping Q update
+[Client 4] Finished end-of-task actions for task 2. Q_history length=10
+[Client 4] train() finished for round=22. Time cost=58.034s, total_rounds=16
+************************* length of uploaded models ************************* 3
+
+Evaluate global model
+evaluation for task 0
+Averaged Test Accuracy: 21.75%
+Averaged Test Loss: 2.5601
+evaluation for task 1
+Averaged Test Accuracy: 32.80%
+Averaged Test Loss: 2.2355
+evaluation for task 2
+Averaged Test Accuracy: 33.05%
+Averaged Test Loss: 2.2187
+Task-wise accuracies: ['21.75%', '32.80%', '33.05%']
+Mean accuracy across tasks: 29.20%
+------------------------- Time cost ------------------------- 67.37610602378845
+
+-------------Round number: 23-------------
+Hidden clients for round 23: [0, 3]
+Selected clients: 3
+Q:[0.0, 0.0, 0.0, 0.0, 0.0]
+Q:[0.0, 148.46316748857498, 0.0, 0.0, 0.0]
+Q:[2.154454469680786, 0.0, 0.0, 0.0, 0.0]
+[Client 1] old_model prepared from theta_prev for task 2
+[Client 4] old_model prepared from theta_prev for task 2
+[Client 2] Task 2, Epoch 1/1, Loss=677.3673, Train Acc=36.10%
+Updating Q Values
+[Client 2] Updating Q for previous task 0
+[Client 2] No stored memory for task 0; skipping Q update
+[Client 2] Updating Q for previous task 1
+[Client 2] Q-update task 1: loss_cur=57.4478, loss_prev=0.0000, delta=1.0000, Q[1] from 148.4632 -> 204.9109
+[Client 2] Finished end-of-task actions for task 2. Q_history length=9
+[Client 2] train() finished for round=23. Time cost=54.900s, total_rounds=14
+[Client 1] Task 2, Epoch 1/1, Loss=400.8046, Train Acc=36.55%
+Updating Q Values
+[Client 1] Updating Q for previous task 0
+[Client 4] Task 2, Epoch 1/1, Loss=394.4522, Train Acc=36.10%
+Updating Q Values
+[Client 4] Updating Q for previous task 0
+[Client 1] Q-update task 0: loss_cur=103.5437, loss_prev=101.4600, delta=1.0000, Q[0] from 0.0000 -> 1.0837
+[Client 1] Updating Q for previous task 1
+[Client 1] No stored memory for task 1; skipping Q update
+[Client 1] Finished end-of-task actions for task 2. Q_history length=10
+[Client 1] train() finished for round=23. Time cost=59.273s, total_rounds=17
+[Client 4] Q-update task 0: loss_cur=100.4167, loss_prev=99.8884, delta=1.0000, Q[0] from 2.1545 -> 1.6827
+[Client 4] Updating Q for previous task 1
+[Client 4] No stored memory for task 1; skipping Q update
+[Client 4] Finished end-of-task actions for task 2. Q_history length=11
+[Client 4] train() finished for round=23. Time cost=59.358s, total_rounds=17
+************************* length of uploaded models ************************* 3
+
+Evaluate global model
+evaluation for task 0
+Averaged Test Accuracy: 21.60%
+Averaged Test Loss: 2.5685
+evaluation for task 1
+Averaged Test Accuracy: 32.80%
+Averaged Test Loss: 2.2138
+evaluation for task 2
+Averaged Test Accuracy: 35.55%
+Averaged Test Loss: 2.0659
+Task-wise accuracies: ['21.60%', '32.80%', '35.55%']
+Mean accuracy across tasks: 29.98%
+------------------------- Time cost ------------------------- 69.43656182289124
+
+-------------Round number: 24-------------
+Hidden clients for round 24: [0, 1]
+Selected clients: 3
+Q:[0.7687580585479736, 0.0, 0.0, 0.0, 0.0]
+Q:[0.0, 204.9109480381012, 0.0, 0.0, 0.0]
+Q:[1.6827392578125, 0.0, 0.0, 0.0, 0.0]
+[Client 3] old_model prepared from theta_prev for task 2
+[Client 4] old_model prepared from theta_prev for task 2
+[Client 2] Task 2, Epoch 1/1, Loss=713.7919, Train Acc=40.67%
+Updating Q Values
+[Client 2] Updating Q for previous task 0
+[Client 2] No stored memory for task 0; skipping Q update
+[Client 2] Updating Q for previous task 1
+[Client 2] Q-update task 1: loss_cur=40.1925, loss_prev=0.0000, delta=1.0000, Q[1] from 204.9109 -> 244.1035
+[Client 2] Finished end-of-task actions for task 2. Q_history length=10
+[Client 2] train() finished for round=24. Time cost=59.281s, total_rounds=15
+[Client 4] Task 2, Epoch 1/1, Loss=372.5509, Train Acc=41.28%
+Updating Q Values
+[Client 4] Updating Q for previous task 0
+[Client 4] Q-update task 0: loss_cur=101.3224, loss_prev=99.4257, delta=1.0000, Q[0] from 1.6827 -> 2.5795
+[Client 4] Updating Q for previous task 1
+[Client 4] No stored memory for task 1; skipping Q update
+[Client 4] Finished end-of-task actions for task 2. Q_history length=12
+[Client 4] train() finished for round=24. Time cost=64.335s, total_rounds=18
+[Client 3] Task 2, Epoch 1/1, Loss=429.8385, Train Acc=31.93%
+Updating Q Values
+[Client 3] Updating Q for previous task 0
+[Client 3] Q-update task 0: loss_cur=50.0438, loss_prev=49.6141, delta=1.0000, Q[0] from 0.7688 -> 0.1984
+[Client 3] Updating Q for previous task 1
+[Client 3] Q-update task 1: loss_cur=41.6442, loss_prev=59.9895, delta=1.0000, Q[1] from 0.0000 -> 0.0000
+[Client 3] Finished end-of-task actions for task 2. Q_history length=7
+[Client 3] train() finished for round=24. Time cost=70.384s, total_rounds=13
+************************* length of uploaded models ************************* 3
+
+Evaluate global model
+evaluation for task 0
+Averaged Test Accuracy: 20.25%
+Averaged Test Loss: 2.6139
+evaluation for task 1
+Averaged Test Accuracy: 33.05%
+Averaged Test Loss: 2.2153
+evaluation for task 2
+Averaged Test Accuracy: 36.35%
+Averaged Test Loss: 2.0837
+Task-wise accuracies: ['20.25%', '33.05%', '36.35%']
+Mean accuracy across tasks: 29.88%
+------------------------- Time cost ------------------------- 79.23902225494385
+
+-------------Round number: 25-------------
+Hidden clients for round 25: [2, 3]
+Selected clients: 3
+Q:[0.0, 4.928744673728943, 0.0, 0.0, 0.0]
+Q:[2.5794572830200195, 0.0, 0.0, 0.0, 0.0]
+Q:[1.0836772918701172, 0.0, 0.0, 0.0, 0.0]
+[Client 0] old_model prepared from theta_prev for task 2
+[Client 1] old_model prepared from theta_prev for task 2
+[Client 4] old_model prepared from theta_prev for task 2
+[Client 0] Task 2, Epoch 1/1, Loss=441.1653, Train Acc=29.76%
+Updating Q Values
+[Client 0] Updating Q for previous task 0
+[Client 0] No stored memory for task 0; skipping Q update
+[Client 0] Updating Q for previous task 1
+[Client 1] Task 2, Epoch 1/1, Loss=388.9104, Train Acc=39.17%
+Updating Q Values
+[Client 1] Updating Q for previous task 0
+[Client 4] Task 2, Epoch 1/1, Loss=352.0213, Train Acc=44.39%
+Updating Q Values
+[Client 4] Updating Q for previous task 0
+[Client 0] Q-update task 1: loss_cur=83.0924, loss_prev=78.9690, delta=1.0000, Q[1] from 4.9287 -> 8.0521
+[Client 0] Finished end-of-task actions for task 2. Q_history length=7
+[Client 0] train() finished for round=25. Time cost=63.522s, total_rounds=13
+[Client 1] Q-update task 0: loss_cur=102.6883, loss_prev=101.4030, delta=1.0000, Q[0] from 1.0837 -> 1.3689
+[Client 1] Updating Q for previous task 1
+[Client 1] No stored memory for task 1; skipping Q update
+[Client 1] Finished end-of-task actions for task 2. Q_history length=11
+[Client 1] train() finished for round=25. Time cost=63.694s, total_rounds=18
+[Client 4] Q-update task 0: loss_cur=99.7605, loss_prev=100.0239, delta=1.0000, Q[0] from 2.5795 -> 1.3160
+[Client 4] Updating Q for previous task 1
+[Client 4] No stored memory for task 1; skipping Q update
+[Client 4] Finished end-of-task actions for task 2. Q_history length=13
+[Client 4] train() finished for round=25. Time cost=63.760s, total_rounds=19
+************************* length of uploaded models ************************* 3
+
+Evaluate global model
+evaluation for task 0
+Averaged Test Accuracy: 19.15%
+Averaged Test Loss: 2.6661
+evaluation for task 1
+Averaged Test Accuracy: 31.05%
+Averaged Test Loss: 2.2657
+evaluation for task 2
+Averaged Test Accuracy: 35.10%
+Averaged Test Loss: 2.1876
+Task-wise accuracies: ['19.15%', '31.05%', '35.10%']
+Mean accuracy across tasks: 28.43%
+------------------------- Time cost ------------------------- 72.10968112945557
+
+-------------Round number: 26-------------
+Hidden clients for round 26: [0, 1]
+Selected clients: 3
+Q:[0.1984013319015503, 0.0, 0.0, 0.0, 0.0]
+Q:[0.0, 244.1034523844719, 0.0, 0.0, 0.0]
+Q:[1.315997838973999, 0.0, 0.0, 0.0, 0.0]
+[Client 4] old_model prepared from theta_prev for task 2
+[Client 3] old_model prepared from theta_prev for task 2
+[Client 2] Task 2, Epoch 1/1, Loss=723.9909, Train Acc=41.03%
+Updating Q Values
+[Client 2] Updating Q for previous task 0
+[Client 2] No stored memory for task 0; skipping Q update
+[Client 2] Updating Q for previous task 1
+[Client 4] Task 2, Epoch 1/1, Loss=354.1037, Train Acc=42.84%
+Updating Q Values
+[Client 4] Updating Q for previous task 0
+[Client 2] Q-update task 1: loss_cur=30.3398, loss_prev=0.0000, delta=1.0000, Q[1] from 244.1035 -> 273.4433
+[Client 2] Finished end-of-task actions for task 2. Q_history length=11
+[Client 2] train() finished for round=26. Time cost=59.297s, total_rounds=16
+[Client 4] Q-update task 0: loss_cur=103.3284, loss_prev=99.6677, delta=1.0000, Q[0] from 1.3160 -> 3.9767
+[Client 4] Updating Q for previous task 1
+[Client 4] No stored memory for task 1; skipping Q update
+[Client 4] Finished end-of-task actions for task 2. Q_history length=14
+[Client 4] train() finished for round=26. Time cost=63.633s, total_rounds=20
+[Client 3] Task 2, Epoch 1/1, Loss=372.1358, Train Acc=40.82%
+Updating Q Values
+[Client 3] Updating Q for previous task 0
+[Client 3] Q-update task 0: loss_cur=50.8921, loss_prev=49.4816, delta=1.0000, Q[0] from 0.1984 -> 0.6089
+[Client 3] Updating Q for previous task 1
+[Client 3] Q-update task 1: loss_cur=42.9724, loss_prev=59.9511, delta=1.0000, Q[1] from 0.0000 -> 0.0000
+[Client 3] Finished end-of-task actions for task 2. Q_history length=8
+[Client 3] train() finished for round=26. Time cost=69.676s, total_rounds=14
+************************* length of uploaded models ************************* 3
+
+Evaluate global model
+evaluation for task 0
+Averaged Test Accuracy: 20.30%
+Averaged Test Loss: 2.6187
+evaluation for task 1
+Averaged Test Accuracy: 31.55%
+Averaged Test Loss: 2.2521
+evaluation for task 2
+Averaged Test Accuracy: 37.95%
+Averaged Test Loss: 2.0590
+Task-wise accuracies: ['20.30%', '31.55%', '37.95%']
+Mean accuracy across tasks: 29.93%
+------------------------- Time cost ------------------------- 79.38682889938354
+
+-------------Round number: 27-------------
+Hidden clients for round 27: [3, 4]
+Selected clients: 3
+Q:[0.0, 8.052143335342407, 0.0, 0.0, 0.0]
+Q:[1.3689014911651611, 0.0, 0.0, 0.0, 0.0]
+Q:[0.0, 273.443290323019, 0.0, 0.0, 0.0]
+[Client 1] old_model prepared from theta_prev for task 2
+[Client 0] old_model prepared from theta_prev for task 2
+[Client 2] Task 2, Epoch 1/1, Loss=697.3620, Train Acc=42.28%
+Updating Q Values
+[Client 2] Updating Q for previous task 0
+[Client 2] No stored memory for task 0; skipping Q update
+[Client 2] Updating Q for previous task 1
+[Client 2] Q-update task 1: loss_cur=17.2969, loss_prev=0.0000, delta=1.0000, Q[1] from 273.4433 -> 289.7402
+[Client 2] Finished end-of-task actions for task 2. Q_history length=12
+[Client 2] train() finished for round=27. Time cost=53.723s, total_rounds=17
+[Client 1] Task 2, Epoch 1/1, Loss=377.2357, Train Acc=41.28%
+Updating Q Values
+[Client 1] Updating Q for previous task 0
+[Client 0] Task 2, Epoch 1/1, Loss=380.9907, Train Acc=41.18%
+Updating Q Values
+[Client 0] Updating Q for previous task 0
+[Client 0] No stored memory for task 0; skipping Q update
+[Client 0] Updating Q for previous task 1
+[Client 1] Q-update task 0: loss_cur=100.5786, loss_prev=101.4541, delta=1.0000, Q[0] from 1.3689 -> 0.0000
+[Client 1] Updating Q for previous task 1
+[Client 1] No stored memory for task 1; skipping Q update
+[Client 1] Finished end-of-task actions for task 2. Q_history length=12
+[Client 1] train() finished for round=27. Time cost=58.704s, total_rounds=19
+[Client 0] Q-update task 1: loss_cur=80.3498, loss_prev=79.0346, delta=1.0000, Q[1] from 8.0521 -> 8.3674
+[Client 0] Finished end-of-task actions for task 2. Q_history length=8
+[Client 0] train() finished for round=27. Time cost=58.713s, total_rounds=14
+************************* length of uploaded models ************************* 3
+
+Evaluate global model
+evaluation for task 0
+Averaged Test Accuracy: 21.10%
+Averaged Test Loss: 2.6145
+evaluation for task 1
+Averaged Test Accuracy: 33.30%
+Averaged Test Loss: 2.2397
+evaluation for task 2
+Averaged Test Accuracy: 39.05%
+Averaged Test Loss: 2.0412
+Task-wise accuracies: ['21.10%', '33.30%', '39.05%']
+Mean accuracy across tasks: 31.15%
+------------------------- Time cost ------------------------- 66.89357042312622
+
+-------------Round number: 28-------------
+Hidden clients for round 28: [0, 2]
+Selected clients: 3
+Q:[0.0, 0.0, 0.0, 0.0, 0.0]
+Q:[3.976717710494995, 0.0, 0.0, 0.0, 0.0]
+Q:[0.6089138984680176, 0.0, 0.0, 0.0, 0.0]
+[Client 4] old_model prepared from theta_prev for task 2
+[Client 3] old_model prepared from theta_prev for task 2
+[Client 1] old_model prepared from theta_prev for task 2
+[Client 4] Task 2, Epoch 1/1, Loss=337.8156, Train Acc=45.30%
+Updating Q Values
+[Client 4] Updating Q for previous task 0
+[Client 1] Task 2, Epoch 1/1, Loss=355.6956, Train Acc=42.63%
+Updating Q Values
+[Client 1] Updating Q for previous task 0
+[Client 4] Q-update task 0: loss_cur=99.9431, loss_prev=100.1241, delta=1.0000, Q[0] from 3.9767 -> 2.7957
+[Client 4] Updating Q for previous task 1
+[Client 4] No stored memory for task 1; skipping Q update
+[Client 4] Finished end-of-task actions for task 2. Q_history length=15
+[Client 4] train() finished for round=28. Time cost=70.002s, total_rounds=21
+[Client 1] Q-update task 0: loss_cur=103.8948, loss_prev=101.5875, delta=1.0000, Q[0] from 0.0000 -> 1.3073
+[Client 1] Updating Q for previous task 1
+[Client 1] No stored memory for task 1; skipping Q update
+[Client 1] Finished end-of-task actions for task 2. Q_history length=13
+[Client 1] train() finished for round=28. Time cost=70.241s, total_rounds=20
+[Client 3] Task 2, Epoch 1/1, Loss=352.1089, Train Acc=45.50%
+Updating Q Values
+[Client 3] Updating Q for previous task 0
+[Client 3] Q-update task 0: loss_cur=50.2840, loss_prev=50.2726, delta=1.0000, Q[0] from 0.6089 -> 0.0000
+[Client 3] Updating Q for previous task 1
+[Client 3] Q-update task 1: loss_cur=46.6914, loss_prev=59.9171, delta=1.0000, Q[1] from 0.0000 -> 0.0000
+[Client 3] Finished end-of-task actions for task 2. Q_history length=9
+[Client 3] train() finished for round=28. Time cost=77.106s, total_rounds=15
+************************* length of uploaded models ************************* 3
+
+Evaluate global model
+evaluation for task 0
+Averaged Test Accuracy: 22.35%
+Averaged Test Loss: 2.5878
+evaluation for task 1
+Averaged Test Accuracy: 33.15%
+Averaged Test Loss: 2.2457
+evaluation for task 2
+Averaged Test Accuracy: 40.75%
+Averaged Test Loss: 1.9960
+Task-wise accuracies: ['22.35%', '33.15%', '40.75%']
+Mean accuracy across tasks: 32.08%
+------------------------- Time cost ------------------------- 86.20170760154724
+
+-------------Round number: 29-------------
+Hidden clients for round 29: [3, 4]
+Selected clients: 3
+Q:[0.0, 8.367404341697693, 0.0, 0.0, 0.0]
+Q:[0.0, 289.7402331829071, 0.0, 0.0, 0.0]
+Q:[1.3072572946548462, 0.0, 0.0, 0.0, 0.0]
+[Client 0] old_model prepared from theta_prev for task 2
+[Client 1] old_model prepared from theta_prev for task 2
+[Client 2] Task 2, Epoch 1/1, Loss=694.6467, Train Acc=44.60%
+[Client 2] Detected end of task 2 at round 29; saving memory 
+
+[DEBUG] BEFORE update — Client 2, Task 2
+  • Task 1: 500 samples
+  → Total stored samples BEFORE update = 500
+
+[DEBUG] Balanced Reservoir: base=250, remainder=0
+[Client 2] Balanced reservoir stored 250 samples for task 2
+[Client 2] Memory loader for task 1 now has 250 samples
+[Client 2] Memory loader for task 2 now has 250 samples
+
+[DEBUG] AFTER update — Client 2, Task 2
+  • Task 1: 250 samples
+  • Task 2: 250 samples
+  → Total stored samples AFTER update = 500
+---------------------------------------------------------
+
+Updating Q Values
+[Client 2] Updating Q for previous task 0
+[Client 2] No stored memory for task 0; skipping Q update
+[Client 2] Updating Q for previous task 1
+[Client 2] Q-update task 1: loss_cur=10.0222, loss_prev=0.0000, delta=1.0000, Q[1] from 289.7402 -> 298.7624
+[Client 2] Finished end-of-task actions for task 2. Q_history length=13
+[Client 2] train() finished for round=29. Time cost=52.132s, total_rounds=18
+[Client 0] Task 2, Epoch 1/1, Loss=348.4216, Train Acc=45.95%
+[Client 0] Detected end of task 2 at round 29; saving memory 
+
+[DEBUG] BEFORE update — Client 0, Task 2
+  • Task 1: 500 samples
+  → Total stored samples BEFORE update = 500
+
+[DEBUG] Balanced Reservoir: base=250, remainder=0
+[Client 0] Balanced reservoir stored 250 samples for task 2
+[Client 0] Memory loader for task 1 now has 250 samples
+[Client 0] Memory loader for task 2 now has 250 samples
+
+[DEBUG] AFTER update — Client 0, Task 2
+  • Task 1: 250 samples
+  • Task 2: 250 samples
+  → Total stored samples AFTER update = 500
+---------------------------------------------------------
+
+Updating Q Values
+[Client 0] Updating Q for previous task 0
+[Client 0] No stored memory for task 0; skipping Q update
+[Client 0] Updating Q for previous task 1
+[Client 1] Task 2, Epoch 1/1, Loss=332.0425, Train Acc=47.66%
+[Client 1] Detected end of task 2 at round 29; saving memory 
+
+[DEBUG] BEFORE update — Client 1, Task 2
+  • Task 0: 500 samples
+  → Total stored samples BEFORE update = 500
+
+[DEBUG] Balanced Reservoir: base=250, remainder=0
+[Client 1] Balanced reservoir stored 250 samples for task 2
+[Client 1] Memory loader for task 0 now has 250 samples
+[Client 1] Memory loader for task 2 now has 250 samples
+
+[DEBUG] AFTER update — Client 1, Task 2
+  • Task 0: 250 samples
+  • Task 2: 250 samples
+  → Total stored samples AFTER update = 500
+---------------------------------------------------------
+
+Updating Q Values
+[Client 1] Updating Q for previous task 0
+[Client 0] Q-update task 1: loss_cur=41.1764, loss_prev=40.6053, delta=1.0000, Q[1] from 8.3674 -> 7.9384
+[Client 0] Finished end-of-task actions for task 2. Q_history length=9
+[Client 0] train() finished for round=29. Time cost=57.644s, total_rounds=15
+[Client 1] Q-update task 0: loss_cur=52.3040, loss_prev=51.2220, delta=1.0000, Q[0] from 1.3073 -> 1.3893
+[Client 1] Updating Q for previous task 1
+[Client 1] No stored memory for task 1; skipping Q update
+[Client 1] Finished end-of-task actions for task 2. Q_history length=14
+[Client 1] train() finished for round=29. Time cost=57.689s, total_rounds=21
+************************* length of uploaded models ************************* 3
+
+Evaluate global model
+evaluation for task 0
+Averaged Test Accuracy: 22.45%
+Averaged Test Loss: 2.5943
+evaluation for task 1
+Averaged Test Accuracy: 33.75%
+Averaged Test Loss: 2.2277
+evaluation for task 2
+Averaged Test Accuracy: 44.25%
+Averaged Test Loss: 1.8240
+Task-wise accuracies: ['22.45%', '33.75%', '44.25%']
+Mean accuracy across tasks: 33.48%
+------------------------- Time cost ------------------------- 67.1845428943634
+
+-------------Round number: 30-------------
+Hidden clients for round 30: [1, 2]
+Selected clients: 3
+Q:[0.0, 7.938417315483093, 0.0, 0.0, 0.0]
+Q:[0.0, 0.0, 0.0, 0.0, 0.0]
+Q:[2.795654535293579, 0.0, 0.0, 0.0, 0.0]
+saving the weights in theta_prev for task{task_id} 
+[Client 0] Saved theta_prev BEFORE training for task 3
+saving the weights in theta_prev for task{task_id} 
+[Client 3] Saved theta_prev BEFORE training for task 3
+saving the weights in theta_prev for task{task_id} 
+[Client 4] Saved theta_prev BEFORE training for task 3
+[Client 0] old_model prepared from theta_prev for task 3
+[Client 4] old_model prepared from theta_prev for task 3
+[Client 3] old_model prepared from theta_prev for task 3
+[Client 4] Task 3, Epoch 1/1, Loss=438.1240, Train Acc=31.02%
+Updating Q Values
+[Client 4] Updating Q for previous task 0
+[Client 4] Q-update task 0: loss_cur=100.0875, loss_prev=99.5891, delta=1.0000, Q[0] from 2.7957 -> 2.2941
+[Client 4] Updating Q for previous task 1
+[Client 4] No stored memory for task 1; skipping Q update
+[Client 4] Updating Q for previous task 2
+[Client 4] No stored memory for task 2; skipping Q update
+[Client 4] Finished end-of-task actions for task 3. Q_history length=16
+[Client 4] train() finished for round=30. Time cost=68.668s, total_rounds=22
+[Client 0] Task 3, Epoch 1/1, Loss=430.2504, Train Acc=32.28%
+Updating Q Values
+[Client 0] Updating Q for previous task 0
+[Client 0] No stored memory for task 0; skipping Q update
+[Client 0] Updating Q for previous task 1
+[Client 3] Task 3, Epoch 1/1, Loss=434.1388, Train Acc=32.28%
+Updating Q Values
+[Client 3] Updating Q for previous task 0
+[Client 0] Q-update task 1: loss_cur=36.2090, loss_prev=43.2696, delta=1.0000, Q[1] from 7.9384 -> 0.0000
+[Client 0] Updating Q for previous task 2
+[Client 3] Q-update task 0: loss_cur=49.8635, loss_prev=49.1055, delta=1.0000, Q[0] from 0.0000 -> 0.0000
+[Client 3] Updating Q for previous task 1
+[Client 0] Q-update task 2: loss_cur=38.1827, loss_prev=34.4855, delta=1.0000, Q[2] from 0.0000 -> 2.6972
+[Client 0] Finished end-of-task actions for task 3. Q_history length=10
+[Client 0] train() finished for round=30. Time cost=80.831s, total_rounds=16
+[Client 3] Q-update task 1: loss_cur=44.7224, loss_prev=42.1774, delta=1.0000, Q[1] from 0.0000 -> 1.5450
+[Client 3] Updating Q for previous task 2
+[Client 3] No stored memory for task 2; skipping Q update
+[Client 3] Finished end-of-task actions for task 3. Q_history length=10
+[Client 3] train() finished for round=30. Time cost=81.043s, total_rounds=16
+************************* length of uploaded models ************************* 3
+
+Evaluate global model
+evaluation for task 0
+Averaged Test Accuracy: 23.75%
+Averaged Test Loss: 2.5982
+evaluation for task 1
+Averaged Test Accuracy: 34.35%
+Averaged Test Loss: 2.2079
+evaluation for task 2
+Averaged Test Accuracy: 43.45%
+Averaged Test Loss: 1.8652
+evaluation for task 3
+Averaged Test Accuracy: 25.00%
+Averaged Test Loss: 2.3887
+Task-wise accuracies: ['23.75%', '34.35%', '43.45%', '25.00%']
+Mean accuracy across tasks: 31.64%
+------------------------- Time cost ------------------------- 99.39465165138245
+
+-------------Round number: 31-------------
+Hidden clients for round 31: [0, 3]
+Selected clients: 3
+Q:[1.3892861604690552, 0.0, 0.0, 0.0, 0.0]
+Q:[0.0, 298.76238833367825, 0.0, 0.0, 0.0]
+Q:[2.2940787076950073, 0.0, 0.0, 0.0, 0.0]
+[Client 1] old_model prepared from theta_prev for task 3
+[Client 4] old_model prepared from theta_prev for task 3
+[Client 4] Task 3, Epoch 1/1, Loss=368.6558, Train Acc=41.63%
+Updating Q Values
+[Client 4] Updating Q for previous task 0
+[Client 4] Q-update task 0: loss_cur=99.3124, loss_prev=99.5316, delta=1.0000, Q[0] from 2.2941 -> 1.0748
+[Client 4] Updating Q for previous task 1
+[Client 4] No stored memory for task 1; skipping Q update
+[Client 4] Updating Q for previous task 2
+[Client 4] No stored memory for task 2; skipping Q update
+[Client 4] Finished end-of-task actions for task 3. Q_history length=17
+[Client 4] train() finished for round=31. Time cost=68.941s, total_rounds=23
+[Client 2] Task 3, Epoch 1/1, Loss=641.3578, Train Acc=30.22%
+Updating Q Values
+[Client 2] Updating Q for previous task 0
+[Client 2] No stored memory for task 0; skipping Q update
+[Client 2] Updating Q for previous task 1
+[Client 1] Task 3, Epoch 1/1, Loss=425.0514, Train Acc=34.19%
+Updating Q Values
+[Client 1] Updating Q for previous task 0
+[Client 2] Q-update task 1: loss_cur=1.2140, loss_prev=0.0000, delta=1.0000, Q[1] from 298.7624 -> 298.9764
+[Client 2] Updating Q for previous task 2
+[Client 1] Q-update task 0: loss_cur=49.8590, loss_prev=51.2360, delta=1.0000, Q[0] from 1.3893 -> 0.0000
+[Client 1] Updating Q for previous task 1
+[Client 1] No stored memory for task 1; skipping Q update
+[Client 1] Updating Q for previous task 2
+[Client 2] Q-update task 2: loss_cur=34.2219, loss_prev=0.0000, delta=1.0000, Q[2] from 0.0000 -> 33.2219
+[Client 2] Finished end-of-task actions for task 3. Q_history length=14
+[Client 2] train() finished for round=31. Time cost=78.431s, total_rounds=19
+[Client 1] Q-update task 2: loss_cur=32.4245, loss_prev=59.9629, delta=1.0000, Q[2] from 0.0000 -> 0.0000
+[Client 1] Finished end-of-task actions for task 3. Q_history length=15
+[Client 1] train() finished for round=31. Time cost=79.044s, total_rounds=22
+************************* length of uploaded models ************************* 3
+
+Evaluate global model
+evaluation for task 0
+Averaged Test Accuracy: 24.45%
+Averaged Test Loss: 2.5722
+evaluation for task 1
+Averaged Test Accuracy: 35.80%
+Averaged Test Loss: 2.2448
+evaluation for task 2
+Averaged Test Accuracy: 42.85%
+Averaged Test Loss: 1.8776
+evaluation for task 3
+Averaged Test Accuracy: 39.10%
+Averaged Test Loss: 1.9380
+Task-wise accuracies: ['24.45%', '35.80%', '42.85%', '39.10%']
+Mean accuracy across tasks: 35.55%
+------------------------- Time cost ------------------------- 95.4795274734497
+
+-------------Round number: 32-------------
+Hidden clients for round 32: [0, 4]
+Selected clients: 3
+Q:[0.0, 298.9763986291364, 33.2219055891037, 0.0, 0.0]
+Q:[0.0, 0.0, 0.0, 0.0, 0.0]
+Q:[0.0, 1.5450139045715332, 0.0, 0.0, 0.0]
+[Client 1] old_model prepared from theta_prev for task 3
+[Client 3] old_model prepared from theta_prev for task 3
+[Client 2] Task 3, Epoch 1/1, Loss=512.5752, Train Acc=39.87%
+Updating Q Values
+[Client 2] Updating Q for previous task 0
+[Client 2] No stored memory for task 0; skipping Q update
+[Client 2] Updating Q for previous task 1
+[Client 2] Q-update task 1: loss_cur=0.5320, loss_prev=0.0000, delta=1.0000, Q[1] from 298.9764 -> 298.5084
+[Client 2] Updating Q for previous task 2
+[Client 2] Q-update task 2: loss_cur=17.0617, loss_prev=0.0000, delta=1.0000, Q[2] from 33.2219 -> 49.2836
+[Client 2] Finished end-of-task actions for task 3. Q_history length=15
+[Client 2] train() finished for round=32. Time cost=87.659s, total_rounds=20
+[Client 1] Task 3, Epoch 1/1, Loss=344.9206, Train Acc=45.60%
+Updating Q Values
+[Client 1] Updating Q for previous task 0
+[Client 3] Task 3, Epoch 1/1, Loss=370.6947, Train Acc=40.93%
+Updating Q Values
+[Client 3] Updating Q for previous task 0
+[Client 3] Q-update task 0: loss_cur=50.8857, loss_prev=49.0947, delta=1.0000, Q[0] from 0.0000 -> 0.7910
+[Client 3] Updating Q for previous task 1
+[Client 1] Q-update task 0: loss_cur=51.1854, loss_prev=51.0006, delta=1.0000, Q[0] from 0.0000 -> 0.0000
+[Client 1] Updating Q for previous task 1
+[Client 1] No stored memory for task 1; skipping Q update
+[Client 1] Updating Q for previous task 2
+[Client 3] Q-update task 1: loss_cur=43.0750, loss_prev=41.9323, delta=1.0000, Q[1] from 1.5450 -> 1.6877
+[Client 3] Updating Q for previous task 2
+[Client 3] No stored memory for task 2; skipping Q update
+[Client 3] Finished end-of-task actions for task 3. Q_history length=11
+[Client 3] train() finished for round=32. Time cost=91.617s, total_rounds=17
+[Client 1] Q-update task 2: loss_cur=34.2076, loss_prev=59.9697, delta=1.0000, Q[2] from 0.0000 -> 0.0000
+[Client 1] Finished end-of-task actions for task 3. Q_history length=16
+[Client 1] train() finished for round=32. Time cost=91.625s, total_rounds=23
+************************* length of uploaded models ************************* 3
+
+Evaluate global model
+evaluation for task 0
+Averaged Test Accuracy: 23.15%
+Averaged Test Loss: 2.5851
+evaluation for task 1
+Averaged Test Accuracy: 35.10%
+Averaged Test Loss: 2.2489
+evaluation for task 2
+Averaged Test Accuracy: 41.95%
+Averaged Test Loss: 1.8887
+evaluation for task 3
+Averaged Test Accuracy: 39.70%
+Averaged Test Loss: 1.9188
+Task-wise accuracies: ['23.15%', '35.10%', '41.95%', '39.70%']
+Mean accuracy across tasks: 34.98%
+------------------------- Time cost ------------------------- 102.29571032524109
+
+-------------Round number: 33-------------
+Hidden clients for round 33: [2, 4]
+Selected clients: 3
+Q:[0.0, 0.0, 0.0, 0.0, 0.0]
+Q:[0.7910068035125732, 1.6877259016036987, 0.0, 0.0, 0.0]
+Q:[0.0, 0.0, 2.6972386837005615, 0.0, 0.0]
+[Client 3] old_model prepared from theta_prev for task 3
+[Client 1] old_model prepared from theta_prev for task 3
+[Client 0] old_model prepared from theta_prev for task 3
+[Client 1] Task 3, Epoch 1/1, Loss=319.4671, Train Acc=50.48%
+Updating Q Values
+[Client 1] Updating Q for previous task 0
+[Client 3] Task 3, Epoch 1/1, Loss=317.5740, Train Acc=49.37%
+Updating Q Values
+[Client 3] Updating Q for previous task 0
+[Client 0] Task 3, Epoch 1/1, Loss=371.8437, Train Acc=41.18%
+Updating Q Values
+[Client 0] Updating Q for previous task 0
+[Client 0] No stored memory for task 0; skipping Q update
+[Client 0] Updating Q for previous task 1
+[Client 1] Q-update task 0: loss_cur=51.4977, loss_prev=50.8391, delta=1.0000, Q[0] from 0.0000 -> 0.0000
+[Client 1] Updating Q for previous task 1
+[Client 1] No stored memory for task 1; skipping Q update
+[Client 1] Updating Q for previous task 2
+[Client 3] Q-update task 0: loss_cur=50.3482, loss_prev=49.0954, delta=1.0000, Q[0] from 0.7910 -> 1.0438
+[Client 3] Updating Q for previous task 1
+[Client 0] Q-update task 1: loss_cur=42.4735, loss_prev=42.6187, delta=1.0000, Q[1] from 0.0000 -> 0.0000
+[Client 0] Updating Q for previous task 2
+[Client 1] Q-update task 2: loss_cur=35.2001, loss_prev=59.9958, delta=1.0000, Q[2] from 0.0000 -> 0.0000
+[Client 1] Finished end-of-task actions for task 3. Q_history length=17
+[Client 1] train() finished for round=33. Time cost=92.476s, total_rounds=24
+[Client 3] Q-update task 1: loss_cur=40.6276, loss_prev=42.2906, delta=1.0000, Q[1] from 1.6877 -> 0.0000
+[Client 3] Updating Q for previous task 2
+[Client 3] No stored memory for task 2; skipping Q update
+[Client 3] Finished end-of-task actions for task 3. Q_history length=12
+[Client 3] train() finished for round=33. Time cost=93.548s, total_rounds=18
+[Client 0] Q-update task 2: loss_cur=36.2465, loss_prev=33.7735, delta=1.0000, Q[2] from 2.6972 -> 4.1703
+[Client 0] Finished end-of-task actions for task 3. Q_history length=11
+[Client 0] train() finished for round=33. Time cost=93.558s, total_rounds=17
+************************* length of uploaded models ************************* 3
+
+Evaluate global model
+evaluation for task 0
+Averaged Test Accuracy: 23.65%
+Averaged Test Loss: 2.5524
+evaluation for task 1
+Averaged Test Accuracy: 35.65%
+Averaged Test Loss: 2.2023
+evaluation for task 2
+Averaged Test Accuracy: 42.55%
+Averaged Test Loss: 1.8456
+evaluation for task 3
+Averaged Test Accuracy: 43.75%
+Averaged Test Loss: 1.8065
+Task-wise accuracies: ['23.65%', '35.65%', '42.55%', '43.75%']
+Mean accuracy across tasks: 36.40%
+------------------------- Time cost ------------------------- 111.32996845245361
+
+-------------Round number: 34-------------
+Hidden clients for round 34: [0, 2]
+Selected clients: 3
+Q:[0.0, 0.0, 0.0, 0.0, 0.0]
+Q:[1.0438151359558105, 0.0, 0.0, 0.0, 0.0]
+Q:[1.074841856956482, 0.0, 0.0, 0.0, 0.0]
+[Client 1] old_model prepared from theta_prev for task 3
+[Client 4] old_model prepared from theta_prev for task 3
+[Client 3] old_model prepared from theta_prev for task 3
+[Client 4] Task 3, Epoch 1/1, Loss=344.1614, Train Acc=44.29%
+Updating Q Values
+[Client 4] Updating Q for previous task 0
+[Client 4] Q-update task 0: loss_cur=102.6550, loss_prev=99.6380, delta=1.0000, Q[0] from 1.0748 -> 3.0919
+[Client 4] Updating Q for previous task 1
+[Client 4] No stored memory for task 1; skipping Q update
+[Client 4] Updating Q for previous task 2
+[Client 4] No stored memory for task 2; skipping Q update
+[Client 4] Finished end-of-task actions for task 3. Q_history length=18
+[Client 4] train() finished for round=34. Time cost=65.932s, total_rounds=24
+[Client 3] Task 3, Epoch 1/1, Loss=304.5647, Train Acc=52.94%
+Updating Q Values
+[Client 3] Updating Q for previous task 0
+[Client 1] Task 3, Epoch 1/1, Loss=300.1527, Train Acc=53.85%
+Updating Q Values
+[Client 1] Updating Q for previous task 0
+[Client 3] Q-update task 0: loss_cur=49.9515, loss_prev=48.7095, delta=1.0000, Q[0] from 1.0438 -> 1.2857
+[Client 3] Updating Q for previous task 1
+[Client 1] Q-update task 0: loss_cur=52.8052, loss_prev=51.3132, delta=1.0000, Q[0] from 0.0000 -> 0.4920
+[Client 1] Updating Q for previous task 1
+[Client 1] No stored memory for task 1; skipping Q update
+[Client 1] Updating Q for previous task 2
+[Client 3] Q-update task 1: loss_cur=41.5708, loss_prev=41.5374, delta=1.0000, Q[1] from 0.0000 -> 0.0000
+[Client 3] Updating Q for previous task 2
+[Client 3] No stored memory for task 2; skipping Q update
+[Client 3] Finished end-of-task actions for task 3. Q_history length=13
+[Client 3] train() finished for round=34. Time cost=82.591s, total_rounds=19
+[Client 1] Q-update task 2: loss_cur=33.8528, loss_prev=59.9250, delta=1.0000, Q[2] from 0.0000 -> 0.0000
+[Client 1] Finished end-of-task actions for task 3. Q_history length=18
+[Client 1] train() finished for round=34. Time cost=82.605s, total_rounds=25
+************************* length of uploaded models ************************* 3
+
+Evaluate global model
+evaluation for task 0
+Averaged Test Accuracy: 24.10%
+Averaged Test Loss: 2.5693
+evaluation for task 1
+Averaged Test Accuracy: 35.95%
+Averaged Test Loss: 2.1633
+evaluation for task 2
+Averaged Test Accuracy: 43.65%
+Averaged Test Loss: 1.8369
+evaluation for task 3
+Averaged Test Accuracy: 45.15%
+Averaged Test Loss: 1.7709
+Task-wise accuracies: ['24.10%', '35.95%', '43.65%', '45.15%']
+Mean accuracy across tasks: 37.21%
+------------------------- Time cost ------------------------- 100.63262462615967
+
+-------------Round number: 35-------------
+Hidden clients for round 35: [1, 4]
+Selected clients: 3
+Q:[0.0, 0.0, 4.170266389846802, 0.0, 0.0]
+Q:[0.0, 298.5084458338097, 49.28360903263092, 0.0, 0.0]
+Q:[1.2857400178909302, 0.0, 0.0, 0.0, 0.0]
+[Client 3] old_model prepared from theta_prev for task 3
+[Client 0] old_model prepared from theta_prev for task 3
+[Client 2] Task 3, Epoch 1/1, Loss=480.6915, Train Acc=44.04%
+Updating Q Values
+[Client 2] Updating Q for previous task 0
+[Client 2] No stored memory for task 0; skipping Q update
+[Client 2] Updating Q for previous task 1
+[Client 2] Q-update task 1: loss_cur=0.4079, loss_prev=0.0000, delta=1.0000, Q[1] from 298.5084 -> 297.9164
+[Client 2] Updating Q for previous task 2
+[Client 2] Q-update task 2: loss_cur=9.4958, loss_prev=0.0000, delta=1.0000, Q[2] from 49.2836 -> 57.7794
+[Client 2] Finished end-of-task actions for task 3. Q_history length=16
+[Client 2] train() finished for round=35. Time cost=83.826s, total_rounds=21
+[Client 3] Task 3, Epoch 1/1, Loss=280.7017, Train Acc=55.96%
+Updating Q Values
+[Client 3] Updating Q for previous task 0
+[Client 0] Task 3, Epoch 1/1, Loss=321.9814, Train Acc=50.18%
+Updating Q Values
+[Client 0] Updating Q for previous task 0
+[Client 0] No stored memory for task 0; skipping Q update
+[Client 0] Updating Q for previous task 1
+[Client 3] Q-update task 0: loss_cur=50.3784, loss_prev=48.9537, delta=1.0000, Q[0] from 1.2857 -> 1.7105
+[Client 3] Updating Q for previous task 1
+[Client 0] Q-update task 1: loss_cur=42.6693, loss_prev=42.3007, delta=1.0000, Q[1] from 0.0000 -> 0.0000
+[Client 0] Updating Q for previous task 2
+[Client 0] Q-update task 2: loss_cur=34.0547, loss_prev=33.6466, delta=1.0000, Q[2] from 4.1703 -> 3.5784
+[Client 0] Finished end-of-task actions for task 3. Q_history length=12
+[Client 0] train() finished for round=35. Time cost=87.179s, total_rounds=18
+[Client 3] Q-update task 1: loss_cur=43.0410, loss_prev=42.4602, delta=1.0000, Q[1] from 0.0000 -> 0.0000
+[Client 3] Updating Q for previous task 2
+[Client 3] No stored memory for task 2; skipping Q update
+[Client 3] Finished end-of-task actions for task 3. Q_history length=14
+[Client 3] train() finished for round=35. Time cost=87.191s, total_rounds=20
+************************* length of uploaded models ************************* 3
+
+Evaluate global model
+evaluation for task 0
+Averaged Test Accuracy: 22.20%
+Averaged Test Loss: 2.5908
+evaluation for task 1
+Averaged Test Accuracy: 35.55%
+Averaged Test Loss: 2.2070
+evaluation for task 2
+Averaged Test Accuracy: 43.90%
+Averaged Test Loss: 1.8238
+evaluation for task 3
+Averaged Test Accuracy: 44.20%
+Averaged Test Loss: 1.7636
+Task-wise accuracies: ['22.20%', '35.55%', '43.90%', '44.20%']
+Mean accuracy across tasks: 36.46%
+------------------------- Time cost ------------------------- 101.88656711578369
+
+-------------Round number: 36-------------
+Hidden clients for round 36: [0, 4]
+Selected clients: 3
+Q:[0.492037296295166, 0.0, 0.0, 0.0, 0.0]
+Q:[0.0, 297.91637574415654, 57.77942830324173, 0.0, 0.0]
+Q:[1.7104660272598267, 0.0, 0.0, 0.0, 0.0]
+[Client 1] old_model prepared from theta_prev for task 3
+[Client 3] old_model prepared from theta_prev for task 3
+[Client 2] Task 3, Epoch 1/1, Loss=434.7757, Train Acc=48.87%
+Updating Q Values
+[Client 2] Updating Q for previous task 0
+[Client 2] No stored memory for task 0; skipping Q update
+[Client 2] Updating Q for previous task 1
+[Client 2] Q-update task 1: loss_cur=0.9495, loss_prev=0.0000, delta=1.0000, Q[1] from 297.9164 -> 297.8658
+[Client 2] Updating Q for previous task 2
+[Client 2] Q-update task 2: loss_cur=9.3308, loss_prev=0.0000, delta=1.0000, Q[2] from 57.7794 -> 66.1102
+[Client 2] Finished end-of-task actions for task 3. Q_history length=17
+[Client 2] train() finished for round=36. Time cost=87.636s, total_rounds=22
+[Client 1] Task 3, Epoch 1/1, Loss=281.4578, Train Acc=56.26%
+Updating Q Values
+[Client 1] Updating Q for previous task 0
+[Client 3] Task 3, Epoch 1/1, Loss=275.2766, Train Acc=57.52%
+Updating Q Values
+[Client 3] Updating Q for previous task 0
+[Client 3] Q-update task 0: loss_cur=49.8945, loss_prev=49.0023, delta=1.0000, Q[0] from 1.7105 -> 1.6027
+[Client 3] Updating Q for previous task 1
+[Client 1] Q-update task 0: loss_cur=51.5146, loss_prev=50.5836, delta=1.0000, Q[0] from 0.4920 -> 0.4231
+[Client 1] Updating Q for previous task 1
+[Client 1] No stored memory for task 1; skipping Q update
+[Client 1] Updating Q for previous task 2
+[Client 3] Q-update task 1: loss_cur=44.2132, loss_prev=41.9222, delta=1.0000, Q[1] from 0.0000 -> 1.2911
+[Client 3] Updating Q for previous task 2
+[Client 3] No stored memory for task 2; skipping Q update
+[Client 3] Finished end-of-task actions for task 3. Q_history length=15
+[Client 3] train() finished for round=36. Time cost=91.249s, total_rounds=21
+[Client 1] Q-update task 2: loss_cur=36.0124, loss_prev=60.0093, delta=1.0000, Q[2] from 0.0000 -> 0.0000
+[Client 1] Finished end-of-task actions for task 3. Q_history length=19
+[Client 1] train() finished for round=36. Time cost=91.265s, total_rounds=26
+************************* length of uploaded models ************************* 3
+
+Evaluate global model
+evaluation for task 0
+Averaged Test Accuracy: 21.95%
+Averaged Test Loss: 2.6190
+evaluation for task 1
+Averaged Test Accuracy: 35.70%
+Averaged Test Loss: 2.2634
+evaluation for task 2
+Averaged Test Accuracy: 44.05%
+Averaged Test Loss: 1.8173
+evaluation for task 3
+Averaged Test Accuracy: 45.65%
+Averaged Test Loss: 1.7435
+Task-wise accuracies: ['21.95%', '35.70%', '44.05%', '45.65%']
+Mean accuracy across tasks: 36.84%
+------------------------- Time cost ------------------------- 105.9732928276062
+
+-------------Round number: 37-------------
+Hidden clients for round 37: [0, 2]
+Selected clients: 3
+Q:[0.42307209968566895, 0.0, 0.0, 0.0, 0.0]
+Q:[1.6026681661605835, 1.2910730838775635, 0.0, 0.0, 0.0]
+Q:[3.0918954610824585, 0.0, 0.0, 0.0, 0.0]
+[Client 1] old_model prepared from theta_prev for task 3
+[Client 4] old_model prepared from theta_prev for task 3
+[Client 3] old_model prepared from theta_prev for task 3
+[Client 4] Task 3, Epoch 1/1, Loss=302.8502, Train Acc=51.33%
+Updating Q Values
+[Client 4] Updating Q for previous task 0
+[Client 4] Q-update task 0: loss_cur=100.9967, loss_prev=99.5870, delta=1.0000, Q[0] from 3.0919 -> 3.5016
+[Client 4] Updating Q for previous task 1
+[Client 4] No stored memory for task 1; skipping Q update
+[Client 4] Updating Q for previous task 2
+[Client 4] No stored memory for task 2; skipping Q update
+[Client 4] Finished end-of-task actions for task 3. Q_history length=19
+[Client 4] train() finished for round=37. Time cost=70.438s, total_rounds=25
+[Client 1] Task 3, Epoch 1/1, Loss=263.9392, Train Acc=57.72%
+Updating Q Values
+[Client 1] Updating Q for previous task 0
+[Client 3] Task 3, Epoch 1/1, Loss=259.6956, Train Acc=58.57%
+Updating Q Values
+[Client 3] Updating Q for previous task 0
+[Client 1] Q-update task 0: loss_cur=52.8301, loss_prev=51.0683, delta=1.0000, Q[0] from 0.4231 -> 1.1849
+[Client 1] Updating Q for previous task 1
+[Client 1] No stored memory for task 1; skipping Q update
+[Client 1] Updating Q for previous task 2
+[Client 3] Q-update task 0: loss_cur=49.3219, loss_prev=48.9063, delta=1.0000, Q[0] from 1.6027 -> 1.0182
+[Client 3] Updating Q for previous task 1
+[Client 1] Q-update task 2: loss_cur=36.2860, loss_prev=60.0280, delta=1.0000, Q[2] from 0.0000 -> 0.0000
+[Client 1] Finished end-of-task actions for task 3. Q_history length=20
+[Client 1] train() finished for round=37. Time cost=82.663s, total_rounds=27
+[Client 3] Q-update task 1: loss_cur=41.3924, loss_prev=42.6849, delta=1.0000, Q[1] from 1.2911 -> 0.0000
+[Client 3] Updating Q for previous task 2
+[Client 3] No stored memory for task 2; skipping Q update
+[Client 3] Finished end-of-task actions for task 3. Q_history length=16
+[Client 3] train() finished for round=37. Time cost=82.761s, total_rounds=22
+************************* length of uploaded models ************************* 3
+
+Evaluate global model
+evaluation for task 0
+Averaged Test Accuracy: 22.85%
+Averaged Test Loss: 2.5864
+evaluation for task 1
+Averaged Test Accuracy: 35.55%
+Averaged Test Loss: 2.2453
+evaluation for task 2
+Averaged Test Accuracy: 43.05%
+Averaged Test Loss: 1.8202
+evaluation for task 3
+Averaged Test Accuracy: 45.95%
+Averaged Test Loss: 1.7535
+Task-wise accuracies: ['22.85%', '35.55%', '43.05%', '45.95%']
+Mean accuracy across tasks: 36.85%
+------------------------- Time cost ------------------------- 100.78428649902344
+
+-------------Round number: 38-------------
+Hidden clients for round 38: [1, 4]
+Selected clients: 3
+Q:[0.0, 297.8658306305297, 66.11020183563232, 0.0, 0.0]
+Q:[0.0, 0.0, 3.57839572429657, 0.0, 0.0]
+Q:[1.0182112455368042, 0.0, 0.0, 0.0, 0.0]
+[Client 0] old_model prepared from theta_prev for task 3
+[Client 3] old_model prepared from theta_prev for task 3
+[Client 2] Task 3, Epoch 1/1, Loss=401.5131, Train Acc=51.94%
+Updating Q Values
+[Client 2] Updating Q for previous task 0
+[Client 2] No stored memory for task 0; skipping Q update
+[Client 2] Updating Q for previous task 1
+[Client 2] Q-update task 1: loss_cur=0.4007, loss_prev=0.0000, delta=1.0000, Q[1] from 297.8658 -> 297.2666
+[Client 2] Updating Q for previous task 2
+[Client 2] Q-update task 2: loss_cur=5.2306, loss_prev=0.0000, delta=1.0000, Q[2] from 66.1102 -> 70.3408
+[Client 2] Finished end-of-task actions for task 3. Q_history length=18
+[Client 2] train() finished for round=38. Time cost=87.248s, total_rounds=23
+[Client 3] Task 3, Epoch 1/1, Loss=249.6588, Train Acc=60.18%
+Updating Q Values
+[Client 3] Updating Q for previous task 0
+[Client 0] Task 3, Epoch 1/1, Loss=297.3164, Train Acc=53.19%
+Updating Q Values
+[Client 0] Updating Q for previous task 0
+[Client 0] No stored memory for task 0; skipping Q update
+[Client 0] Updating Q for previous task 1
+[Client 3] Q-update task 0: loss_cur=49.5601, loss_prev=49.3864, delta=1.0000, Q[0] from 1.0182 -> 0.1918
+[Client 3] Updating Q for previous task 1
+[Client 0] Q-update task 1: loss_cur=44.6302, loss_prev=42.5758, delta=1.0000, Q[1] from 0.0000 -> 1.0544
+[Client 0] Updating Q for previous task 2
+[Client 3] Q-update task 1: loss_cur=41.9480, loss_prev=41.5356, delta=1.0000, Q[1] from 0.0000 -> 0.0000
+[Client 3] Updating Q for previous task 2
+[Client 3] No stored memory for task 2; skipping Q update
+[Client 3] Finished end-of-task actions for task 3. Q_history length=17
+[Client 3] train() finished for round=38. Time cost=91.567s, total_rounds=23
+[Client 0] Q-update task 2: loss_cur=34.8373, loss_prev=35.1017, delta=1.0000, Q[2] from 3.5784 -> 2.3140
+[Client 0] Finished end-of-task actions for task 3. Q_history length=13
+[Client 0] train() finished for round=38. Time cost=91.582s, total_rounds=19
+************************* length of uploaded models ************************* 3
+
+Evaluate global model
+evaluation for task 0
+Averaged Test Accuracy: 23.15%
+Averaged Test Loss: 2.5807
+evaluation for task 1
+Averaged Test Accuracy: 36.40%
+Averaged Test Loss: 2.2390
+evaluation for task 2
+Averaged Test Accuracy: 42.05%
+Averaged Test Loss: 1.8131
+evaluation for task 3
+Averaged Test Accuracy: 47.10%
+Averaged Test Loss: 1.7131
+Task-wise accuracies: ['23.15%', '36.40%', '42.05%', '47.10%']
+Mean accuracy across tasks: 37.18%
+------------------------- Time cost ------------------------- 109.04686331748962
+
+-------------Round number: 39-------------
+Hidden clients for round 39: [0, 4]
+Selected clients: 3
+Q:[1.184880256652832, 0.0, 0.0, 0.0, 0.0]
+Q:[0.0, 297.26655026106164, 70.34080308675766, 0.0, 0.0]
+Q:[0.19184958934783936, 0.0, 0.0, 0.0, 0.0]
+[Client 1] old_model prepared from theta_prev for task 3
+[Client 3] old_model prepared from theta_prev for task 3
+[Client 1] Task 3, Epoch 1/1, Loss=234.6842, Train Acc=62.49%
+[Client 1] Detected end of task 3 at round 39; saving memory 
+
+[DEBUG] BEFORE update — Client 1, Task 3
+  • Task 0: 250 samples
+  • Task 2: 250 samples
+  → Total stored samples BEFORE update = 500
+
+[DEBUG] Balanced Reservoir: base=166, remainder=2
+[Client 1] Balanced reservoir stored 168 samples for task 3
+[Client 1] Memory loader for task 0 now has 166 samples
+[Client 1] Memory loader for task 2 now has 166 samples
+[Client 1] Memory loader for task 3 now has 168 samples
+
+[DEBUG] AFTER update — Client 1, Task 3
+  • Task 0: 166 samples
+  • Task 2: 166 samples
+  • Task 3: 168 samples
+  → Total stored samples AFTER update = 500
+---------------------------------------------------------
+
+Updating Q Values
+[Client 1] Updating Q for previous task 0
+[Client 2] Task 3, Epoch 1/1, Loss=341.5913, Train Acc=56.81%
+[Client 2] Detected end of task 3 at round 39; saving memory 
+
+[DEBUG] BEFORE update — Client 2, Task 3
+  • Task 1: 250 samples
+  • Task 2: 250 samples
+  → Total stored samples BEFORE update = 500
+
+[DEBUG] Balanced Reservoir: base=166, remainder=2
+[Client 2] Balanced reservoir stored 168 samples for task 3
+[Client 2] Memory loader for task 1 now has 166 samples
+[Client 2] Memory loader for task 2 now has 166 samples
+[Client 2] Memory loader for task 3 now has 168 samples
+
+[DEBUG] AFTER update — Client 2, Task 3
+  • Task 1: 166 samples
+  • Task 2: 166 samples
+  • Task 3: 168 samples
+  → Total stored samples AFTER update = 500
+---------------------------------------------------------
+
+Updating Q Values
+[Client 2] Updating Q for previous task 0
+[Client 2] No stored memory for task 0; skipping Q update
+[Client 2] Updating Q for previous task 1
+[Client 3] Task 3, Epoch 1/1, Loss=226.3563, Train Acc=63.00%
+[Client 3] Detected end of task 3 at round 39; saving memory 
+
+[DEBUG] BEFORE update — Client 3, Task 3
+  • Task 0: 250 samples
+  • Task 1: 250 samples
+  → Total stored samples BEFORE update = 500
+
+[DEBUG] Balanced Reservoir: base=166, remainder=2
+[Client 3] Balanced reservoir stored 168 samples for task 3
+[Client 3] Memory loader for task 0 now has 166 samples
+[Client 3] Memory loader for task 1 now has 166 samples
+[Client 3] Memory loader for task 3 now has 168 samples
+
+[DEBUG] AFTER update — Client 3, Task 3
+  • Task 0: 166 samples
+  • Task 1: 166 samples
+  • Task 3: 168 samples
+  → Total stored samples AFTER update = 500
+---------------------------------------------------------
+
+Updating Q Values
+[Client 3] Updating Q for previous task 0
+[Client 1] Q-update task 0: loss_cur=32.8132, loss_prev=33.1143, delta=1.0000, Q[0] from 1.1849 -> 0.0000
+[Client 1] Updating Q for previous task 1
+[Client 1] No stored memory for task 1; skipping Q update
+[Client 1] Updating Q for previous task 2
+[Client 2] Q-update task 1: loss_cur=0.2418, loss_prev=0.0000, delta=1.0000, Q[1] from 297.2666 -> 296.5084
+[Client 2] Updating Q for previous task 2
+[Client 3] Q-update task 0: loss_cur=32.5634, loss_prev=31.9021, delta=1.0000, Q[0] from 0.1918 -> 0.0000
+[Client 3] Updating Q for previous task 1
+[Client 1] Q-update task 2: loss_cur=24.7323, loss_prev=39.0253, delta=1.0000, Q[2] from 0.0000 -> 0.0000
+[Client 1] Finished end-of-task actions for task 3. Q_history length=21
+[Client 1] train() finished for round=39. Time cost=89.810s, total_rounds=28
+[Client 2] Q-update task 2: loss_cur=2.6703, loss_prev=0.0000, delta=1.0000, Q[2] from 70.3408 -> 72.0111
+[Client 2] Finished end-of-task actions for task 3. Q_history length=19
+[Client 2] train() finished for round=39. Time cost=89.816s, total_rounds=24
+[Client 3] Q-update task 1: loss_cur=28.3357, loss_prev=27.2107, delta=1.0000, Q[1] from 0.0000 -> 0.1249
+[Client 3] Updating Q for previous task 2
+[Client 3] No stored memory for task 2; skipping Q update
+[Client 3] Finished end-of-task actions for task 3. Q_history length=18
+[Client 3] train() finished for round=39. Time cost=90.252s, total_rounds=24
+************************* length of uploaded models ************************* 3
+
+Evaluate global model
+evaluation for task 0
+Averaged Test Accuracy: 23.50%
+Averaged Test Loss: 2.5933
+evaluation for task 1
+Averaged Test Accuracy: 35.30%
+Averaged Test Loss: 2.2944
+evaluation for task 2
+Averaged Test Accuracy: 43.20%
+Averaged Test Loss: 1.8101
+evaluation for task 3
+Averaged Test Accuracy: 48.95%
+Averaged Test Loss: 1.6409
+Task-wise accuracies: ['23.50%', '35.30%', '43.20%', '48.95%']
+Mean accuracy across tasks: 37.74%
+------------------------- Time cost ------------------------- 106.39801478385925
+
+-------------Round number: 40-------------
+Hidden clients for round 40: [2, 3]
+Selected clients: 3
+Q:[0.0, 1.054382562637329, 2.3139848709106445, 0.0, 0.0]
+Q:[0.0, 0.0, 0.0, 0.0, 0.0]
+Q:[3.501634955406189, 0.0, 0.0, 0.0, 0.0]
+saving the weights in theta_prev for task{task_id} 
+[Client 0] Saved theta_prev BEFORE training for task 4
+saving the weights in theta_prev for task{task_id} 
+[Client 4] Saved theta_prev BEFORE training for task 4
+saving the weights in theta_prev for task{task_id} 
+[Client 1] Saved theta_prev BEFORE training for task 4
+[Client 0] old_model prepared from theta_prev for task 4
+[Client 4] old_model prepared from theta_prev for task 4
+[Client 1] old_model prepared from theta_prev for task 4
+[Client 4] Task 4, Epoch 1/1, Loss=404.8472, Train Acc=37.51%
+Updating Q Values
+[Client 4] Updating Q for previous task 0
+[Client 4] Q-update task 0: loss_cur=94.9026, loss_prev=100.8271, delta=1.0000, Q[0] from 3.5016 -> 0.0000
+[Client 4] Updating Q for previous task 1
+[Client 4] No stored memory for task 1; skipping Q update
+[Client 4] Updating Q for previous task 2
+[Client 4] No stored memory for task 2; skipping Q update
+[Client 4] Updating Q for previous task 3
+[Client 4] No stored memory for task 3; skipping Q update
+[Client 4] Finished end-of-task actions for task 4. Q_history length=20
+[Client 4] train() finished for round=40. Time cost=75.214s, total_rounds=26
+[Client 0] Task 4, Epoch 1/1, Loss=406.9604, Train Acc=37.36%
+Updating Q Values
+[Client 0] Updating Q for previous task 0
+[Client 0] No stored memory for task 0; skipping Q update
+[Client 0] Updating Q for previous task 1
+[Client 0] Q-update task 1: loss_cur=39.9544, loss_prev=41.4682, delta=1.0000, Q[1] from 1.0544 -> 0.0000
+[Client 0] Updating Q for previous task 2
+[Client 0] Q-update task 2: loss_cur=32.6018, loss_prev=35.2563, delta=1.0000, Q[2] from 2.3140 -> 0.0000
+[Client 0] Updating Q for previous task 3
+[Client 0] No stored memory for task 3; skipping Q update
+[Client 0] Finished end-of-task actions for task 4. Q_history length=14
+[Client 0] train() finished for round=40. Time cost=89.265s, total_rounds=20
+[Client 1] Task 4, Epoch 1/1, Loss=409.4696, Train Acc=36.20%
+Updating Q Values
+[Client 1] Updating Q for previous task 0
+[Client 1] Q-update task 0: loss_cur=33.3835, loss_prev=33.4885, delta=1.0000, Q[0] from 0.0000 -> 0.0000
+[Client 1] Updating Q for previous task 1
+[Client 1] No stored memory for task 1; skipping Q update
+[Client 1] Updating Q for previous task 2
+[Client 1] Q-update task 2: loss_cur=22.3552, loss_prev=20.3041, delta=1.0000, Q[2] from 0.0000 -> 1.0511
+[Client 1] Updating Q for previous task 3
+[Client 1] Q-update task 3: loss_cur=18.4142, loss_prev=16.0839, delta=1.0000, Q[3] from 0.0000 -> 1.3303
+[Client 1] Finished end-of-task actions for task 4. Q_history length=22
+[Client 1] train() finished for round=40. Time cost=98.069s, total_rounds=29
+************************* length of uploaded models ************************* 3
+
+Evaluate global model
+evaluation for task 0
+Averaged Test Accuracy: 24.60%
+Averaged Test Loss: 2.5262
+evaluation for task 1
+Averaged Test Accuracy: 36.55%
+Averaged Test Loss: 2.3067
+evaluation for task 2
+Averaged Test Accuracy: 44.15%
+Averaged Test Loss: 1.8241
+evaluation for task 3
+Averaged Test Accuracy: 50.35%
+Averaged Test Loss: 1.6699
+evaluation for task 4
+Averaged Test Accuracy: 27.80%
+Averaged Test Loss: 2.2950
+Task-wise accuracies: ['24.60%', '36.55%', '44.15%', '50.35%', '27.80%']
+Mean accuracy across tasks: 36.69%
+------------------------- Time cost ------------------------- 119.32737398147583
+
+-------------Round number: 41-------------
+Hidden clients for round 41: [0, 2]
+Selected clients: 3
+Q:[0.0, 0.0, 1.0510996580123901, 1.3302767872810364, 0.0]
+Q:[0.0, 0.12493932247161865, 0.0, 0.0, 0.0]
+Q:[0.0, 0.0, 0.0, 0.0, 0.0]
+[Client 1] old_model prepared from theta_prev for task 4
+[Client 3] old_model prepared from theta_prev for task 4
+[Client 4] old_model prepared from theta_prev for task 4
+[Client 4] Task 4, Epoch 1/1, Loss=319.7473, Train Acc=51.58%
+Updating Q Values
+[Client 4] Updating Q for previous task 0
+[Client 4] Q-update task 0: loss_cur=100.8464, loss_prev=100.8824, delta=1.0000, Q[0] from 0.0000 -> 0.0000
+[Client 4] Updating Q for previous task 1
+[Client 4] No stored memory for task 1; skipping Q update
+[Client 4] Updating Q for previous task 2
+[Client 4] No stored memory for task 2; skipping Q update
+[Client 4] Updating Q for previous task 3
+[Client 4] No stored memory for task 3; skipping Q update
+[Client 4] Finished end-of-task actions for task 4. Q_history length=21
+[Client 4] train() finished for round=41. Time cost=81.725s, total_rounds=27
+[Client 1] Task 4, Epoch 1/1, Loss=316.7282, Train Acc=50.48%
+Updating Q Values
+[Client 1] Updating Q for previous task 0
+[Client 3] Task 4, Epoch 1/1, Loss=417.9413, Train Acc=36.00%
+Updating Q Values
+[Client 3] Updating Q for previous task 0
+[Client 1] Q-update task 0: loss_cur=33.1039, loss_prev=33.5552, delta=1.0000, Q[0] from 0.0000 -> 0.0000
+[Client 1] Updating Q for previous task 1
+[Client 1] No stored memory for task 1; skipping Q update
+[Client 1] Updating Q for previous task 2
+[Client 3] Q-update task 0: loss_cur=32.2225, loss_prev=31.9350, delta=1.0000, Q[0] from 0.0000 -> 0.0000
+[Client 3] Updating Q for previous task 1
+[Client 1] Q-update task 2: loss_cur=20.4436, loss_prev=20.5523, delta=1.0000, Q[2] from 1.0511 -> 0.0000
+[Client 1] Updating Q for previous task 3
+[Client 3] Q-update task 1: loss_cur=27.1738, loss_prev=27.2220, delta=1.0000, Q[1] from 0.1249 -> 0.0000
+[Client 3] Updating Q for previous task 2
+[Client 3] No stored memory for task 2; skipping Q update
+[Client 3] Updating Q for previous task 3
+[Client 1] Q-update task 3: loss_cur=19.4601, loss_prev=16.0803, delta=1.0000, Q[3] from 1.3303 -> 3.7101
+[Client 1] Finished end-of-task actions for task 4. Q_history length=23
+[Client 1] train() finished for round=41. Time cost=109.775s, total_rounds=30
+[Client 3] Q-update task 3: loss_cur=18.9455, loss_prev=39.0255, delta=1.0000, Q[3] from 0.0000 -> 0.0000
+[Client 3] Finished end-of-task actions for task 4. Q_history length=19
+[Client 3] train() finished for round=41. Time cost=109.873s, total_rounds=25
+************************* length of uploaded models ************************* 3
+
+Evaluate global model
+evaluation for task 0
+Averaged Test Accuracy: 23.85%
+Averaged Test Loss: 2.5504
+evaluation for task 1
+Averaged Test Accuracy: 36.70%
+Averaged Test Loss: 2.3208
+evaluation for task 2
+Averaged Test Accuracy: 43.80%
+Averaged Test Loss: 1.8435
+evaluation for task 3
+Averaged Test Accuracy: 48.70%
+Averaged Test Loss: 1.7059
+evaluation for task 4
+Averaged Test Accuracy: 37.85%
+Averaged Test Loss: 1.9821
+Task-wise accuracies: ['23.85%', '36.70%', '43.80%', '48.70%', '37.85%']
+Mean accuracy across tasks: 38.18%
+------------------------- Time cost ------------------------- 132.18488931655884
+
+-------------Round number: 42-------------
+Hidden clients for round 42: [1, 4]
+Selected clients: 3
+Q:[0.0, 296.50837690383196, 72.01109375804663, 0.0, 0.0]
+Q:[0.0, 0.0, 0.0, 0.0, 0.0]
+Q:[0.0, 0.0, 0.0, 0.0, 0.0]
+[Client 3] old_model prepared from theta_prev for task 4
+[Client 0] old_model prepared from theta_prev for task 4
+[Client 0] Task 4, Epoch 1/1, Loss=311.2366, Train Acc=52.94%
+Updating Q Values
+[Client 0] Updating Q for previous task 0
+[Client 0] No stored memory for task 0; skipping Q update
+[Client 0] Updating Q for previous task 1
+[Client 0] Q-update task 1: loss_cur=47.1341, loss_prev=43.2489, delta=1.0000, Q[1] from 0.0000 -> 2.8852
+[Client 0] Updating Q for previous task 2
+[Client 0] Q-update task 2: loss_cur=38.2415, loss_prev=35.5344, delta=1.0000, Q[2] from 0.0000 -> 1.7071
+[Client 0] Updating Q for previous task 3
+[Client 0] No stored memory for task 3; skipping Q update
+[Client 0] Finished end-of-task actions for task 4. Q_history length=15
+[Client 0] train() finished for round=42. Time cost=99.182s, total_rounds=21
+[Client 3] Task 4, Epoch 1/1, Loss=301.9264, Train Acc=53.49%
+Updating Q Values
+[Client 3] Updating Q for previous task 0
+[Client 3] Q-update task 0: loss_cur=32.3359, loss_prev=31.8978, delta=1.0000, Q[0] from 0.0000 -> 0.0000
+[Client 3] Updating Q for previous task 1
+[Client 3] Q-update task 1: loss_cur=28.9962, loss_prev=27.0667, delta=1.0000, Q[1] from 0.0000 -> 0.9295
+[Client 3] Updating Q for previous task 2
+[Client 3] No stored memory for task 2; skipping Q update
+[Client 3] Updating Q for previous task 3
+[Client 3] Q-update task 3: loss_cur=20.6280, loss_prev=39.0273, delta=1.0000, Q[3] from 0.0000 -> 0.0000
+[Client 3] Finished end-of-task actions for task 4. Q_history length=20
+[Client 3] train() finished for round=42. Time cost=113.264s, total_rounds=26
+[Client 2] Task 4, Epoch 1/1, Loss=429.9913, Train Acc=38.06%
+Updating Q Values
+[Client 2] Updating Q for previous task 0
+[Client 2] No stored memory for task 0; skipping Q update
+[Client 2] Updating Q for previous task 1
+[Client 2] Q-update task 1: loss_cur=0.1571, loss_prev=0.0000, delta=1.0000, Q[1] from 296.5084 -> 295.6655
+[Client 2] Updating Q for previous task 2
+[Client 2] Q-update task 2: loss_cur=1.1679, loss_prev=0.0000, delta=1.0000, Q[2] from 72.0111 -> 72.1790
+[Client 2] Updating Q for previous task 3
+[Client 2] Q-update task 3: loss_cur=17.2539, loss_prev=0.0000, delta=1.0000, Q[3] from 0.0000 -> 16.2539
+[Client 2] Finished end-of-task actions for task 4. Q_history length=20
+[Client 2] train() finished for round=42. Time cost=114.629s, total_rounds=25
+************************* length of uploaded models ************************* 3
+
+Evaluate global model
+evaluation for task 0
+Averaged Test Accuracy: 23.70%
+Averaged Test Loss: 2.5659
+evaluation for task 1
+Averaged Test Accuracy: 36.25%
+Averaged Test Loss: 2.3416
+evaluation for task 2
+Averaged Test Accuracy: 43.25%
+Averaged Test Loss: 1.8396
+evaluation for task 3
+Averaged Test Accuracy: 48.85%
+Averaged Test Loss: 1.6898
+evaluation for task 4
+Averaged Test Accuracy: 47.40%
+Averaged Test Loss: 1.6544
+Task-wise accuracies: ['23.70%', '36.25%', '43.25%', '48.85%', '47.40%']
+Mean accuracy across tasks: 39.89%
+------------------------- Time cost ------------------------- 137.35951209068298
+
+-------------Round number: 43-------------
+Hidden clients for round 43: [0, 1]
+Selected clients: 3
+Q:[0.0, 295.66545026376843, 72.17896286025643, 16.253935635089874, 0.0]
+Q:[0.0, 0.0, 0.0, 0.0, 0.0]
+Q:[0.0, 0.92949378490448, 0.0, 0.0, 0.0]
+[Client 3] old_model prepared from theta_prev for task 4
+[Client 4] old_model prepared from theta_prev for task 4
+[Client 4] Task 4, Epoch 1/1, Loss=283.8114, Train Acc=56.31%
+Updating Q Values
+[Client 4] Updating Q for previous task 0
+[Client 4] Q-update task 0: loss_cur=101.7382, loss_prev=100.9120, delta=1.0000, Q[0] from 0.0000 -> 0.0000
+[Client 4] Updating Q for previous task 1
+[Client 4] No stored memory for task 1; skipping Q update
+[Client 4] Updating Q for previous task 2
+[Client 4] No stored memory for task 2; skipping Q update
+[Client 4] Updating Q for previous task 3
+[Client 4] No stored memory for task 3; skipping Q update
+[Client 4] Finished end-of-task actions for task 4. Q_history length=22
+[Client 4] train() finished for round=43. Time cost=70.267s, total_rounds=28
+[Client 3] Task 4, Epoch 1/1, Loss=289.5061, Train Acc=56.91%
+Updating Q Values
+[Client 3] Updating Q for previous task 0
+[Client 3] Q-update task 0: loss_cur=33.2038, loss_prev=31.8951, delta=1.0000, Q[0] from 0.0000 -> 0.3087
+[Client 3] Updating Q for previous task 1
+[Client 3] Q-update task 1: loss_cur=27.5998, loss_prev=27.1345, delta=1.0000, Q[1] from 0.9295 -> 0.3948
+[Client 3] Updating Q for previous task 2
+[Client 3] No stored memory for task 2; skipping Q update
+[Client 3] Updating Q for previous task 3
+[Client 3] Q-update task 3: loss_cur=19.6741, loss_prev=39.0263, delta=1.0000, Q[3] from 0.0000 -> 0.0000
+[Client 3] Finished end-of-task actions for task 4. Q_history length=21
+[Client 3] train() finished for round=43. Time cost=100.080s, total_rounds=27
+[Client 2] Task 4, Epoch 1/1, Loss=342.2549, Train Acc=52.39%
+Updating Q Values
+[Client 2] Updating Q for previous task 0
+[Client 2] No stored memory for task 0; skipping Q update
+[Client 2] Updating Q for previous task 1
+[Client 2] Q-update task 1: loss_cur=0.2374, loss_prev=0.0000, delta=1.0000, Q[1] from 295.6655 -> 294.9029
+[Client 2] Updating Q for previous task 2
+[Client 2] Q-update task 2: loss_cur=1.0288, loss_prev=0.0000, delta=1.0000, Q[2] from 72.1790 -> 72.2077
+[Client 2] Updating Q for previous task 3
+[Client 2] Q-update task 3: loss_cur=6.3743, loss_prev=0.0000, delta=1.0000, Q[3] from 16.2539 -> 21.6283
+[Client 2] Finished end-of-task actions for task 4. Q_history length=21
+[Client 2] train() finished for round=43. Time cost=102.077s, total_rounds=26
+************************* length of uploaded models ************************* 3
+
+Evaluate global model
+evaluation for task 0
+Averaged Test Accuracy: 23.40%
+Averaged Test Loss: 2.5780
+evaluation for task 1
+Averaged Test Accuracy: 37.90%
+Averaged Test Loss: 2.3336
+evaluation for task 2
+Averaged Test Accuracy: 44.90%
+Averaged Test Loss: 1.8230
+evaluation for task 3
+Averaged Test Accuracy: 49.85%
+Averaged Test Loss: 1.6656
+evaluation for task 4
+Averaged Test Accuracy: 49.55%
+Averaged Test Loss: 1.6444
+Task-wise accuracies: ['23.40%', '37.90%', '44.90%', '49.85%', '49.55%']
+Mean accuracy across tasks: 41.12%
+------------------------- Time cost ------------------------- 120.66706204414368
+
+-------------Round number: 44-------------
+Hidden clients for round 44: [0, 3]
+Selected clients: 3
+Q:[0.0, 0.0, 0.0, 3.7100701332092285, 0.0]
+Q:[0.0, 0.0, 0.0, 0.0, 0.0]
+Q:[0.0, 294.9028587548528, 72.2077376395464, 21.628259748220444, 0.0]
+[Client 4] old_model prepared from theta_prev for task 4
+[Client 1] old_model prepared from theta_prev for task 4
+[Client 4] Task 4, Epoch 1/1, Loss=254.9809, Train Acc=60.73%
+Updating Q Values
+[Client 4] Updating Q for previous task 0
+[Client 4] Q-update task 0: loss_cur=101.8611, loss_prev=100.9399, delta=1.0000, Q[0] from 0.0000 -> 0.0000
+[Client 4] Updating Q for previous task 1
+[Client 4] No stored memory for task 1; skipping Q update
+[Client 4] Updating Q for previous task 2
+[Client 4] No stored memory for task 2; skipping Q update
+[Client 4] Updating Q for previous task 3
+[Client 4] No stored memory for task 3; skipping Q update
+[Client 4] Finished end-of-task actions for task 4. Q_history length=23
+[Client 4] train() finished for round=44. Time cost=72.161s, total_rounds=29
+[Client 1] Task 4, Epoch 1/1, Loss=278.1495, Train Acc=56.06%
+Updating Q Values
+[Client 1] Updating Q for previous task 0
+[Client 1] Q-update task 0: loss_cur=33.8123, loss_prev=33.5722, delta=1.0000, Q[0] from 0.0000 -> 0.0000
+[Client 1] Updating Q for previous task 1
+[Client 1] No stored memory for task 1; skipping Q update
+[Client 1] Updating Q for previous task 2
+[Client 1] Q-update task 2: loss_cur=21.8626, loss_prev=20.5174, delta=1.0000, Q[2] from 0.0000 -> 0.3451
+[Client 1] Updating Q for previous task 3
+[Client 1] Q-update task 3: loss_cur=15.9192, loss_prev=16.0424, delta=1.0000, Q[3] from 3.7101 -> 2.5868
+[Client 1] Finished end-of-task actions for task 4. Q_history length=24
+[Client 1] train() finished for round=44. Time cost=100.004s, total_rounds=31
+[Client 2] Task 4, Epoch 1/1, Loss=302.2628, Train Acc=58.87%
+Updating Q Values
+[Client 2] Updating Q for previous task 0
+[Client 2] No stored memory for task 0; skipping Q update
+[Client 2] Updating Q for previous task 1
+[Client 2] Q-update task 1: loss_cur=0.1182, loss_prev=0.0000, delta=1.0000, Q[1] from 294.9029 -> 294.0210
+[Client 2] Updating Q for previous task 2
+[Client 2] Q-update task 2: loss_cur=1.0380, loss_prev=0.0000, delta=1.0000, Q[2] from 72.2077 -> 72.2458
+[Client 2] Updating Q for previous task 3
+[Client 2] Q-update task 3: loss_cur=4.3629, loss_prev=0.0000, delta=1.0000, Q[3] from 21.6283 -> 24.9912
+[Client 2] Finished end-of-task actions for task 4. Q_history length=22
+[Client 2] train() finished for round=44. Time cost=102.017s, total_rounds=27
+************************* length of uploaded models ************************* 3
+
+Evaluate global model
+evaluation for task 0
+Averaged Test Accuracy: 24.50%
+Averaged Test Loss: 2.5873
+evaluation for task 1
+Averaged Test Accuracy: 38.20%
+Averaged Test Loss: 2.3415
+evaluation for task 2
+Averaged Test Accuracy: 44.50%
+Averaged Test Loss: 1.8533
+evaluation for task 3
+Averaged Test Accuracy: 50.70%
+Averaged Test Loss: 1.6639
+evaluation for task 4
+Averaged Test Accuracy: 50.80%
+Averaged Test Loss: 1.6111
+Task-wise accuracies: ['24.50%', '38.20%', '44.50%', '50.70%', '50.80%']
+Mean accuracy across tasks: 41.74%
+------------------------- Time cost ------------------------- 120.79101920127869
+
+-------------Round number: 45-------------
+Hidden clients for round 45: [0, 3]
+Selected clients: 3
+Q:[0.0, 0.0, 0.34513986110687256, 2.586831510066986, 0.0]
+Q:[0.0, 294.0210485307034, 72.24576550349593, 24.99116377532482, 0.0]
+Q:[0.0, 0.0, 0.0, 0.0, 0.0]
+[Client 4] old_model prepared from theta_prev for task 4
+[Client 1] old_model prepared from theta_prev for task 4
+[Client 4] Task 4, Epoch 1/1, Loss=230.5860, Train Acc=64.25%
+Updating Q Values
+[Client 4] Updating Q for previous task 0
+[Client 4] Q-update task 0: loss_cur=104.5082, loss_prev=100.7593, delta=1.0000, Q[0] from 0.0000 -> 2.7489
+[Client 4] Updating Q for previous task 1
+[Client 4] No stored memory for task 1; skipping Q update
+[Client 4] Updating Q for previous task 2
+[Client 4] No stored memory for task 2; skipping Q update
+[Client 4] Updating Q for previous task 3
+[Client 4] No stored memory for task 3; skipping Q update
+[Client 4] Finished end-of-task actions for task 4. Q_history length=24
+[Client 4] train() finished for round=45. Time cost=71.679s, total_rounds=30
+[Client 1] Task 4, Epoch 1/1, Loss=246.2917, Train Acc=61.99%
+Updating Q Values
+[Client 1] Updating Q for previous task 0
+[Client 1] Q-update task 0: loss_cur=33.8077, loss_prev=33.5168, delta=1.0000, Q[0] from 0.0000 -> 0.0000
+[Client 1] Updating Q for previous task 1
+[Client 1] No stored memory for task 1; skipping Q update
+[Client 1] Updating Q for previous task 2
+[Client 1] Q-update task 2: loss_cur=20.5687, loss_prev=20.4897, delta=1.0000, Q[2] from 0.3451 -> 0.0000
+[Client 1] Updating Q for previous task 3
+[Client 1] Q-update task 3: loss_cur=16.7130, loss_prev=16.0533, delta=1.0000, Q[3] from 2.5868 -> 2.2466
+[Client 1] Finished end-of-task actions for task 4. Q_history length=25
+[Client 1] train() finished for round=45. Time cost=98.075s, total_rounds=32
+[Client 2] Task 4, Epoch 1/1, Loss=282.8406, Train Acc=61.19%
+Updating Q Values
+[Client 2] Updating Q for previous task 0
+[Client 2] No stored memory for task 0; skipping Q update
+[Client 2] Updating Q for previous task 1
+[Client 2] Q-update task 1: loss_cur=0.1747, loss_prev=0.0000, delta=1.0000, Q[1] from 294.0210 -> 293.1957
+[Client 2] Updating Q for previous task 2
+[Client 2] Q-update task 2: loss_cur=0.8044, loss_prev=0.0000, delta=1.0000, Q[2] from 72.2458 -> 72.0501
+[Client 2] Updating Q for previous task 3
+[Client 2] Q-update task 3: loss_cur=3.4012, loss_prev=0.0000, delta=1.0000, Q[3] from 24.9912 -> 27.3924
+[Client 2] Finished end-of-task actions for task 4. Q_history length=23
+[Client 2] train() finished for round=45. Time cost=100.324s, total_rounds=28
+************************* length of uploaded models ************************* 3
+
+Evaluate global model
+evaluation for task 0
+Averaged Test Accuracy: 22.60%
+Averaged Test Loss: 2.5963
+evaluation for task 1
+Averaged Test Accuracy: 37.65%
+Averaged Test Loss: 2.3489
+evaluation for task 2
+Averaged Test Accuracy: 44.70%
+Averaged Test Loss: 1.8420
+evaluation for task 3
+Averaged Test Accuracy: 48.50%
+Averaged Test Loss: 1.6685
+evaluation for task 4
+Averaged Test Accuracy: 51.75%
+Averaged Test Loss: 1.6009
+Task-wise accuracies: ['22.60%', '37.65%', '44.70%', '48.50%', '51.75%']
+Mean accuracy across tasks: 41.04%
+------------------------- Time cost ------------------------- 118.2154107093811
+
+-------------Round number: 46-------------
+Hidden clients for round 46: [1, 2]
+Selected clients: 3
+Q:[0.0, 2.885196328163147, 1.7070926427841187, 0.0, 0.0]
+Q:[2.7488744258880615, 0.0, 0.0, 0.0, 0.0]
+Q:[0.3087141513824463, 0.3947805166244507, 0.0, 0.0, 0.0]
+[Client 4] old_model prepared from theta_prev for task 4
+[Client 3] old_model prepared from theta_prev for task 4
+[Client 0] old_model prepared from theta_prev for task 4
+[Client 4] Task 4, Epoch 1/1, Loss=190.1069, Train Acc=69.18%
+Updating Q Values
+[Client 4] Updating Q for previous task 0
+[Client 4] Q-update task 0: loss_cur=97.9649, loss_prev=100.8788, delta=1.0000, Q[0] from 2.7489 -> 0.0000
+[Client 4] Updating Q for previous task 1
+[Client 4] No stored memory for task 1; skipping Q update
+[Client 4] Updating Q for previous task 2
+[Client 4] No stored memory for task 2; skipping Q update
+[Client 4] Updating Q for previous task 3
+[Client 4] No stored memory for task 3; skipping Q update
+[Client 4] Finished end-of-task actions for task 4. Q_history length=25
+[Client 4] train() finished for round=46. Time cost=75.651s, total_rounds=31
+[Client 0] Task 4, Epoch 1/1, Loss=280.2883, Train Acc=56.76%
+Updating Q Values
+[Client 0] Updating Q for previous task 0
+[Client 0] No stored memory for task 0; skipping Q update
+[Client 0] Updating Q for previous task 1
+[Client 0] Q-update task 1: loss_cur=39.5392, loss_prev=42.7638, delta=1.0000, Q[1] from 2.8852 -> 0.0000
+[Client 0] Updating Q for previous task 2
+[Client 0] Q-update task 2: loss_cur=35.5554, loss_prev=35.8224, delta=1.0000, Q[2] from 1.7071 -> 0.4400
+[Client 0] Updating Q for previous task 3
+[Client 0] No stored memory for task 3; skipping Q update
+[Client 0] Finished end-of-task actions for task 4. Q_history length=16
+[Client 0] train() finished for round=46. Time cost=91.243s, total_rounds=22
+[Client 3] Task 4, Epoch 1/1, Loss=250.2110, Train Acc=62.80%
+Updating Q Values
+[Client 3] Updating Q for previous task 0
+[Client 3] Q-update task 0: loss_cur=32.2776, loss_prev=31.9499, delta=1.0000, Q[0] from 0.3087 -> 0.0000
+[Client 3] Updating Q for previous task 1
+[Client 3] Q-update task 1: loss_cur=27.6995, loss_prev=26.9718, delta=1.0000, Q[1] from 0.3948 -> 0.1225
+[Client 3] Updating Q for previous task 2
+[Client 3] No stored memory for task 2; skipping Q update
+[Client 3] Updating Q for previous task 3
+[Client 3] Q-update task 3: loss_cur=19.3040, loss_prev=39.0267, delta=1.0000, Q[3] from 0.0000 -> 0.0000
+[Client 3] Finished end-of-task actions for task 4. Q_history length=22
+[Client 3] train() finished for round=46. Time cost=98.980s, total_rounds=28
+************************* length of uploaded models ************************* 3
+
+Evaluate global model
+evaluation for task 0
+Averaged Test Accuracy: 22.80%
+Averaged Test Loss: 2.5772
+evaluation for task 1
+Averaged Test Accuracy: 38.75%
+Averaged Test Loss: 2.2568
+evaluation for task 2
+Averaged Test Accuracy: 43.95%
+Averaged Test Loss: 1.8505
+evaluation for task 3
+Averaged Test Accuracy: 48.15%
+Averaged Test Loss: 1.6530
+evaluation for task 4
+Averaged Test Accuracy: 51.15%
+Averaged Test Loss: 1.5968
+Task-wise accuracies: ['22.80%', '38.75%', '43.95%', '48.15%', '51.15%']
+Mean accuracy across tasks: 40.96%
+------------------------- Time cost ------------------------- 116.85975241661072
+
+-------------Round number: 47-------------
+Hidden clients for round 47: [1, 3]
+Selected clients: 3
+Q:[0.0, 0.0, 0.0, 0.0, 0.0]
+Q:[0.0, 0.0, 0.440032958984375, 0.0, 0.0]
+Q:[0.0, 293.19571407022886, 72.05014476552606, 27.392376080155373, 0.0]
+[Client 0] old_model prepared from theta_prev for task 4
+[Client 4] old_model prepared from theta_prev for task 4
+[Client 4] Task 4, Epoch 1/1, Loss=204.3282, Train Acc=68.38%
+Updating Q Values
+[Client 4] Updating Q for previous task 0
+[Client 4] Q-update task 0: loss_cur=102.4082, loss_prev=100.9776, delta=1.0000, Q[0] from 0.0000 -> 0.4307
+[Client 4] Updating Q for previous task 1
+[Client 4] No stored memory for task 1; skipping Q update
+[Client 4] Updating Q for previous task 2
+[Client 4] No stored memory for task 2; skipping Q update
+[Client 4] Updating Q for previous task 3
+[Client 4] No stored memory for task 3; skipping Q update
+[Client 4] Finished end-of-task actions for task 4. Q_history length=26
+[Client 4] train() finished for round=47. Time cost=67.805s, total_rounds=32
+[Client 0] Task 4, Epoch 1/1, Loss=231.1948, Train Acc=64.40%
+Updating Q Values
+[Client 0] Updating Q for previous task 0
+[Client 0] No stored memory for task 0; skipping Q update
+[Client 0] Updating Q for previous task 1
+[Client 0] Q-update task 1: loss_cur=45.9803, loss_prev=42.8656, delta=1.0000, Q[1] from 0.0000 -> 2.1147
+[Client 0] Updating Q for previous task 2
+[Client 0] Q-update task 2: loss_cur=38.5774, loss_prev=36.1254, delta=1.0000, Q[2] from 0.4400 -> 1.8921
+[Client 0] Updating Q for previous task 3
+[Client 0] No stored memory for task 3; skipping Q update
+[Client 0] Finished end-of-task actions for task 4. Q_history length=17
+[Client 0] train() finished for round=47. Time cost=80.039s, total_rounds=23
+[Client 2] Task 4, Epoch 1/1, Loss=244.7360, Train Acc=66.21%
+Updating Q Values
+[Client 2] Updating Q for previous task 0
+[Client 2] No stored memory for task 0; skipping Q update
+[Client 2] Updating Q for previous task 1
+[Client 2] Q-update task 1: loss_cur=0.4020, loss_prev=0.0000, delta=1.0000, Q[1] from 293.1957 -> 292.5977
+[Client 2] Updating Q for previous task 2
+[Client 2] Q-update task 2: loss_cur=0.8097, loss_prev=0.0000, delta=1.0000, Q[2] from 72.0501 -> 71.8598
+[Client 2] Updating Q for previous task 3
+[Client 2] Q-update task 3: loss_cur=2.9366, loss_prev=0.0000, delta=1.0000, Q[3] from 27.3924 -> 29.3290
+[Client 2] Finished end-of-task actions for task 4. Q_history length=24
+[Client 2] train() finished for round=47. Time cost=88.809s, total_rounds=29
+************************* length of uploaded models ************************* 3
+
+Evaluate global model
+evaluation for task 0
+Averaged Test Accuracy: 22.40%
+Averaged Test Loss: 2.5854
+evaluation for task 1
+Averaged Test Accuracy: 37.65%
+Averaged Test Loss: 2.2912
+evaluation for task 2
+Averaged Test Accuracy: 44.25%
+Averaged Test Loss: 1.8288
+evaluation for task 3
+Averaged Test Accuracy: 48.75%
+Averaged Test Loss: 1.6389
+evaluation for task 4
+Averaged Test Accuracy: 51.30%
+Averaged Test Loss: 1.6042
+Task-wise accuracies: ['22.40%', '37.65%', '44.25%', '48.75%', '51.30%']
+Mean accuracy across tasks: 40.87%
+------------------------- Time cost ------------------------- 111.00199151039124
+
+-------------Round number: 48-------------
+Hidden clients for round 48: [0, 4]
+Selected clients: 3
+Q:[0.0, 0.0, 0.0, 2.2465686798095703, 0.0]
+Q:[0.0, 292.59772430337034, 71.85982562787831, 29.32895328104496, 0.0]
+Q:[0.0, 0.12248778343200684, 0.0, 0.0, 0.0]
+[Client 3] old_model prepared from theta_prev for task 4
+[Client 1] old_model prepared from theta_prev for task 4
+[Client 2] Task 4, Epoch 1/1, Loss=240.0480, Train Acc=67.17%
+Updating Q Values
+[Client 2] Updating Q for previous task 0
+[Client 2] No stored memory for task 0; skipping Q update
+[Client 2] Updating Q for previous task 1
+[Client 3] Task 4, Epoch 1/1, Loss=228.6839, Train Acc=65.11%
+Updating Q Values
+[Client 3] Updating Q for previous task 0
+[Client 1] Task 4, Epoch 1/1, Loss=217.0720, Train Acc=67.22%
+Updating Q Values
+[Client 1] Updating Q for previous task 0
+[Client 2] Q-update task 1: loss_cur=0.1607, loss_prev=0.0000, delta=1.0000, Q[1] from 292.5977 -> 291.7584
+[Client 2] Updating Q for previous task 2
+[Client 3] Q-update task 0: loss_cur=32.8839, loss_prev=31.8239, delta=1.0000, Q[0] from 0.0000 -> 0.0600
+[Client 3] Updating Q for previous task 1
+[Client 2] Q-update task 2: loss_cur=1.0512, loss_prev=0.0000, delta=1.0000, Q[2] from 71.8598 -> 71.9110
+[Client 2] Updating Q for previous task 3
+[Client 1] Q-update task 0: loss_cur=34.4840, loss_prev=33.5607, delta=1.0000, Q[0] from 0.0000 -> 0.0000
+[Client 1] Updating Q for previous task 1
+[Client 1] No stored memory for task 1; skipping Q update
+[Client 1] Updating Q for previous task 2
+[Client 2] Q-update task 3: loss_cur=2.5876, loss_prev=0.0000, delta=1.0000, Q[3] from 29.3290 -> 30.9166
+[Client 2] Finished end-of-task actions for task 4. Q_history length=25
+[Client 2] train() finished for round=48. Time cost=119.197s, total_rounds=30
+[Client 3] Q-update task 1: loss_cur=28.8186, loss_prev=27.0835, delta=1.0000, Q[1] from 0.1225 -> 0.8575
+[Client 3] Updating Q for previous task 2
+[Client 3] No stored memory for task 2; skipping Q update
+[Client 3] Updating Q for previous task 3
+[Client 1] Q-update task 2: loss_cur=22.9864, loss_prev=20.3592, delta=1.0000, Q[2] from 0.0000 -> 1.6272
+[Client 1] Updating Q for previous task 3
+[Client 3] Q-update task 3: loss_cur=19.7610, loss_prev=39.0226, delta=1.0000, Q[3] from 0.0000 -> 0.0000
+[Client 3] Finished end-of-task actions for task 4. Q_history length=23
+[Client 3] train() finished for round=48. Time cost=120.199s, total_rounds=29
+[Client 1] Q-update task 3: loss_cur=16.4152, loss_prev=16.0980, delta=1.0000, Q[3] from 2.2466 -> 1.5638
+[Client 1] Finished end-of-task actions for task 4. Q_history length=26
+[Client 1] train() finished for round=48. Time cost=120.287s, total_rounds=33
+************************* length of uploaded models ************************* 3
+
+Evaluate global model
+evaluation for task 0
+Averaged Test Accuracy: 21.70%
+Averaged Test Loss: 2.5873
+evaluation for task 1
+Averaged Test Accuracy: 37.15%
+Averaged Test Loss: 2.3436
+evaluation for task 2
+Averaged Test Accuracy: 43.40%
+Averaged Test Loss: 1.8630
+evaluation for task 3
+Averaged Test Accuracy: 48.90%
+Averaged Test Loss: 1.6595
+evaluation for task 4
+Averaged Test Accuracy: 51.90%
+Averaged Test Loss: 1.6248
+Task-wise accuracies: ['21.70%', '37.15%', '43.40%', '48.90%', '51.90%']
+Mean accuracy across tasks: 40.61%
+------------------------- Time cost ------------------------- 143.10705471038818
+
+-------------Round number: 49-------------
+Hidden clients for round 49: [0, 3]
+Selected clients: 3
+Q:[0.0, 0.0, 1.6271514296531677, 1.5638177394866943, 0.0]
+Q:[0.4306802749633789, 0.0, 0.0, 0.0, 0.0]
+Q:[0.0, 291.75839928141795, 71.91102195344865, 30.916566729545593, 0.0]
+[Client 1] old_model prepared from theta_prev for task 4
+[Client 4] old_model prepared from theta_prev for task 4
+[Client 4] Task 4, Epoch 1/1, Loss=176.4910, Train Acc=72.40%
+[Client 4] Detected end of task 4 at round 49; saving memory 
+
+[DEBUG] BEFORE update — Client 4, Task 4
+  • Task 0: 500 samples
+  → Total stored samples BEFORE update = 500
+
+[DEBUG] Balanced Reservoir: base=250, remainder=0
+[Client 4] Balanced reservoir stored 250 samples for task 4
+[Client 4] Memory loader for task 0 now has 250 samples
+[Client 4] Memory loader for task 4 now has 250 samples
+
+[DEBUG] AFTER update — Client 4, Task 4
+  • Task 0: 250 samples
+  • Task 4: 250 samples
+  → Total stored samples AFTER update = 500
+---------------------------------------------------------
+
+Updating Q Values
+[Client 4] Updating Q for previous task 0
+[Client 4] Q-update task 0: loss_cur=52.7713, loss_prev=50.9544, delta=1.0000, Q[0] from 0.4307 -> 1.2476
+[Client 4] Updating Q for previous task 1
+[Client 4] No stored memory for task 1; skipping Q update
+[Client 4] Updating Q for previous task 2
+[Client 4] No stored memory for task 2; skipping Q update
+[Client 4] Updating Q for previous task 3
+[Client 4] No stored memory for task 3; skipping Q update
+[Client 4] Finished end-of-task actions for task 4. Q_history length=27
+[Client 4] train() finished for round=49. Time cost=68.406s, total_rounds=33
+[Client 1] Task 4, Epoch 1/1, Loss=200.1539, Train Acc=68.48%
+[Client 1] Detected end of task 4 at round 49; saving memory 
+
+[DEBUG] BEFORE update — Client 1, Task 4
+  • Task 0: 166 samples
+  • Task 2: 166 samples
+  • Task 3: 168 samples
+  → Total stored samples BEFORE update = 500
+
+[DEBUG] Balanced Reservoir: base=125, remainder=0
+[Client 1] Balanced reservoir stored 125 samples for task 4
+[Client 1] Memory loader for task 0 now has 125 samples
+[Client 1] Memory loader for task 2 now has 125 samples
+[Client 1] Memory loader for task 3 now has 125 samples
+[Client 1] Memory loader for task 4 now has 125 samples
+
+[DEBUG] AFTER update — Client 1, Task 4
+  • Task 0: 125 samples
+  • Task 2: 125 samples
+  • Task 3: 125 samples
+  • Task 4: 125 samples
+  → Total stored samples AFTER update = 500
+---------------------------------------------------------
+
+Updating Q Values
+[Client 1] Updating Q for previous task 0
+[Client 1] Q-update task 0: loss_cur=26.1923, loss_prev=25.6789, delta=1.0000, Q[0] from 0.0000 -> 0.0000
+[Client 1] Updating Q for previous task 1
+[Client 1] No stored memory for task 1; skipping Q update
+[Client 1] Updating Q for previous task 2
+[Client 1] Q-update task 2: loss_cur=14.3171, loss_prev=14.8755, delta=1.0000, Q[2] from 1.6272 -> 0.0688
+[Client 1] Updating Q for previous task 3
+[Client 1] Q-update task 3: loss_cur=13.8293, loss_prev=12.8448, delta=1.0000, Q[3] from 1.5638 -> 1.5483
+[Client 1] Finished end-of-task actions for task 4. Q_history length=27
+[Client 1] train() finished for round=49. Time cost=96.778s, total_rounds=34
+[Client 2] Task 4, Epoch 1/1, Loss=213.2567, Train Acc=71.04%
+[Client 2] Detected end of task 4 at round 49; saving memory 
+
+[DEBUG] BEFORE update — Client 2, Task 4
+  • Task 1: 166 samples
+  • Task 2: 166 samples
+  • Task 3: 168 samples
+  → Total stored samples BEFORE update = 500
+
+[DEBUG] Balanced Reservoir: base=125, remainder=0
+[Client 2] Balanced reservoir stored 125 samples for task 4
+[Client 2] Memory loader for task 1 now has 125 samples
+[Client 2] Memory loader for task 2 now has 125 samples
+[Client 2] Memory loader for task 3 now has 125 samples
+[Client 2] Memory loader for task 4 now has 125 samples
+
+[DEBUG] AFTER update — Client 2, Task 4
+  • Task 1: 125 samples
+  • Task 2: 125 samples
+  • Task 3: 125 samples
+  • Task 4: 125 samples
+  → Total stored samples AFTER update = 500
+---------------------------------------------------------
+
+Updating Q Values
+[Client 2] Updating Q for previous task 0
+[Client 2] No stored memory for task 0; skipping Q update
+[Client 2] Updating Q for previous task 1
+[Client 2] Q-update task 1: loss_cur=0.1044, loss_prev=0.0000, delta=1.0000, Q[1] from 291.7584 -> 290.8628
+[Client 2] Updating Q for previous task 2
+[Client 2] Q-update task 2: loss_cur=0.5408, loss_prev=0.0000, delta=1.0000, Q[2] from 71.9110 -> 71.4518
+[Client 2] Updating Q for previous task 3
+[Client 2] Q-update task 3: loss_cur=1.8852, loss_prev=0.0000, delta=1.0000, Q[3] from 30.9166 -> 31.8018
+[Client 2] Finished end-of-task actions for task 4. Q_history length=26
+[Client 2] train() finished for round=49. Time cost=99.016s, total_rounds=31
+************************* length of uploaded models ************************* 3
+
+Evaluate global model
+evaluation for task 0
+Averaged Test Accuracy: 21.75%
+Averaged Test Loss: 2.6162
+evaluation for task 1
+Averaged Test Accuracy: 36.55%
+Averaged Test Loss: 2.4085
+evaluation for task 2
+Averaged Test Accuracy: 42.25%
+Averaged Test Loss: 1.9128
+evaluation for task 3
+Averaged Test Accuracy: 50.00%
+Averaged Test Loss: 1.6573
+evaluation for task 4
+Averaged Test Accuracy: 51.85%
+Averaged Test Loss: 1.6549
+Task-wise accuracies: ['21.75%', '36.55%', '42.25%', '50.00%', '51.85%']
+Mean accuracy across tasks: 40.48%
+------------------------- Time cost ------------------------- 117.89044952392578
+
+Best accuracy: 0.519
+Average time cost per round: 78.86224614357462
+File path: ../results//home/anurag24092/Projects/FedQCL_Task/dataset/CIFAR100_NONIID_alpha10.0_clients5_tasks5_FedAvg_cifar100_two_hidden_e1_0.h5
+
+Average time cost: 3910.5s.
+Length:  150
+std for best accurancy: 0.0
+mean for best accurancy: 0.519
+All done!
+
+Storage on cuda:0
+-------------------------------------------------------------------------------
+Total Tensors: 179415672 	Used Memory: 470.84M
+The allocated memory on cuda:0: 531.47M
+Memory differs due to the matrix alignment or invisible gradient buffer tensors
+-------------------------------------------------------------------------------
+
+Storage on cpu
+-------------------------------------------------------------------------------
+Total Tensors: 425169570 	Used Memory: 919.07M
+-------------------------------------------------------------------------------
+
+Total time cost: 3913.17s.
+[Cleanup] Removing ./runs/1795317551_20836
+[Cleanup] Removing ./runs/1795317550_20836
+[Cleanup] Removing ./runs/1795317548_20836
+[Cleanup] Removing ./runs/1795317546_20836
+[Cleanup] Removing ./runs/1795317544_20836

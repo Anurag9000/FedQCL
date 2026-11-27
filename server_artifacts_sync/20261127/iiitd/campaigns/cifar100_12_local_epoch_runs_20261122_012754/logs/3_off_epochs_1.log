@@ -1,0 +1,280 @@
+[transformers] Disabling PyTorch because PyTorch >= 2.6 is required but found 2.5.1+cu121
+[transformers] PyTorch was not found. Models won't be available and only tokenizers, configuration and file/data utilities can be used.
+SimpleCnn(
+  (conv1): Conv2d(28, 16, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+  (conv2): Conv2d(16, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+  (pool): MaxPool2d(kernel_size=2, stride=2, padding=0, dilation=1, ceil_mode=False)
+  (fc1): Linear(in_features=1568, out_features=128, bias=True)
+  (fc2): Linear(in_features=128, out_features=10, bias=True)
+)
+==================================================
+Algorithm: FedAvg
+Local batch size: 13
+Local epochs: 1
+Local learing rate: 0.005
+Local learing rate decay: False
+Total number of clients: 5
+Clients join in each round: 1.0
+Clients randomly join: False
+Client drop rate: 0.0
+Client select regarding time: False
+Running times: 1
+Dataset: /home/anurag24092/Projects/FedQCL_Task/dataset/CIFAR100_NONIID_alpha10.0_clients5_tasks5
+Number of classes: 20
+Backbone: resnet18
+Using device: cuda
+Using DP: False
+Auto break: False
+Global rounds: 49
+Cuda device id: 0
+DLG attack: False
+Total number of new clients: 0
+Fine tuning epoches on new clients: 0
+==================================================
+
+============= Running time: 0th =============
+Creating server and clients ...
+ResNet18_dpp(
+  (conv1): Conv2d(3, 64, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False)
+  (bn1): BatchNorm2d(64, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+  (layer1): Sequential(
+    (0): BasicBlock(
+      (conv1): Conv2d(64, 64, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False)
+      (bn1): BatchNorm2d(64, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+      (conv2): Conv2d(64, 64, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False)
+      (bn2): BatchNorm2d(64, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+    )
+    (1): BasicBlock(
+      (conv1): Conv2d(64, 64, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False)
+      (bn1): BatchNorm2d(64, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+      (conv2): Conv2d(64, 64, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False)
+      (bn2): BatchNorm2d(64, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+    )
+  )
+  (layer2): Sequential(
+    (0): BasicBlock(
+      (conv1): Conv2d(64, 128, kernel_size=(3, 3), stride=(2, 2), padding=(1, 1), bias=False)
+      (bn1): BatchNorm2d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+      (conv2): Conv2d(128, 128, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False)
+      (bn2): BatchNorm2d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+      (downsample): Sequential(
+        (0): Conv2d(64, 128, kernel_size=(1, 1), stride=(2, 2), bias=False)
+        (1): BatchNorm2d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+      )
+    )
+    (1): BasicBlock(
+      (conv1): Conv2d(128, 128, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False)
+      (bn1): BatchNorm2d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+      (conv2): Conv2d(128, 128, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False)
+      (bn2): BatchNorm2d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+    )
+  )
+  (layer3): Sequential(
+    (0): BasicBlock(
+      (conv1): Conv2d(128, 256, kernel_size=(3, 3), stride=(2, 2), padding=(1, 1), bias=False)
+      (bn1): BatchNorm2d(256, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+      (conv2): Conv2d(256, 256, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False)
+      (bn2): BatchNorm2d(256, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+      (downsample): Sequential(
+        (0): Conv2d(128, 256, kernel_size=(1, 1), stride=(2, 2), bias=False)
+        (1): BatchNorm2d(256, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+      )
+    )
+    (1): BasicBlock(
+      (conv1): Conv2d(256, 256, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False)
+      (bn1): BatchNorm2d(256, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+      (conv2): Conv2d(256, 256, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False)
+      (bn2): BatchNorm2d(256, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+    )
+  )
+  (layer4): Sequential(
+    (0): BasicBlock(
+      (conv1): Conv2d(256, 512, kernel_size=(3, 3), stride=(2, 2), padding=(1, 1), bias=False)
+      (bn1): BatchNorm2d(512, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+      (conv2): Conv2d(512, 512, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False)
+      (bn2): BatchNorm2d(512, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+      (downsample): Sequential(
+        (0): Conv2d(256, 512, kernel_size=(1, 1), stride=(2, 2), bias=False)
+        (1): BatchNorm2d(512, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+      )
+    )
+    (1): BasicBlock(
+      (conv1): Conv2d(512, 512, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False)
+      (bn1): BatchNorm2d(512, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+      (conv2): Conv2d(512, 512, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False)
+      (bn2): BatchNorm2d(512, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+    )
+  )
+  (avgpool): AdaptiveAvgPool2d(output_size=(1, 1))
+  (heads): ModuleList(
+    (0-4): 5 x Linear(in_features=512, out_features=20, bias=True)
+  )
+)
+Hello currently in serverbase
+Number of clients: 0
+
+Join ratio / total clients: 1.0 / 5
+Finished creating server and clients.
+Hello currently in serverbase
+currently in setclients in servebase
+Constructed dataset path in set clients: /home/anurag24092/Projects/FedQCL_Task/dataset/CIFAR100_NONIID_alpha10.0_clients5_tasks5/task_0
+Length of train samples for client 0 is 2000
+[Client 0] Loaded dataloaders for all 5 tasks.
+[Client 0] Initialized clientAVG: round_per_task=10, num_tasks=5, memory_size=500
+Loading data from client base for client0
+Task 0 → Unique labels: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19]
+Task 1 → Unique labels: [20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39]
+Task 2 → Unique labels: [40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59]
+Task 3 → Unique labels: [60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79]
+Task 4 → Unique labels: [80, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 91, 92, 93, 94, 95, 96, 97, 98, 99]
+currently in setclients in servebase
+Constructed dataset path in set clients: /home/anurag24092/Projects/FedQCL_Task/dataset/CIFAR100_NONIID_alpha10.0_clients5_tasks5/task_0
+Length of train samples for client 1 is 2000
+[Client 1] Loaded dataloaders for all 5 tasks.
+[Client 1] Initialized clientAVG: round_per_task=10, num_tasks=5, memory_size=500
+Loading data from client base for client1
+Task 0 → Unique labels: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19]
+Task 1 → Unique labels: [20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39]
+Task 2 → Unique labels: [40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59]
+Task 3 → Unique labels: [60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79]
+Task 4 → Unique labels: [80, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 91, 92, 93, 94, 95, 96, 97, 98, 99]
+currently in setclients in servebase
+Constructed dataset path in set clients: /home/anurag24092/Projects/FedQCL_Task/dataset/CIFAR100_NONIID_alpha10.0_clients5_tasks5/task_0
+Length of train samples for client 2 is 2000
+[Client 2] Loaded dataloaders for all 5 tasks.
+[Client 2] Initialized clientAVG: round_per_task=10, num_tasks=5, memory_size=500
+Loading data from client base for client2
+Task 0 → Unique labels: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19]
+Task 1 → Unique labels: [20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39]
+Task 2 → Unique labels: [40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59]
+Task 3 → Unique labels: [60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79]Exception in thread Thread-2 (train):
+Exception in thread Thread-1 (train):
+Traceback (most recent call last):
+Traceback (most recent call last):
+  File "/home/anurag24092/.local/share/uv/python/cpython-3.12.15-linux-x86_64-gnu/lib/python3.12/threading.py", line 1075, in _bootstrap_inner
+  File "/home/anurag24092/.local/share/uv/python/cpython-3.12.15-linux-x86_64-gnu/lib/python3.12/threading.py", line 1075, in _bootstrap_inner
+    self.run()
+  File "/home/anurag24092/.local/share/uv/python/cpython-3.12.15-linux-x86_64-gnu/lib/python3.12/threading.py", line 1012, in run
+    self.run()
+    self._target(*self._args, **self._kwargs)
+  File "/home/anurag24092/.local/share/uv/python/cpython-3.12.15-linux-x86_64-gnu/lib/python3.12/threading.py", line 1012, in run
+  File "/home/anurag24092/Projects/FedQCL_Task/system/flcore/clients/clientavg_tl.py", line 358, in train
+    self._target(*self._args, **self._kwargs)
+  File "/home/anurag24092/Projects/FedQCL_Task/system/flcore/clients/clientavg_tl.py", line 358, in train
+    outputs = self.model(features, task_id=task_id)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/anurag24092/Projects/Correlation-Aware-FCL/.venv/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1736, in _wrapped_call_impl
+    outputs = self.model(features, task_id=task_id)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/anurag24092/Projects/Correlation-Aware-FCL/.venv/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1736, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    return self._call_impl(*args, **kwargs)
+  File "/home/anurag24092/Projects/Correlation-Aware-FCL/.venv/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1747, in _call_impl
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    return forward_call(*args, **kwargs)
+  File "/home/anurag24092/Projects/Correlation-Aware-FCL/.venv/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1747, in _call_impl
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/anurag24092/Projects/FedQCL_Task/system/flcore/trainmodel/resnet.py", line 79, in forward
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    x = self.heads[task_id](x)  # Forward through task-specific head
+  File "/home/anurag24092/Projects/FedQCL_Task/system/flcore/trainmodel/resnet.py", line 79, in forward
+        ^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/anurag24092/Projects/Correlation-Aware-FCL/.venv/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1736, in _wrapped_call_impl
+    x = self.heads[task_id](x)  # Forward through task-specific head
+        ^^^^^^^^^^^^^^^^^^^^^^
+    return self._call_impl(*args, **kwargs)
+  File "/home/anurag24092/Projects/Correlation-Aware-FCL/.venv/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1736, in _wrapped_call_impl
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    return self._call_impl(*args, **kwargs)
+  File "/home/anurag24092/Projects/Correlation-Aware-FCL/.venv/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1747, in _call_impl
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/anurag24092/Projects/Correlation-Aware-FCL/.venv/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1747, in _call_impl
+    return forward_call(*args, **kwargs)
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/anurag24092/Projects/Correlation-Aware-FCL/.venv/lib/python3.12/site-packages/torch/nn/modules/linear.py", line 125, in forward
+  File "/home/anurag24092/Projects/Correlation-Aware-FCL/.venv/lib/python3.12/site-packages/torch/nn/modules/linear.py", line 125, in forward
+    return F.linear(input, self.weight, self.bias)
+    return F.linear(input, self.weight, self.bias)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+RuntimeError: CUDA error: CUBLAS_STATUS_ALLOC_FAILED when calling `cublasCreate(handle)`
+RuntimeError: CUDA error: CUBLAS_STATUS_ALLOC_FAILED when calling `cublasCreate(handle)`
+
+Task 4 → Unique labels: [80, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 91, 92, 93, 94, 95, 96, 97, 98, 99]
+currently in setclients in servebase
+Constructed dataset path in set clients: /home/anurag24092/Projects/FedQCL_Task/dataset/CIFAR100_NONIID_alpha10.0_clients5_tasks5/task_0
+Length of train samples for client 3 is 2000
+[Client 3] Loaded dataloaders for all 5 tasks.
+[Client 3] Initialized clientAVG: round_per_task=10, num_tasks=5, memory_size=500
+Loading data from client base for client3
+Task 0 → Unique labels: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19]
+Task 1 → Unique labels: [20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39]
+Task 2 → Unique labels: [40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59]
+Task 3 → Unique labels: [60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79]
+Task 4 → Unique labels: [80, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 91, 92, 93, 94, 95, 96, 97, 98, 99]
+currently in setclients in servebase
+Constructed dataset path in set clients: /home/anurag24092/Projects/FedQCL_Task/dataset/CIFAR100_NONIID_alpha10.0_clients5_tasks5/task_0
+Length of train samples for client 4 is 2000
+[Client 4] Loaded dataloaders for all 5 tasks.
+[Client 4] Initialized clientAVG: round_per_task=10, num_tasks=5, memory_size=500
+Loading data from client base for client4
+Task 0 → Unique labels: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19]
+Task 1 → Unique labels: [20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39]
+Task 2 → Unique labels: [40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59]
+Task 3 → Unique labels: [60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79]
+Task 4 → Unique labels: [80, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 91, 92, 93, 94, 95, 96, 97, 98, 99]
+Number of clients: 5
+
+-------------Round number: 0-------------
+Hidden clients for round 0: [0, 2, 3]
+Selected clients: 2
+Q:[0.0, 0.0, 0.0, 0.0, 0.0]
+Q:[0.0, 0.0, 0.0, 0.0, 0.0]
+************************* length of uploaded models ************************* 2
+
+Evaluate global model
+evaluation for task 0
+Traceback (most recent call last):
+  File "/home/anurag24092/Projects/FedQCL_Task/system/main.py", line 262, in <module>
+    run(args)
+  File "/home/anurag24092/Projects/FedQCL_Task/system/main.py", line 122, in run
+    server.train()
+  File "/home/anurag24092/Projects/FedQCL_Task/system/flcore/servers/serveravg.py", line 179, in train
+    self.evaluate(round=i)
+  File "/home/anurag24092/Projects/FedQCL_Task/system/flcore/servers/serverbase.py", line 350, in evaluate
+    avg_acc, test_loss = self.test_metrics(round = i)
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/anurag24092/Projects/FedQCL_Task/system/flcore/servers/serverbase.py", line 318, in test_metrics
+    acc, num_samples, loss = c.test_metrics(round)
+                             ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/anurag24092/Projects/FedQCL_Task/system/flcore/clients/clientbase.py", line 183, in test_metrics
+    output = self.model(features, task_id=math.floor(round))
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/anurag24092/Projects/Correlation-Aware-FCL/.venv/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1736, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/anurag24092/Projects/Correlation-Aware-FCL/.venv/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1747, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/anurag24092/Projects/FedQCL_Task/system/flcore/trainmodel/resnet.py", line 79, in forward
+    x = self.heads[task_id](x)  # Forward through task-specific head
+        ^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/anurag24092/Projects/Correlation-Aware-FCL/.venv/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1736, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/anurag24092/Projects/Correlation-Aware-FCL/.venv/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1747, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/anurag24092/Projects/Correlation-Aware-FCL/.venv/lib/python3.12/site-packages/torch/nn/modules/linear.py", line 125, in forward
+    return F.linear(input, self.weight, self.bias)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+RuntimeError: CUDA error: CUBLAS_STATUS_ALLOC_FAILED when calling `cublasCreate(handle)`
+[Cleanup] Removing ./runs/1795291150_14383
+[Cleanup] Removing ./runs/1795291148_14383
+[Cleanup] Removing ./runs/1795291147_14383
+[Cleanup] Removing ./runs/1795291145_14383
+[Cleanup] Removing ./runs/1795291143_14383

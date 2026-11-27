@@ -1,0 +1,12 @@
+wave_1	full_epochs_1	completed
+wave_1	3_off_epochs_1	failed	exit=1
+wave_1	full_epochs_2	completed
+wave_1	3_off_epochs_2	failed	exit=1
+wave_1	full_epochs_10	completed
+wave_1	3_off_epochs_10	completed
+wave_2	1_off_epochs_1	completed
+wave_2	2_off_epochs_1	completed
+wave_2	1_off_epochs_2	completed
+wave_2	2_off_epochs_2	completed
+wave_2	1_off_epochs_10	completed
+wave_2	2_off_epochs_10	completed

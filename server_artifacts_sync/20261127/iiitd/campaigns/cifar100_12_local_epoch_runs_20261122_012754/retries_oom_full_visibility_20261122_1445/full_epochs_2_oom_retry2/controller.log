@@ -1,0 +1,12 @@
+{"event": "waiting_for_vram", "run_id": "fedqcl_full_e2_retry2", "free_vram_mib": 1775, "outstanding_reservations_mib": 164, "available_after_reservations_mib": 1611, "required_mib": 9216}
+{"event": "waiting_for_vram", "run_id": "fedqcl_full_e2_retry2", "free_vram_mib": 1775, "outstanding_reservations_mib": 164, "available_after_reservations_mib": 1611, "required_mib": 9216}
+{"event": "waiting_for_vram", "run_id": "fedqcl_full_e2_retry2", "free_vram_mib": 1569, "outstanding_reservations_mib": 0, "available_after_reservations_mib": 1569, "required_mib": 9216}
+{"event": "waiting_for_vram", "run_id": "fedqcl_full_e2_retry2", "free_vram_mib": 1569, "outstanding_reservations_mib": 0, "available_after_reservations_mib": 1569, "required_mib": 9216}
+{"event": "waiting_for_vram", "run_id": "fedqcl_full_e2_retry2", "free_vram_mib": 1569, "outstanding_reservations_mib": 0, "available_after_reservations_mib": 1569, "required_mib": 9216}
+{"event": "waiting_for_vram", "run_id": "fedqcl_full_e2_retry2", "free_vram_mib": 1569, "outstanding_reservations_mib": 0, "available_after_reservations_mib": 1569, "required_mib": 9216}
+{"event": "waiting_for_vram", "run_id": "fedqcl_full_e2_retry2", "free_vram_mib": 1569, "outstanding_reservations_mib": 0, "available_after_reservations_mib": 1569, "required_mib": 9216}
+{"event": "waiting_for_vram", "run_id": "fedqcl_full_e2_retry2", "free_vram_mib": 1569, "outstanding_reservations_mib": 0, "available_after_reservations_mib": 1569, "required_mib": 9216}
+{"event": "waiting_for_vram", "run_id": "fedqcl_full_e2_retry2", "free_vram_mib": 1569, "outstanding_reservations_mib": 0, "available_after_reservations_mib": 1569, "required_mib": 9216}
+{"event": "waiting_for_vram", "run_id": "fedqcl_full_e2_retry2", "free_vram_mib": 1569, "outstanding_reservations_mib": 0, "available_after_reservations_mib": 1569, "required_mib": 9216}
+{"event": "waiting_for_vram", "run_id": "fedqcl_full_e2_retry2", "free_vram_mib": 7137, "outstanding_reservations_mib": 5564, "available_after_reservations_mib": 1573, "required_mib": 9216}
+{"event": "waiting_for_vram", "run_id": "fedqcl_full_e2_retry2", "free_vram_mib": 2601, "outstanding_reservations_mib": 1030, "available_after_reservations_mib": 1571, "required_mib": 9216}

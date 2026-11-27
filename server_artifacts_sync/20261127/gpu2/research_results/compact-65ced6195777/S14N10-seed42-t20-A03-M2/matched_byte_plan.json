@@ -1,0 +1,667 @@
+{
+  "counts": [
+    10,
+    10,
+    10,
+    10,
+    10,
+    10,
+    10,
+    10,
+    10,
+    10,
+    10,
+    0,
+    0,
+    0,
+    0,
+    10,
+    0,
+    0,
+    0,
+    0,
+    10,
+    0,
+    0,
+    0,
+    0,
+    10,
+    0,
+    0,
+    0,
+    0,
+    10,
+    0,
+    0,
+    0,
+    0,
+    10,
+    0,
+    0,
+    0,
+    0,
+    10,
+    0,
+    0,
+    0,
+    0,
+    10,
+    0,
+    0,
+    0,
+    0
+  ],
+  "max_skip": 4,
+  "rounds": [
+    {
+      "cumulative_bytes": 449194140,
+      "expected_bytes": 449194140,
+      "round": -1,
+      "slack": 0,
+      "source_cap": 449194140
+    },
+    {
+      "cumulative_bytes": 1347586570,
+      "expected_bytes": 898392430,
+      "round": 0,
+      "selected": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9
+      ],
+      "slack": 1340,
+      "source_cap": 1347587910
+    },
+    {
+      "cumulative_bytes": 2245979000,
+      "expected_bytes": 898392430,
+      "round": 1,
+      "selected": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9
+      ],
+      "slack": 4440,
+      "source_cap": 2245983440
+    },
+    {
+      "cumulative_bytes": 3144371430,
+      "expected_bytes": 898392430,
+      "round": 2,
+      "selected": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9
+      ],
+      "slack": 7540,
+      "source_cap": 3144378970
+    },
+    {
+      "cumulative_bytes": 4042763860,
+      "expected_bytes": 898392430,
+      "round": 3,
+      "selected": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9
+      ],
+      "slack": 10640,
+      "source_cap": 4042774500
+    },
+    {
+      "cumulative_bytes": 4941156290,
+      "expected_bytes": 898392430,
+      "round": 4,
+      "selected": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9
+      ],
+      "slack": 13740,
+      "source_cap": 4941170030
+    },
+    {
+      "cumulative_bytes": 5839548720,
+      "expected_bytes": 898392430,
+      "round": 5,
+      "selected": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9
+      ],
+      "slack": 16840,
+      "source_cap": 5839565560
+    },
+    {
+      "cumulative_bytes": 6737941150,
+      "expected_bytes": 898392430,
+      "round": 6,
+      "selected": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9
+      ],
+      "slack": 19940,
+      "source_cap": 6737961090
+    },
+    {
+      "cumulative_bytes": 7636333580,
+      "expected_bytes": 898392430,
+      "round": 7,
+      "selected": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9
+      ],
+      "slack": 23040,
+      "source_cap": 7636356620
+    },
+    {
+      "cumulative_bytes": 8534726010,
+      "expected_bytes": 898392430,
+      "round": 8,
+      "selected": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9
+      ],
+      "slack": 26140,
+      "source_cap": 8534752150
+    },
+    {
+      "cumulative_bytes": 9433118460,
+      "expected_bytes": 898392450,
+      "round": 9,
+      "selected": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9
+      ],
+      "slack": 29240,
+      "source_cap": 9433147700
+    },
+    {
+      "cumulative_bytes": 10331511000,
+      "expected_bytes": 898392540,
+      "round": 10,
+      "selected": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9
+      ],
+      "slack": 42550,
+      "source_cap": 10331553550
+    },
+    {
+      "cumulative_bytes": 10331514950,
+      "expected_bytes": 3950,
+      "round": 11,
+      "selected": [],
+      "slack": 42550,
+      "source_cap": 10331557500
+    },
+    {
+      "cumulative_bytes": 10331518900,
+      "expected_bytes": 3950,
+      "round": 12,
+      "selected": [],
+      "slack": 42550,
+      "source_cap": 10331561450
+    },
+    {
+      "cumulative_bytes": 10331522850,
+      "expected_bytes": 3950,
+      "round": 13,
+      "selected": [],
+      "slack": 42550,
+      "source_cap": 10331565400
+    },
+    {
+      "cumulative_bytes": 10331526800,
+      "expected_bytes": 3950,
+      "round": 14,
+      "selected": [],
+      "slack": 42550,
+      "source_cap": 10331569350
+    },
+    {
+      "cumulative_bytes": 11229919340,
+      "expected_bytes": 898392540,
+      "round": 15,
+      "selected": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9
+      ],
+      "slack": 55860,
+      "source_cap": 11229975200
+    },
+    {
+      "cumulative_bytes": 11229923290,
+      "expected_bytes": 3950,
+      "round": 16,
+      "selected": [],
+      "slack": 55860,
+      "source_cap": 11229979150
+    },
+    {
+      "cumulative_bytes": 11229927240,
+      "expected_bytes": 3950,
+      "round": 17,
+      "selected": [],
+      "slack": 55860,
+      "source_cap": 11229983100
+    },
+    {
+      "cumulative_bytes": 11229931190,
+      "expected_bytes": 3950,
+      "round": 18,
+      "selected": [],
+      "slack": 55860,
+      "source_cap": 11229987050
+    },
+    {
+      "cumulative_bytes": 11229935140,
+      "expected_bytes": 3950,
+      "round": 19,
+      "selected": [],
+      "slack": 55860,
+      "source_cap": 11229991000
+    },
+    {
+      "cumulative_bytes": 12128327680,
+      "expected_bytes": 898392540,
+      "round": 20,
+      "selected": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9
+      ],
+      "slack": 75140,
+      "source_cap": 12128402820
+    },
+    {
+      "cumulative_bytes": 12128331630,
+      "expected_bytes": 3950,
+      "round": 21,
+      "selected": [],
+      "slack": 75140,
+      "source_cap": 12128406770
+    },
+    {
+      "cumulative_bytes": 12128335580,
+      "expected_bytes": 3950,
+      "round": 22,
+      "selected": [],
+      "slack": 75140,
+      "source_cap": 12128410720
+    },
+    {
+      "cumulative_bytes": 12128339530,
+      "expected_bytes": 3950,
+      "round": 23,
+      "selected": [],
+      "slack": 75140,
+      "source_cap": 12128414670
+    },
+    {
+      "cumulative_bytes": 12128343480,
+      "expected_bytes": 3950,
+      "round": 24,
+      "selected": [],
+      "slack": 75140,
+      "source_cap": 12128418620
+    },
+    {
+      "cumulative_bytes": 13026736020,
+      "expected_bytes": 898392540,
+      "round": 25,
+      "selected": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9
+      ],
+      "slack": 89870,
+      "source_cap": 13026825890
+    },
+    {
+      "cumulative_bytes": 13026739970,
+      "expected_bytes": 3950,
+      "round": 26,
+      "selected": [],
+      "slack": 89870,
+      "source_cap": 13026829840
+    },
+    {
+      "cumulative_bytes": 13026743920,
+      "expected_bytes": 3950,
+      "round": 27,
+      "selected": [],
+      "slack": 89870,
+      "source_cap": 13026833790
+    },
+    {
+      "cumulative_bytes": 13026747870,
+      "expected_bytes": 3950,
+      "round": 28,
+      "selected": [],
+      "slack": 89870,
+      "source_cap": 13026837740
+    },
+    {
+      "cumulative_bytes": 13026751820,
+      "expected_bytes": 3950,
+      "round": 29,
+      "selected": [],
+      "slack": 89870,
+      "source_cap": 13026841690
+    },
+    {
+      "cumulative_bytes": 13925144360,
+      "expected_bytes": 898392540,
+      "round": 30,
+      "selected": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9
+      ],
+      "slack": 111280,
+      "source_cap": 13925255640
+    },
+    {
+      "cumulative_bytes": 13925148310,
+      "expected_bytes": 3950,
+      "round": 31,
+      "selected": [],
+      "slack": 111280,
+      "source_cap": 13925259590
+    },
+    {
+      "cumulative_bytes": 13925152260,
+      "expected_bytes": 3950,
+      "round": 32,
+      "selected": [],
+      "slack": 111280,
+      "source_cap": 13925263540
+    },
+    {
+      "cumulative_bytes": 13925156210,
+      "expected_bytes": 3950,
+      "round": 33,
+      "selected": [],
+      "slack": 111280,
+      "source_cap": 13925267490
+    },
+    {
+      "cumulative_bytes": 13925160160,
+      "expected_bytes": 3950,
+      "round": 34,
+      "selected": [],
+      "slack": 111280,
+      "source_cap": 13925271440
+    },
+    {
+      "cumulative_bytes": 14823552700,
+      "expected_bytes": 898392540,
+      "round": 35,
+      "selected": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9
+      ],
+      "slack": 127430,
+      "source_cap": 14823680130
+    },
+    {
+      "cumulative_bytes": 14823556650,
+      "expected_bytes": 3950,
+      "round": 36,
+      "selected": [],
+      "slack": 127430,
+      "source_cap": 14823684080
+    },
+    {
+      "cumulative_bytes": 14823560600,
+      "expected_bytes": 3950,
+      "round": 37,
+      "selected": [],
+      "slack": 127430,
+      "source_cap": 14823688030
+    },
+    {
+      "cumulative_bytes": 14823564550,
+      "expected_bytes": 3950,
+      "round": 38,
+      "selected": [],
+      "slack": 127430,
+      "source_cap": 14823691980
+    },
+    {
+      "cumulative_bytes": 14823568500,
+      "expected_bytes": 3950,
+      "round": 39,
+      "selected": [],
+      "slack": 127430,
+      "source_cap": 14823695930
+    },
+    {
+      "cumulative_bytes": 15721961040,
+      "expected_bytes": 898392540,
+      "round": 40,
+      "selected": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9
+      ],
+      "slack": 151050,
+      "source_cap": 15722112090
+    },
+    {
+      "cumulative_bytes": 15721964990,
+      "expected_bytes": 3950,
+      "round": 41,
+      "selected": [],
+      "slack": 151050,
+      "source_cap": 15722116040
+    },
+    {
+      "cumulative_bytes": 15721968940,
+      "expected_bytes": 3950,
+      "round": 42,
+      "selected": [],
+      "slack": 151050,
+      "source_cap": 15722119990
+    },
+    {
+      "cumulative_bytes": 15721972890,
+      "expected_bytes": 3950,
+      "round": 43,
+      "selected": [],
+      "slack": 151050,
+      "source_cap": 15722123940
+    },
+    {
+      "cumulative_bytes": 15721976840,
+      "expected_bytes": 3950,
+      "round": 44,
+      "selected": [],
+      "slack": 151050,
+      "source_cap": 15722127890
+    },
+    {
+      "cumulative_bytes": 16620369380,
+      "expected_bytes": 898392540,
+      "round": 45,
+      "selected": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9
+      ],
+      "slack": 168710,
+      "source_cap": 16620538090
+    },
+    {
+      "cumulative_bytes": 16620373330,
+      "expected_bytes": 3950,
+      "round": 46,
+      "selected": [],
+      "slack": 168710,
+      "source_cap": 16620542040
+    },
+    {
+      "cumulative_bytes": 16620377280,
+      "expected_bytes": 3950,
+      "round": 47,
+      "selected": [],
+      "slack": 168710,
+      "source_cap": 16620545990
+    },
+    {
+      "cumulative_bytes": 16620381230,
+      "expected_bytes": 3950,
+      "round": 48,
+      "selected": [],
+      "slack": 168710,
+      "source_cap": 16620549940
+    },
+    {
+      "cumulative_bytes": 16620385180,
+      "expected_bytes": 3950,
+      "round": 49,
+      "selected": [],
+      "slack": 168710,
+      "source_cap": 16620553890
+    }
+  ],
+  "schema": 1,
+  "seed": 42,
+  "source_total_bytes": 16620553890,
+  "total_bytes": 16620385180,
+  "unused_bytes": 168710
+}

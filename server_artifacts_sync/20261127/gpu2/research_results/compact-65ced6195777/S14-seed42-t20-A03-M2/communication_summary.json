@@ -1,0 +1,61 @@
+{
+  "accounting": "logical application bytes, per-recipient, no packet/IP/TLS overhead",
+  "bytes_by_kind": {
+    "ADMISSION_REQUEST": 17837,
+    "ADMISSION_RESPONSE": 13836,
+    "AVAILABILITY": 30950,
+    "AVAILABLE_ROSTER": 33200,
+    "BANK_AGGREGATE": 52826,
+    "MODEL_ACK": 13028,
+    "MODEL_DOWNLOAD": 4761444327,
+    "MODEL_INITIAL": 224596455,
+    "MODEL_UPLOAD": 4761448244,
+    "ROUND_CLOCK": 31900,
+    "STAT_REPORT": 36736
+  },
+  "bytes_by_phase": {
+    "admission": 31673,
+    "download": 4761509566,
+    "initialization": 224597070,
+    "observe": 96050,
+    "upload": 4761484980
+  },
+  "control_bytes": 140751,
+  "delivered_bytes": 9747719339,
+  "download_bytes": 4986172544,
+  "envelope_bytes": 270379,
+  "full_model_payload_bytes": 44919088,
+  "initial_downloads": 5,
+  "mean_participants": 2.12,
+  "mean_participants_after_bootstrap": 2.061224489795918,
+  "model_bytes": 9747489026,
+  "model_downloads": 106,
+  "model_refreshes": 0,
+  "model_tensor_bytes": 9747442096,
+  "model_uploads": 106,
+  "no_aggregation_rounds": 16,
+  "participant_count_histogram": {
+    "0": 16,
+    "1": 16,
+    "2": 0,
+    "3": 0,
+    "4": 0,
+    "5": 18
+  },
+  "participation_fraction": 0.424,
+  "peer_bytes": 0,
+  "scalar_admission_score_message_bytes": 0,
+  "schema": 1,
+  "skipped_client_rounds": 144,
+  "skipped_traffic_types": {
+    "common_control_only": 144,
+    "control_only": 0,
+    "silent": 0,
+    "statistics_only": 0
+  },
+  "statistic_vector_bytes": 6864,
+  "statistics_bytes": 89562,
+  "total_bytes": 9747719339,
+  "transactions": 1447,
+  "upload_bytes": 4761546795
+}

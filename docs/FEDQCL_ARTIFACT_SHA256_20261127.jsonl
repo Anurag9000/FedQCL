@@ -2794,7 +2794,7 @@
 {"path":"campaign_archive/20261127/kakarot_campaign_state/vram_profile_controlled_10client.json","bytes":2305,"sha256":"2db15cfdd6126525481485d2b7ffb12366a8de0d1aa23cf4646f72cb3cd18753"}
 {"path":"campaign_archive/20261127/kakarot_campaign_state/vram_profile_controlled_5client.json","bytes":7530,"sha256":"4a089972af2acc7bbdb28ee07ab79987a37ed26f9fec9e8ea85a7b5620707b0c"}
 {"path":"campaign_operations.jsonl","bytes":961,"sha256":"384b42b4e3f3e5331050bf963edc8fb4c38db73b67dcdd5a548071a857efc55b"}
-{"path":"docs/FEDQCL_ARTIFACT_ARCHIVE_20261127.md","bytes":2914,"sha256":"39c55c545326ef92376697a7f3df66ed02f5c6686609f695a9208ab7c178d492"}
+{"path":"docs/FEDQCL_ARTIFACT_ARCHIVE_20261127.md","bytes":3118,"sha256":"868398187f6b8b09c08e33ea7988ccfb77906ae7581383e2e359875a493f1aa5"}
 {"path":"experiments/job_ledger.jsonl","bytes":418980,"sha256":"3b9be2a32d49334f8fa907cbb6df855e98eb4b2e2c0758a7f36edf1b104b0ce2"}
 {"path":"experiments/job_ledger_extended.jsonl","bytes":7382449,"sha256":"df291dca7e3e1d0ce9577c600085842e4df69f076b00fa9e48db5369735caba8"}
 {"path":"experiments/task_il_48/job_ledger.jsonl","bytes":183915,"sha256":"326b0449dfafd821c5edcb675d304bd21f1b79bec374ab367156191f451076a2"}

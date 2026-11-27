@@ -1,0 +1,15 @@
+{
+  "ground_truth_files": {
+    "allocation_index.npz": "d5cf9a06680a11138bef565362dd1ec63c7386ead432276cf79037b07c2c5e91",
+    "distributions.npz": "fb1f036187ada5fd302484e14a7e0b9e3e24d998f706b15b4acb21807f1703fc",
+    "specification.json": "edb23491680a5cc7d5e51f7f76593ae2dc586002dfca4ff73318d9c01a4f1714"
+  },
+  "ground_truth_hash": "261f4eed634f96f2bcc4ad183ebe0a56ff3561301521e77470f0e64ab8fb9507",
+  "manifest_id": "4a3326ea0b05f74ad9191098a94f4450023f59cb3c79bffa69e9b5463b5ef9a1",
+  "public_probe": 400,
+  "source_verified": true,
+  "test": 10000,
+  "train_and_validation": 49600,
+  "valid": true,
+  "verified_source_examples": 60000
+}

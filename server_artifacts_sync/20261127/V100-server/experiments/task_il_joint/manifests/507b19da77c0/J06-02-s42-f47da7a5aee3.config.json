@@ -1,0 +1,23 @@
+{
+  "backbone": "fedavg_uniform_er_v1",
+  "batch": 13,
+  "clients": 5,
+  "curriculum": "disjoint",
+  "delay": null,
+  "epochs": 2,
+  "lr": 0.005,
+  "memory": 500,
+  "offline": 0,
+  "outage": 0,
+  "overlap": 0,
+  "recurrence": 3,
+  "replay_batch": 13,
+  "seed": 42,
+  "selection_seed": 42,
+  "sharing": 0,
+  "split": "test",
+  "syncs": 5,
+  "temporal_overlap": true,
+  "validation_per_class": 50,
+  "width": 2
+}

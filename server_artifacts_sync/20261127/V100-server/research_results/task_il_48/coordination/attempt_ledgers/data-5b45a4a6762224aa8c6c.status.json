@@ -1,0 +1,10 @@
+{
+  "data-5b45a4a6762224aa8c6c": {
+    "artifact_sha256": {
+      "/home/anurag24092/Projects/FedQCL_Task/research_data/task_il_48/5b45a4a6762224aa8c6c/manifest.json": "bb8b29d9cbb59657020b83223cdbdbb2276816096f29a6ae672007e78e97c9b9"
+    },
+    "dependency_artifacts": {},
+    "exit_code": 0,
+    "status": "completed"
+  }
+}

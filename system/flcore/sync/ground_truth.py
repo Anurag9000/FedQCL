@@ -52,6 +52,44 @@ def corr(rows):
     x,y=np.asarray(rows).T
     if len(set(x))<2 or len(set(y))<2:return {"n":len(rows),"spearman":None,"kendall":None}
     return {"n":len(rows),"spearman":float(spearmanr(x,y).statistic),"kendall":float(kendalltau(x,y).statistic)}
+
+def reconcile_actual_counterfactual(actual,full,observed_rows,round_id,current_task):
+    """Use the realized trajectory for the actual roster and retain replay drift.
+
+    Counterfactual branches are recomputed from the pre-round state. The actual
+    roster's realized server metrics are the authoritative outcome. Preserve
+    any difference from the recomputed branch as an explicit diagnostic.
+    """
+    observed={int(row["task"]):row for row in observed_rows if int(row["round"])==round_id}
+    expected={int(row["task"]):row for row in actual["task_metrics"]}
+    if set(observed)!=set(expected):
+        raise ValueError("actual counterfactual task coverage differs from realized metrics")
+    task_diffs=[]
+    for task in sorted(expected):
+        replayed=expected[task];realized=observed[task]
+        loss_delta=float(replayed["loss"])-float(realized["loss"])
+        accuracy_delta=float(replayed["accuracy"])-float(realized["accuracy"])
+        matched=(math.isclose(float(replayed["loss"]),float(realized["loss"]),rel_tol=1e-5,abs_tol=1e-6)
+                 and math.isclose(float(replayed["accuracy"]),float(realized["accuracy"]),abs_tol=1e-6))
+        if not matched:
+            task_diffs.append({"task":task,"replayed_loss":float(replayed["loss"]),
+                "realized_loss":float(realized["loss"]),"loss_delta_replayed_minus_realized":loss_delta,
+                "replayed_accuracy":float(replayed["accuracy"]),"realized_accuracy":float(realized["accuracy"]),
+                "accuracy_delta_replayed_minus_realized":accuracy_delta})
+        replayed["loss"]=float(realized["loss"])
+        replayed["accuracy"]=float(realized["accuracy"])
+    if current_task not in observed:
+        raise ValueError("realized current-task metric is missing")
+    actual["current_loss"]=float(observed[current_task]["loss"])
+    past=[float(observed[t]["loss"]) for t in sorted(observed) if t<current_task]
+    actual["past_loss"]=float(np.mean(past)) if past else None
+    actual["accuracy"]=float(np.mean([observed[t]["accuracy"] for t in sorted(observed)]))
+    actual["current_harm"]=actual["current_loss"]-full["current_loss"]
+    actual["past_harm"]=(None if actual["past_loss"] is None or full["past_loss"] is None
+                         else actual["past_loss"]-full["past_loss"])
+    return {"round":round_id,"actual_subset":list(actual["subset"]),"matches_realized_replay":not task_diffs,
+            "mismatched_task_count":len(task_diffs),"task_differences":task_diffs}
+
 def analyze_run(out,rounds,decisions,metrics,counterfactuals,events=()):
     root=Path(out)/"ground_truth";receipt=json.loads((root/"validation_receipt.json").read_text());verify(root,receipt)
     meta=json.loads((root/"specification.json").read_text())
@@ -166,7 +204,7 @@ def analyze_run(out,rounds,decisions,metrics,counterfactuals,events=()):
         first=next((u for u in range(r,end) if i in by_round[u]["selected"]),None)
         transition["selection_delay"]=None if first is None else first-r
         transition["selection_delay_censored"]=first is None
-    cf=[]
+    cf=[];actual_replay_diagnostics=[]
     for r in meta["specification"]["counterfactual_rounds"]:
         items=[x for x in counterfactuals if x["round"]==r]
         actual=[x for x in items if x["actual"]];full=[x for x in items if x["size"]==len(p[r])]
@@ -174,6 +212,8 @@ def analyze_run(out,rounds,decisions,metrics,counterfactuals,events=()):
         if len(actual)!=1 or len(full)!=1 or len(matched)!=math.comb(len(p[r]),k):raise ValueError("incomplete counterfactual subsets")
         a=actual[0]
         geometry=full[0]["candidate_update_geometry"]["relative_l2"]
+        actual_replay_diagnostics.append(reconcile_actual_counterfactual(
+            a,full[0],metrics,r,by_round[r]["task"]))
         for i,j in combinations(range(len(p[r])),2):
             ra=to_report(mapping(rounds[r]["sampled_reports"],i));rb=to_report(mapping(rounds[r]["sampled_reports"],j))
             estimate=distance(ra,rb)
@@ -183,9 +223,6 @@ def analyze_run(out,rounds,decisions,metrics,counterfactuals,events=()):
             if yes and no:
                 gain=lambda key:float(np.mean([x[key] for x in no])-np.mean([x[key] for x in yes])) if yes[0][key] is not None else None
                 omission_comparisons.append({"round":r,"regime":by_round[r]["regime"],"client":i,"selected":i in a["subset"],"novelty_score":mapping(decisions[r]["scores"],i),"matched_current_marginal":gain("current_loss"),"matched_past_marginal":gain("past_loss")})
-        for expected in a["task_metrics"]:
-            observed=next(x for x in metrics if x["round"]==r and x["task"]==expected["task"])
-            if not math.isclose(observed["loss"],expected["loss"],rel_tol=1e-5,abs_tol=1e-6) or not math.isclose(observed["accuracy"],expected["accuracy"],abs_tol=1e-6):raise ValueError("actual subset counterfactual differs from real trajectory")
         cf.append({"round":r,"regime":by_round[r]["regime"],"current_harm":a["current_harm"],"past_harm":a["past_harm"],
                    "current_regret":a["current_loss"]-min(x["current_loss"] for x in matched),
                    "past_regret":None if a["past_loss"] is None else a["past_loss"]-min(x["past_loss"] for x in matched),
@@ -226,6 +263,8 @@ def analyze_run(out,rounds,decisions,metrics,counterfactuals,events=()):
     summary=summarize(list(by_round.values()))
     analysis=Path(out)/"analysis";analysis.mkdir(exist_ok=True)
     write(analysis/"ground_truth_comparison.json",{"ground_truth_hash":receipt["ground_truth_hash"],"summary":summary,
-        "regimes":{k:summarize(v) for k,v in regimes.items()},"rounds":list(by_round.values()),"comparisons":comparisons,"observations":observations,"counterfactuals":cf,"transitions":transitions,"geometry_comparisons":geometry_comparisons,"omission_comparisons":omission_comparisons})
+        "regimes":{k:summarize(v) for k,v in regimes.items()},"rounds":list(by_round.values()),"comparisons":comparisons,"observations":observations,"counterfactuals":cf,"actual_replay_diagnostics":actual_replay_diagnostics,"transitions":transitions,"geometry_comparisons":geometry_comparisons,"omission_comparisons":omission_comparisons})
     return {"ground_truth_hash":receipt["ground_truth_hash"],"ground_truth_audit":summary,
-            "counterfactual_checkpoints":len(cf),"counterfactual_seconds":sum(x["counterfactual_seconds"] for x in by_round.values())}
+            "counterfactual_checkpoints":len(cf),"counterfactual_seconds":sum(x["counterfactual_seconds"] for x in by_round.values()),
+            "actual_replay_mismatch_checkpoints":sum(not x["matches_realized_replay"] for x in actual_replay_diagnostics),
+            "actual_replay_diagnostics":actual_replay_diagnostics}

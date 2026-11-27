@@ -1,0 +1,143 @@
+#!/usr/bin/env python3
+"""Dispatch every currently dependency-ready training job across the GPU fleet.
+
+There is one admission worker per physical GPU, not one training worker. Each
+worker repeatedly admits distinct jobs until no compatible ready job fits.
+Actual VRAM checks and claims are serialized by dispatch_jobs.gpu_admission_lock.
+"""
+import concurrent.futures
+import importlib.util
+import json
+import sqlite3
+import threading
+from pathlib import Path
+
+STATE = Path(__file__).resolve().parent
+DB = STATE / 'fleet_state.sqlite3'
+spec = importlib.util.spec_from_file_location('dispatch_jobs', STATE / 'dispatch_jobs.py')
+dispatch = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(dispatch)
+
+DEVICES = [(host, idx) for host, uuids in dispatch.GPU_UUIDS.items()
+           for idx in range(len(uuids))]
+QUEUE_LOCK = threading.Lock()
+ASSIGNED = set()
+ATTEMPTED = {device: set() for device in DEVICES}
+RESULTS = []
+
+
+def ready_jobs():
+    c = sqlite3.connect(DB)
+    c.row_factory = sqlite3.Row
+    jobs = {r['job_id']: r for r in c.execute('SELECT * FROM jobs')}
+    fanout = {key: 0 for key in jobs}
+    for row in jobs.values():
+        for dep in json.loads(row['dependencies_json']):
+            fanout[dep] = fanout.get(dep, 0) + 1
+    result = []
+    for row in jobs.values():
+        if row['kind'] != 'train' or row['state'] not in ('PENDING', 'RETRY_READY'):
+            continue
+        deps = json.loads(row['dependencies_json'])
+        if all(jobs[d]['state'] == 'VERIFIED_COMPLETE' for d in deps):
+            live = c.execute("SELECT 1 FROM attempts WHERE job_id=? AND state IN "
+                             "('CLAIMED','STARTING','RUNNING','AWAITING_VERIFICATION')",
+                             (row['job_id'],)).fetchone()
+            if not live:
+                job = json.loads(row['job_json'])
+                retry = c.execute("SELECT COUNT(*) FROM attempts WHERE job_id=? AND state IN ('FAILED','INTERRUPTED')",
+                                  (row['job_id'],)).fetchone()[0] > 0
+                stage_rank = {'calibration': 0, 'screening': 1, 'participation': 2,
+                              'adaptive': 3, 'matched': 4, 'scale': 5}.get(row['stage'], 6)
+                result.append((0 if retry else 1, stage_rank, -fanout[row['job_id']],
+                               row['semantic_id'] or row['job_id'], job))
+    c.close()
+    return [x[-1] for x in sorted(result)]
+
+
+def next_job(device):
+    host, gpu = device
+    with QUEUE_LOCK:
+        candidates = [job for job in ready_jobs()
+                      if job['id'] not in ASSIGNED
+                      and job['id'] not in ATTEMPTED[device]]
+    for job in candidates:
+        peak = dispatch.candidate_peak_mib(job['config'].get('clients', 5))
+        uuid = dispatch.GPU_UUIDS[host][gpu]
+        try:
+            observed = dispatch.exact_gpu(host, gpu)
+            growth = dispatch.active_reservations(host, uuid)
+        except Exception as error:
+            with QUEUE_LOCK:
+                ATTEMPTED[device].add(job['id'])
+                RESULTS.append({'job': job['id'], 'semantic_id': job.get('semantic_id'),
+                                'host': host, 'gpu': gpu, 'state': 'VRAM_QUERY_ERROR',
+                                'error': repr(error)})
+            continue
+        peak_bytes = peak * dispatch.MIB
+        if not dispatch.can_admit(observed['free_mib'] * dispatch.MIB,
+                                  growth, peak_bytes):
+            with QUEUE_LOCK:
+                ATTEMPTED[device].add(job['id'])
+                RESULTS.append({'job': job['id'], 'semantic_id': job.get('semantic_id'),
+                                'host': host, 'gpu': gpu, 'state': 'WAITING_FOR_VRAM',
+                                'free_mib': observed['free_mib'],
+                                'remaining_growth_mib': growth // dispatch.MIB,
+                                'candidate_peak_mib': peak})
+            continue
+        with QUEUE_LOCK:
+            if job['id'] not in ASSIGNED and job['id'] not in ATTEMPTED[device]:
+                ASSIGNED.add(job['id'])
+                return job
+    return None
+
+
+def run_device(device):
+    host, gpu = device
+    launched = 0
+    while True:
+        job = next_job(device)
+        if job is None:
+            return {'host': host, 'gpu': gpu, 'launched': launched}
+        try:
+            peak = dispatch.candidate_peak_mib(job['config'].get('clients', 5))
+            result = dispatch.adapt_and_launch(host, gpu, job['id'],
+                                               expected_peak_mib=peak)
+            with QUEUE_LOCK:
+                ASSIGNED.discard(job['id'])
+                if result.get('state') == 'WAITING_FOR_VRAM':
+                    ATTEMPTED[device].add(job['id'])
+                RESULTS.append(result)
+            if result.get('state') == 'RUNNING':
+                launched += 1
+            elif result.get('state') != 'WAITING_FOR_VRAM':
+                with QUEUE_LOCK:
+                    ATTEMPTED[device].add(job['id'])
+        except Exception as error:
+            with QUEUE_LOCK:
+                ASSIGNED.discard(job['id'])
+                ATTEMPTED[device].add(job['id'])
+                RESULTS.append({'job': job['id'], 'semantic_id': job.get('semantic_id'),
+                                'host': host, 'gpu': gpu, 'state': 'DISPATCH_ERROR',
+                                'error': repr(error)})
+
+
+def main():
+    before = ready_jobs()
+    print(json.dumps({'ready_training_jobs_before_dispatch': len(before),
+                      'physical_gpus': len(DEVICES), 'devices': DEVICES}, sort_keys=True), flush=True)
+    if not before:
+        print(json.dumps({'state': 'NO_READY_TRAINING_JOBS', 'launched': 0}), flush=True)
+        return
+    # This pool controls only simultaneous claim/preparation threads, one per
+    # actual GPU. Each thread keeps launching jobs; no training concurrency cap
+    # is imposed on any device.
+    with concurrent.futures.ThreadPoolExecutor(max_workers=len(DEVICES)) as pool:
+        summaries = list(pool.map(run_device, DEVICES))
+    print(json.dumps({'state': 'DISPATCH_PASS_COMPLETE', 'device_results': summaries,
+                      'results': RESULTS, 'ready_training_jobs_after_dispatch': len(ready_jobs())},
+                     sort_keys=True), flush=True)
+
+
+if __name__ == '__main__':
+    main()

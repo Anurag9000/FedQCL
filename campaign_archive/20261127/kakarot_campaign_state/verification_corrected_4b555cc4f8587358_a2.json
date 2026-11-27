@@ -1,0 +1,9 @@
+{
+  "attempt_id": "e7cf77ef-0dda-4c0c-94e5-468452035726",
+  "cause": "verification helper guessed the nested attempt-ledger path; wrapper declared /tmp/fedqcl-attempt-4b555cc4f8587358-a2.jsonl",
+  "corrected_at": "2026-11-26T01:30:32.250139+00:00",
+  "corrected_verification_sha256": "43ea6735afa3573aa314f863084338c4faa014357fb873282bb16a498fdef026",
+  "job_id": "4b555cc4f8587358",
+  "prior_check_receipt_sha256": "931f33dd634e0f0f1d71af6b09f8c6187d1869a8bc63b2434b048a9b3df9139a",
+  "resolution": "re-ran repository validator against wrapper-declared ledger; valid=true"
+}

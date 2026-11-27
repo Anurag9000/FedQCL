@@ -1,0 +1,33 @@
+{
+  "expected_file_count": 85,
+  "present_file_count": 64,
+  "missing": [
+    "manifest.json",
+    "task_2/public_probe/0.npz",
+    "task_2/validation/0.npz",
+    "task_2/validation/2.npz",
+    "task_2/validation/4.npz",
+    "task_4/public_probe/0.npz",
+    "task_4/test/0.npz",
+    "task_4/test/1.npz",
+    "task_4/test/2.npz",
+    "task_4/test/3.npz",
+    "task_4/test/4.npz",
+    "task_4/train/0.npz",
+    "task_4/train/1.npz",
+    "task_4/train/2.npz",
+    "task_4/train/3.npz",
+    "task_4/train/4.npz",
+    "task_4/validation/0.npz",
+    "task_4/validation/1.npz",
+    "task_4/validation/2.npz",
+    "task_4/validation/3.npz",
+    "task_4/validation/4.npz"
+  ],
+  "mismatch": [
+    "task_2/validation/3.npz"
+  ],
+  "extra": [],
+  "archive_sha256": "b53f92eb3c304c89a24347461f17a0f942944823b8e8fa7c154243cd93b7932b",
+  "archive_bytes": 56535040
+}

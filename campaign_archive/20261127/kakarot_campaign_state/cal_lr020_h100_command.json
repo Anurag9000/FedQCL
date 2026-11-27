@@ -1,0 +1,8 @@
+[
+  "tmux",
+  "new-session",
+  "-d",
+  "-s",
+  "fedqcl-sync-cal-lr020-h100-r1",
+  "/tmp/fedqcl_sync_cal_lr020_h100_retry1.sh"
+]

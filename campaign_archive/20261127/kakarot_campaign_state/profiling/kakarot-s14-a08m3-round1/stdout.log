@@ -1,0 +1,6 @@
+Traceback (most recent call last):
+  File "/home/anurag-basistha/Projects/Untapped/FedQCL_Task/system/main.py", line 222, in <module>
+    validate(args)
+  File "/home/anurag-basistha/Projects/Untapped/FedQCL_Task/system/flcore/sync/config.py", line 88, in validate
+    raise ValueError("invalid round schedule")
+ValueError: invalid round schedule

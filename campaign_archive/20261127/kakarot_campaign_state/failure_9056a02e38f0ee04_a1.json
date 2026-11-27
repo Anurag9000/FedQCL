@@ -1,0 +1,12 @@
+{
+  "attempt_id": "d2b9e0d0-435d-4f62-80b4-dfab052f0821",
+  "attempt_no": 1,
+  "captured_at": "2026-11-26T17:52:07.370579+00:00",
+  "exit_code": "1",
+  "failure_class": "nonzero-exit-needs-triage",
+  "host": "mtech",
+  "job_id": "9056a02e38f0ee04",
+  "log_tail": "",
+  "root_cause": "Process exited 1; full available log tail is preserved in the failure receipt and must be diagnosed before retry.",
+  "semantic_id": "S14-seed42-t35-A03-M2-B-COUNT"
+}

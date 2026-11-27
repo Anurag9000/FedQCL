@@ -1,0 +1,1 @@
+["/home/anurag-basistha/.venvs/fedqcl-sync-py312/bin/python", "scripts/run_campaign.py", "--ledger", "/home/anurag-basistha/.local/state/fedqcl-sync-campaign-65ced6195777/runtime_ledgers/kakarot/f959e089c77ffb7b-a4/job_ledger.jsonl", "--job-id", "f959e089c77ffb7b", "--resume", "--device", "cpu", "--workers", "1"]

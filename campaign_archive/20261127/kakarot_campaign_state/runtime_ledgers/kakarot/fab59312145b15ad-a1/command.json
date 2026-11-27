@@ -1,0 +1,1 @@
+["bash", "-lc", "nohup bash /tmp/fedqcl-attempts/fab59312145b15ad-a1/run.sh > /tmp/fedqcl-fab59312145b15ad-a1-wrapper.log 2>&1 < /dev/null & echo $! > /tmp/fedqcl-fab59312145b15ad-a1.pid; sleep 0.2; kill -0 $(cat /tmp/fedqcl-fab59312145b15ad-a1.pid) && echo LAUNCHED"]

@@ -1,0 +1,1 @@
+["ssh", "-o", "ConnectTimeout=20", "v100", "tmux new-session -d -s fedqcl-5dd8e7f1868b8bc4-a1 bash /tmp/fedqcl-attempts/5dd8e7f1868b8bc4-a1/run.sh"]

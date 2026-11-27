@@ -1,0 +1,17 @@
+{
+  "attempt": 2,
+  "files": [
+    {
+      "path": "distribution_subset_metrics.jsonl",
+      "sha256": "7d1e8deef7a76855d199084faf6c123e5040ef82271eaaa3b9cb3f01f3443bfe",
+      "size": 395340
+    },
+    {
+      "path": "shortlist.json",
+      "sha256": "d693191a8046fff2fecc77bf1722f217140cd57baa784baefc0eac0ee2cc8d0f",
+      "size": 48185
+    }
+  ],
+  "reason": "analysis failed because expected datasets were absent locally; preserve partial output before retry",
+  "source_output": "/home/anurag-basistha/Projects/Untapped/FedQCL_Task/research_results/compact-65ced6195777/analysis"
+}

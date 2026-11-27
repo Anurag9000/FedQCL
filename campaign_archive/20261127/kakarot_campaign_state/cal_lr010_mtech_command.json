@@ -1,0 +1,8 @@
+[
+  "tmux",
+  "new-session",
+  "-d",
+  "-s",
+  "fedqcl-sync-cal-lr010-mtech",
+  "/tmp/fedqcl_sync_cal_lr010_mtech.sh"
+]

@@ -1,0 +1,42 @@
+{
+  "attempt_id": "c4261f40-f454-44af-b11a-a6a50f01f8c2",
+  "attempt_no": 2,
+  "captured_at": "2026-11-27T10:38:38.403065+00:00",
+  "correction_commit": "856e82d",
+  "exit_code": "1",
+  "failure_class": "nonzero-exit-needs-triage",
+  "failure_evidence": {
+    "actual_replay_mismatches": [
+      {
+        "candidate_accuracy": 0.412,
+        "candidate_loss": 1.93670050573349,
+        "realized_accuracy": 0.413,
+        "realized_loss": 1.9347752017974853,
+        "round": 11,
+        "task": 0
+      },
+      {
+        "candidate_accuracy": 0.34,
+        "candidate_loss": 2.1969006757736205,
+        "realized_accuracy": 0.347,
+        "realized_loss": 2.1951457529067993,
+        "round": 11,
+        "task": 1
+      }
+    ],
+    "checkpoint_bytes": 302709826,
+    "final_summary_exists": false,
+    "last_round": 49,
+    "output_status": {
+      "error": "ValueError('actual subset counterfactual differs from real trajectory')",
+      "status": "failed"
+    },
+    "round_records": 50,
+    "server_model_exists": false
+  },
+  "host": "kakarot",
+  "job_id": "582810562b809703",
+  "log_tail": "",
+  "root_cause": "The training trajectory reached round 49 and saved a valid checkpoint, then final analysis rejected recomputed actual-subset counterfactual metrics that differed from the measured server trajectory. This is an analysis validation mismatch, not a training failure. Corrected in code revision 856e82d: the realized trajectory now supplies the actual-subset metrics while replay differences remain explicit diagnostics.",
+  "semantic_id": "S14-seed42-t20-A03-M1-B-COUNT"
+}

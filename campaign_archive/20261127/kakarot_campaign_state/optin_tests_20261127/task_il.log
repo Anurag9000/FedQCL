@@ -1,0 +1,14 @@
+test_campaign_checkpoint_and_exact_offline_training (test_task_il.Neural.test_campaign_checkpoint_and_exact_offline_training) ... ok
+test_real_model_private_replay (test_task_il.Neural.test_real_model_private_replay) ... ok
+test_stale_aggregation_and_variable_heads (test_task_il.Neural.test_stale_aggregation_and_variable_heads) ... ok
+test_joint_and_disjoint (test_task_il.Schedule.test_joint_and_disjoint) ... ok
+test_matrix_and_exact_participation (test_task_il.Schedule.test_matrix_and_exact_participation) ... ok
+test_overlap_delay_and_tail (test_task_il.Schedule.test_overlap_delay_and_tail) ... ok
+test_private_allocation_and_tamper (test_task_il.Schedule.test_private_allocation_and_tamper) ... ok
+test_same_data_across_participation_frequency_outage (test_task_il.Schedule.test_same_data_across_participation_frequency_outage) ... ok
+test_sharing_recurrence (test_task_il.Schedule.test_sharing_recurrence) ... ok
+
+----------------------------------------------------------------------
+Ran 9 tests in 2.454s
+
+OK

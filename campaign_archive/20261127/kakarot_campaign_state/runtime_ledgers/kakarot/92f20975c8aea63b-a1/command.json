@@ -1,0 +1,1 @@
+["bash", "-lc", "screen -dmS fedqcl-92f20975c8aea63b-a1 bash /tmp/fedqcl-attempts/92f20975c8aea63b-a1/run.sh && screen -ls | grep -F fedqcl-92f20975c8aea63b-a1 >/dev/null && echo LAUNCHED"]

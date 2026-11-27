@@ -1,0 +1,50 @@
+{
+  "attempts": [
+    {
+      "attempt_id": "08090dcc-46a1-4970-97bf-498288ff3d6e",
+      "host": "Kakarot",
+      "preserved_job_state": "VERIFIED_COMPLETE",
+      "result": "FAILED",
+      "semantic_id": "S14-seed42-t05-A03-M2-B-BYTES"
+    },
+    {
+      "attempt_id": "f7dab823-37cb-4c05-9577-77aebc01162b",
+      "host": "Kakarot",
+      "preserved_job_state": "RUNNING",
+      "result": "FAILED",
+      "semantic_id": "S14-seed42-t05-A03-M2-B-COUNT"
+    },
+    {
+      "attempt_id": "cf8b457b-62a9-4bc8-a17a-f91428f87764",
+      "host": "Kakarot",
+      "preserved_job_state": "RUNNING",
+      "result": "FAILED",
+      "semantic_id": "S14-seed42-t35-A03-M2-B-BYTES"
+    },
+    {
+      "attempt_id": "d2b9e0d0-435d-4f62-80b4-dfab052f0821",
+      "host": "Mtech",
+      "preserved_job_state": "RUNNING",
+      "result": "FAILED",
+      "semantic_id": "S14-seed42-t35-A03-M2-B-COUNT"
+    },
+    {
+      "attempt_id": "edadfa2b-4f50-4447-bfb7-221f027ca25e",
+      "host": "Kakarot",
+      "preserved_job_state": "VERIFIED_COMPLETE",
+      "result": "FAILED",
+      "semantic_id": "S14N10-seed42-t20-A03-M1-B-BYTES"
+    },
+    {
+      "attempt_id": "109cc0da-cc97-49b1-bc42-42e8b948bbda",
+      "host": "Kakarot",
+      "preserved_job_state": "VERIFIED_COMPLETE",
+      "result": "FAILED",
+      "semantic_id": "S14N10-seed42-t20-A03-M1-B-COUNT"
+    }
+  ],
+  "event": "MATCHED_SOURCE_ATTEMPT_TRIAGE",
+  "limitations": "No traceback was captured; classify as an artifact-based likely diagnosis, not a proven stack-trace root cause.",
+  "recorded_at": "2026-11-26T18:49:22+00:00",
+  "source_evidence": "campaign_operations.jsonl MATCHED_SOURCE_DEPENDENCY_RECOVERY plus empty failure receipts and source/destination SHA256 checks"
+}

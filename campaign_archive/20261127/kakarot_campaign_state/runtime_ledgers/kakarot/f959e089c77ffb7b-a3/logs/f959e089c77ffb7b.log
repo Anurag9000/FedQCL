@@ -1,0 +1,10 @@
+
+COMMAND: /home/anurag-basistha/.venvs/fedqcl-sync-py312/bin/python scripts/analyze_controlled_campaign.py --ledger /home/anurag-basistha/.local/state/fedqcl-sync-campaign-65ced6195777/job_ledger_expanded.jsonl --output /home/anurag-basistha/Projects/Untapped/FedQCL_Task/research_results/compact-65ced6195777/analysis
+Traceback (most recent call last):
+  File "/home/anurag-basistha/.local/state/fedqcl-sync-campaign-65ced6195777/worktrees/fedqcl-65ced6195777-analysis-recovery/scripts/analyze_controlled_campaign.py", line 213, in <module>
+    p=argparse.ArgumentParser();p.add_argument("--ledger",type=Path,required=True);p.add_argument("--output",type=Path,required=True);a=p.parse_args();analyze(a.ledger,a.output)
+                                                                                                                                                       ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/anurag-basistha/.local/state/fedqcl-sync-campaign-65ced6195777/worktrees/fedqcl-65ced6195777-analysis-recovery/scripts/analyze_controlled_campaign.py", line 172, in analyze
+    if not valid(job):raise ValueError("unverified run "+job["config"]["experiment_id"])
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ValueError: unverified run S14-seed42-t05-A03-M1-B-COUNT

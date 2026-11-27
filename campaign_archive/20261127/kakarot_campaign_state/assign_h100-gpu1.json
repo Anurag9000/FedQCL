@@ -1,0 +1,32 @@
+[
+  {
+    "job_id": "ee2b0169a7ba97c9",
+    "host": "h100",
+    "gpu": 1,
+    "reserve_gib": 6
+  },
+  {
+    "job_id": "3f40135651a10fa2",
+    "host": "h100",
+    "gpu": 1,
+    "reserve_gib": 6
+  },
+  {
+    "job_id": "49642ed94e8ca6f2",
+    "host": "h100",
+    "gpu": 1,
+    "reserve_gib": 6
+  },
+  {
+    "job_id": "4cb0569458c19071",
+    "host": "h100",
+    "gpu": 1,
+    "reserve_gib": 6
+  },
+  {
+    "job_id": "60bbd9b8b6046d64",
+    "host": "h100",
+    "gpu": 1,
+    "reserve_gib": 6
+  }
+]

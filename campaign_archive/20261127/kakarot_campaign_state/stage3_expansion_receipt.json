@@ -1,0 +1,17 @@
+{
+  "canonicalization": {
+    "jobs": 179,
+    "raw_generated_ledger": "/home/anurag-basistha/.local/state/fedqcl-sync-campaign-65ced6195777/job_ledger_expanded.generated.jsonl",
+    "remapped_ids": {
+      "85552538d77841a5": "5c00625c53888688",
+      "932bc707d052c167": "a8a7b6b69e4eb864"
+    }
+  },
+  "created_at": "2026-11-26T15:11:56+00:00",
+  "jobs": 179,
+  "ledger_path": "/home/anurag-basistha/.local/state/fedqcl-sync-campaign-65ced6195777/job_ledger_expanded.jsonl",
+  "ledger_sha256": "418aa1bd21bc5dbf79099594230856f5953ec67c5b9b2ce8b1eb174bc6719e3e",
+  "shortlist_sha256": "d693191a8046fff2fecc77bf1722f217140cd57baa784baefc0eac0ee2cc8d0f",
+  "state": "EXPANDED_AND_IMPORTED",
+  "training_jobs": 123
+}

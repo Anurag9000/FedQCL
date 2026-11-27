@@ -1,0 +1,33 @@
+{
+  "candidates": [
+    {
+      "current_accuracy": 0.34995,
+      "forgetting": 0.05400000000000005,
+      "learning_rate": 0.005,
+      "objective": 0.38732500000000003,
+      "past_accuracy": 0.4247,
+      "validation_sha256": "b3f20cc695bd330c3e29697bacbe1dd61a968c869e1aa37f0b917050cb3c1f57"
+    },
+    {
+      "current_accuracy": 0.347,
+      "forgetting": 0.008000000000000007,
+      "learning_rate": 0.01,
+      "objective": 0.39025,
+      "past_accuracy": 0.4335,
+      "validation_sha256": "8743e2b6b0f535cb88b52b2d435fba8f0e6ec356969350ff84e49f37b4258aba"
+    },
+    {
+      "current_accuracy": 0.35285,
+      "forgetting": 0.018000000000000016,
+      "learning_rate": 0.02,
+      "objective": 0.390125,
+      "past_accuracy": 0.4274,
+      "validation_sha256": "800dd21000207d8cfc31c2747c87617856e68a08792b06ad4907bd1f34f2fa27"
+    }
+  ],
+  "learning_rate": 0.01,
+  "prefix_rounds": 20,
+  "schema": 1,
+  "scope": "validation-only full participation, first two tasks, no test selection",
+  "source_commit": "65ced6195777d824c77f3c26152b066ef5f47f18"
+}

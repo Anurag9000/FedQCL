@@ -1,0 +1,8 @@
+[
+  {
+    "job_id": "f8eb892107ac4662",
+    "host": "h100",
+    "gpu": 1,
+    "expected_peak_mib": 2577
+  }
+]

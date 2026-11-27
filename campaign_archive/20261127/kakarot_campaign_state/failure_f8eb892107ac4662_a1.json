@@ -1,0 +1,12 @@
+{
+  "attempt_id": "ea4cbfd9-d031-408f-9902-afa6a6af8291",
+  "attempt_no": 1,
+  "captured_at": "2026-11-26T15:24:34.326021+00:00",
+  "exit_code": "1",
+  "failure_class": "cuda-oom",
+  "host": "v100",
+  "job_id": "f8eb892107ac4662",
+  "log_tail": "torch.OutOfMemoryError: CUDA out of memory. Tried to allocate 20.00 MiB. GPU 0 has total 31.74 GiB, only 20.12 MiB free. The failing process used 2.76 GiB including non-PyTorch allocations; other listed processes used 10.64 GiB, 0.41 GiB, and six campaign processes at 2.29\u20133.20 GiB each.",
+  "root_cause": "CUDA OOM on shared V100: attempted 20 MiB allocation with only 20.12 MiB free; device also held 10.64 GiB and 0.41 GiB from unrelated PIDs plus other campaign processes. Attempt ended at round 12; no process/session remains. Retrying same configuration on H100 with more free VRAM.",
+  "semantic_id": "S14N10-seed42-k9-A05-M3"
+}

@@ -1,0 +1,9 @@
+{
+  "job_id": "4b555cc4f8587358",
+  "attempt_id": "e7cf77ef-0dda-4c0c-94e5-468452035726",
+  "host": "h100",
+  "exit_code": 0,
+  "validator_output": "\rrl-group4@192.168.3.215's  \r\nTraceback (most recent call last):\r\n  File \"/tmp/fedqcl-verify-attempt.py\", line 6, in <module>\r\n    rows=[json.loads(x) for x in ledger.read_text().splitlines()]\r\n                                 ^^^^^^^^^^^^^^^^^^\r\n  File \"/usr/lib/python3.12/pathlib.py\", line 1029, in read_text\r\n    with self.open(mode='r', encoding=encoding, errors=errors) as f:\r\n         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\r\n  File \"/usr/lib/python3.12/pathlib.py\", line 1015, in open\r\n    return io.open(self, mode, buffering, encoding, errors, newline)\r\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\r\nFileNotFoundError: [Errno 2] No such file or directory: '/tmp/fedqcl-attempts/4b555cc4f8587358-a2/job_ledger.jsonl'\r\n",
+  "stderr": "",
+  "verified": false
+}

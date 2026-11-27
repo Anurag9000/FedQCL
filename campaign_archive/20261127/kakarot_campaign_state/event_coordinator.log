@@ -1,0 +1,7 @@
+{"at": "2026-11-26T02:44:55+00:00", "event": "coordinator_started", "event_source": "Linux inotify close-write/move events", "polling": "none; wakes only on attempt exit-file events", "watched_hosts": ["kakarot", "mtech", "v100", "l40", "h100"]}
+{"at": "2026-11-26T02:44:55+00:00", "event": "watcher_ready", "host": "kakarot", "ready_count": 1}
+{"at": "2026-11-26T02:44:57+00:00", "event": "watcher_ready", "host": "l40", "ready_count": 2}
+{"at": "2026-11-26T02:44:57+00:00", "event": "watcher_ready", "host": "h100", "ready_count": 3}
+{"at": "2026-11-26T02:44:57+00:00", "event": "watcher_ready", "host": "mtech", "ready_count": 4}
+{"at": "2026-11-26T02:44:58+00:00", "event": "watcher_ready", "host": "v100", "ready_count": 5}
+{"at": "2026-11-26T02:44:58+00:00", "event": "all_exit_watchers_ready", "hosts": ["h100", "kakarot", "l40", "mtech", "v100"]}

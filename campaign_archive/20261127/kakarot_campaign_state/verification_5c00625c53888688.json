@@ -1,0 +1,13 @@
+{
+  "attempt_id": "be48e59a-fc50-4ca4-a4af-615c12a3d954",
+  "config_hash": "bf3dc27766055c1c62c2d4808e78b841149c1c8d036ac833ea638316f8230e35",
+  "dataset_manifest_id": null,
+  "evaluation_split": null,
+  "job_id": "5c00625c53888688",
+  "semantic_id": "compact-shortlist",
+  "source_commit": "65ced6195777d824c77f3c26152b066ef5f47f18",
+  "summary": null,
+  "validator": "scripts/run_campaign.py:valid",
+  "verified": true,
+  "verified_at": "2026-11-26T15:02:41.702755+00:00"
+}

@@ -1,0 +1,6 @@
+{
+  "CUDA_VISIBLE_DEVICES": "GPU-4a3a716d-814a-aa0c-a7ae-9d05bc707ac9",
+  "PYTHONDONTWRITEBYTECODE": "1",
+  "python": "/home/anurag24092/.venvs/fedqcl-sync-py312/bin/python",
+  "source_commit": "65ced6195777d824c77f3c26152b066ef5f47f18"
+}

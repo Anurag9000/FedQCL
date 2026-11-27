@@ -1,0 +1,26 @@
+==================================================
+Algorithm: FedAvg
+Local batch size: 13
+Local epochs: 5
+Local learing rate: 0.01
+Local learing rate decay: False
+Total number of clients: 5
+Clients join in each round: 1.0
+Clients randomly join: False
+Client drop rate: 0.0
+Client select regarding time: False
+Running times: 1
+Dataset: /home/anurag-basistha/Projects/Untapped/FedQCL_Task/research_data/S14-seed42-ab0bf722e3ab-a434e45e2a6f
+Number of classes: 20
+Backbone: resnet18
+Using device: cuda
+Using DP: False
+Auto break: False
+Global rounds: 49
+Cuda device id: 0
+DLG attack: False
+Total number of new clients: 0
+Fine tuning epoches on new clients: 0
+==================================================
+
+Total time cost: 38.24s.

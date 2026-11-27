@@ -1,0 +1,13 @@
+{
+  "attempt_id": "8bdda8e8-3128-470a-a1f2-3f0f260fbe71",
+  "attempt_no": 3,
+  "diagnosed_at": "2026-11-27T19:43:00+05:30",
+  "evidence_path": "/home/anurag-basistha/.local/state/fedqcl-sync-campaign-65ced6195777/runtime_ledgers/kakarot/f959e089c77ffb7b-a3/stderr.log",
+  "exit_code": 1,
+  "failure_class": "analysis-validator-host-path-portability",
+  "host": "kakarot",
+  "job_id": "f959e089c77ffb7b",
+  "partial_output": "/home/anurag-basistha/Projects/Untapped/FedQCL_Task/research_results/compact-65ced6195777/analysis",
+  "root_cause": "The analyzer imported run_campaign.valid directly. A matched-count training result stores sync_count_schedule as an absolute path from its producing host (/home/anurag24092/...), which is absent on Kakarot. The verified local mirror contains the schedule and its bytes exactly match the source trajectory, but run_campaign.valid called decision_audit.verify_decisions without mapping this path, causing FileNotFoundError. No scientific artifact was modified; analyzer stopped before final matrix generation. A validator-only local schedule fallback was added in the pinned analysis worktree and regression-tested; the offending artifact now passes valid(job).",
+  "semantic_id": "compact-analysis"
+}

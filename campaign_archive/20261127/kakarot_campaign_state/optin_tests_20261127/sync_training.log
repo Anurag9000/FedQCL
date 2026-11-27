@@ -1,0 +1,9 @@
+test_end_to_end_and_resume (test_sync_training.Training.test_end_to_end_and_resume) ... ok
+test_richer_signal_extractors (test_sync_training.Training.test_richer_signal_extractors) ... ok
+test_shared_backbone_math (test_sync_training.Training.test_shared_backbone_math) ... ok
+
+----------------------------------------------------------------------
+Ran 3 tests in 211.803s
+
+OK
+75d33cb6c2769230abaf94d82cb92d39bd0fd5b88343ea7f56e877e34dd93330

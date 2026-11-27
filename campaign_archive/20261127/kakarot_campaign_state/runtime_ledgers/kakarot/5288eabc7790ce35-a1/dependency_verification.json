@@ -1,0 +1,338 @@
+{
+  "authoritative_source_commit": "65ced6195777d824c77f3c26152b066ef5f47f18",
+  "dependencies": [
+    {
+      "artifact_manifest_sha256": "e7f21127bc56f43c450ff6f4d8d0e7fa909537d5e48df18c9bb2318c98af7d6a",
+      "attempt_id": null,
+      "evidence_type": "verified-data-stage-receipt",
+      "host": "iiitd/L40",
+      "job_id": "f0ec6859d8f53d6f",
+      "source_commit": "65ced6195777d824c77f3c26152b066ef5f47f18",
+      "verification_sha256": "da3c15370b3fd352d41a30e3f126ed63025a9545dce8f8c1370ba62c88b42011"
+    },
+    {
+      "artifact_manifest_sha256": "bdf0416ae0fff10e05e875e192ea94703c89a1a3fc28b173a3d18763dc299142",
+      "attempt_id": null,
+      "evidence_type": "verified-data-stage-receipt",
+      "host": "iiitd/L40",
+      "job_id": "dd4b2489f8dad1da",
+      "source_commit": "65ced6195777d824c77f3c26152b066ef5f47f18",
+      "verification_sha256": "da3c15370b3fd352d41a30e3f126ed63025a9545dce8f8c1370ba62c88b42011"
+    },
+    {
+      "artifact_manifest_sha256": "98c609fd4a13218364229b4243bf9580d0d17179e509d4a8766732cbf4fdd595",
+      "attempt_id": null,
+      "evidence_type": "verified-data-stage-receipt",
+      "host": "iiitd/L40",
+      "job_id": "c0d71281de9cdb1f",
+      "source_commit": "65ced6195777d824c77f3c26152b066ef5f47f18",
+      "verification_sha256": "da3c15370b3fd352d41a30e3f126ed63025a9545dce8f8c1370ba62c88b42011"
+    },
+    {
+      "artifact_manifest_sha256": "a028cb3e4cede5af8ac85dea24a29546b48d5228f1221415952b7dd798b0e883",
+      "attempt_id": null,
+      "evidence_type": "verified-data-stage-receipt",
+      "host": "iiitd/L40",
+      "job_id": "b5b664570c8c2603",
+      "source_commit": "65ced6195777d824c77f3c26152b066ef5f47f18",
+      "verification_sha256": "da3c15370b3fd352d41a30e3f126ed63025a9545dce8f8c1370ba62c88b42011"
+    },
+    {
+      "artifact_manifest_sha256": "38e7d93ac173b8ca24715a54e3570adf44e38d01439c6212943a9d5070d12ad9",
+      "attempt_id": "9b623b64-1418-43d7-92e1-9c05293d1223",
+      "host": "iiitd",
+      "job_id": "d53b80802a7179dd",
+      "source_commit": "65ced6195777d824c77f3c26152b066ef5f47f18",
+      "verification_sha256": "22ba72f6cc0625dc1bb2f5cd6ff271a6944f5344b4536013c3227d774e6b6a3e"
+    },
+    {
+      "artifact_manifest_sha256": "c5205b99081dd7b25238884ee71d19d1cc65a0adb748e5ed9f6da6a7cec297ba",
+      "attempt_id": "9abb1141-c0b5-4d29-b320-eff0776e0ec1",
+      "host": "mtech",
+      "job_id": "e468eeb728a9fcb7",
+      "source_commit": "65ced6195777d824c77f3c26152b066ef5f47f18",
+      "verification_sha256": "d4902addcdc1cc49d7e098da33a12ea25d9a1610aaea0148a5fa14631180d518"
+    },
+    {
+      "artifact_manifest_sha256": "5633937d33f68ee45ed658354db58ee415d87fd9a879e76461690a64ac63b23d",
+      "attempt_id": "c171a691-e27e-4bd2-a4ad-4704b0aa43ec",
+      "host": "gpu2",
+      "job_id": "200cc433ea56b644",
+      "source_commit": "65ced6195777d824c77f3c26152b066ef5f47f18",
+      "verification_sha256": "7e6ec7eef9d870dfefe0a09e17bc4da435a965c1b118b3d963659106d52f8a3b"
+    },
+    {
+      "artifact_manifest_sha256": "e3b1e66d64917818fd120fb8db4953e4b0c78d333b08dd329fae431bbb5ccb7b",
+      "attempt_id": null,
+      "evidence_type": "verified-calibration-selector-receipt",
+      "host": "kakarot",
+      "job_id": "a8a7b6b69e4eb864",
+      "source_commit": "65ced6195777d824c77f3c26152b066ef5f47f18",
+      "verification_sha256": "ff07355aea5d3262ab352568efc8d8a1ed38e08098d8435c01121e9fbc9f934b"
+    },
+    {
+      "artifact_manifest_sha256": "f72fa5ca26b8bfebd7d9a1d2deb19cf27a97a063033d4c5a85f8411298900c25",
+      "attempt_id": "e7cf77ef-0dda-4c0c-94e5-468452035726",
+      "host": "h100",
+      "job_id": "4b555cc4f8587358",
+      "source_commit": "65ced6195777d824c77f3c26152b066ef5f47f18",
+      "verification_sha256": "43ea6735afa3573aa314f863084338c4faa014357fb873282bb16a498fdef026"
+    },
+    {
+      "artifact_manifest_sha256": "732e3b3d48ac21cd7ac81fb600f9a7e930fa36c9d0fbcd2624f44d2ef61d680b",
+      "attempt_id": "ce060845-d566-4635-b283-f857a54b85ec",
+      "host": "h100",
+      "job_id": "03e7b2c31ff47055",
+      "source_commit": "65ced6195777d824c77f3c26152b066ef5f47f18",
+      "verification_sha256": "f38d58147b4f0e041ce594a4d9228ba75b47570b4dc8f013cdd8a15aa8dcc34b"
+    },
+    {
+      "artifact_manifest_sha256": "058f4f35ea0fe9fa42f174f3b99d1158677991b00a00e17d9ca5d191db9c8dbb",
+      "attempt_id": "60b5027f-6500-4d28-9901-4702bd3a4a1f",
+      "host": "mtech",
+      "job_id": "8dbd0868c07a004b",
+      "source_commit": "65ced6195777d824c77f3c26152b066ef5f47f18",
+      "verification_sha256": "6951121dcc81dff92b611aa0049a7be4ec29796f45f431f945cd2042c0ca9229"
+    },
+    {
+      "artifact_manifest_sha256": "e14b0a26731bf52cf7bf9cfcb00205937dd1586df155047cd1000ae0ef3571b9",
+      "attempt_id": "123da252-3ae1-4ad3-9ac1-65afcb8ba944",
+      "host": "v100",
+      "job_id": "542b97d35ed4bce0",
+      "source_commit": "65ced6195777d824c77f3c26152b066ef5f47f18",
+      "verification_sha256": "761b3cb132dc7f4185b363f7dc3dd9122a3eb1f25886470b4b835144a0a2ef66"
+    },
+    {
+      "artifact_manifest_sha256": "aa4368cb2e397cd1b2de88348e07af1beb32f53732f336aea8ada4cdd0bed0b4",
+      "attempt_id": "f18eeeb2-ea5a-4d9a-9f38-aa3244b52941",
+      "host": "l40",
+      "job_id": "52bebf3c8b81c9bb",
+      "source_commit": "65ced6195777d824c77f3c26152b066ef5f47f18",
+      "verification_sha256": "8d0d2a09d34575f2a28aa1537c56f63403ca55472e6796f92a8d47620497bad1"
+    },
+    {
+      "artifact_manifest_sha256": "cbec432348936364eb56ef8f6983af536c1eb9a3c5cd022130fd3410db5007be",
+      "attempt_id": "eafda0e7-5bf7-47e0-b91e-4f153826254d",
+      "host": "h100",
+      "job_id": "59a98993db18e6d1",
+      "source_commit": "65ced6195777d824c77f3c26152b066ef5f47f18",
+      "verification_sha256": "f493fe8b5b86dc0da44bd15d11d3125ab4989f8b668dc5034def95d7bc8ffaf5"
+    },
+    {
+      "artifact_manifest_sha256": "03db02dbd4dc996bac1beb86242a864fe243bef5d6f5b3af025dd8a95827dbc1",
+      "attempt_id": "f9c9a703-72bb-45ba-9303-e6f513fda907",
+      "host": "h100",
+      "job_id": "d95a3636711fc59b",
+      "source_commit": "65ced6195777d824c77f3c26152b066ef5f47f18",
+      "verification_sha256": "7208545d78f14c3204a197b1584e6515ae114ae11d48446a400fab4ebeb3131e"
+    },
+    {
+      "artifact_manifest_sha256": "c9220e6fddc6ccd1ceca6cfdb0dc7f1694588a8ca7eaac2e08a32029216adcee",
+      "attempt_id": "a4e35bb0-c596-4a1a-8cf5-eabc3538662c",
+      "host": "l40",
+      "job_id": "5e94c41ce411dbdb",
+      "source_commit": "65ced6195777d824c77f3c26152b066ef5f47f18",
+      "verification_sha256": "18ecc1a6a555cb22deaaa02e8567ffeaad8eebdb9c3ce5b4a483a127dc329087"
+    },
+    {
+      "artifact_manifest_sha256": "8dc74d0eea3100e46fdcaaf22240ff640715cf4bdc3e1791b3a54a53bdc81270",
+      "attempt_id": "ed8ef922-fec8-41ed-843c-281b0fc055a4",
+      "host": "mtech",
+      "job_id": "c48b413d71635b22",
+      "source_commit": "65ced6195777d824c77f3c26152b066ef5f47f18",
+      "verification_sha256": "8fa25d7632a8aa4bb0f6297102ed1a5cd239aea81e687b134927dc9336d22f16"
+    },
+    {
+      "artifact_manifest_sha256": "a58b8144e68e5e06a232b763ea732550c1199e2d9ec12d063f64748f316af8fe",
+      "attempt_id": "9b3a7e57-c873-49bf-93e8-22883cba6cf3",
+      "host": "h100",
+      "job_id": "7aabf291b3f37690",
+      "source_commit": "65ced6195777d824c77f3c26152b066ef5f47f18",
+      "verification_sha256": "538bedc3a10860942e27e510c56365ae1a159094f20be73fbc1dc27581913f71"
+    },
+    {
+      "artifact_manifest_sha256": "f495c8c604f1a45c6b2072020ff075915a7650dc7f091651f4745f5ad4873818",
+      "attempt_id": "957bc2cd-7d76-4c19-bf99-e16a86abfd59",
+      "host": "h100",
+      "job_id": "37c240812f5b0951",
+      "source_commit": "65ced6195777d824c77f3c26152b066ef5f47f18",
+      "verification_sha256": "deef9f567167e0aa26688f69b0488357cb4910b0d862dcee10390153fbbde503"
+    },
+    {
+      "artifact_manifest_sha256": "fbf624e559ea4a9f4bd1e33684a7e88be5ff6f278b003948e116bae55f05277f",
+      "attempt_id": "eae6b617-0c95-48ce-9ce7-1041df0af645",
+      "host": "h100",
+      "job_id": "4cb0569458c19071",
+      "source_commit": "65ced6195777d824c77f3c26152b066ef5f47f18",
+      "verification_sha256": "aaf8a6ab922db3d158999db010a9ae112676ee3daaf7144a6685a3929470d517"
+    },
+    {
+      "artifact_manifest_sha256": "81c9c0cadc9a34ea2a305b73bed0d1ec3fbbbdffacce98ef21ca39b787bb7139",
+      "attempt_id": "7f1a8376-ac9b-409b-a916-36a46fc52e00",
+      "host": "h100",
+      "job_id": "ee2b0169a7ba97c9",
+      "source_commit": "65ced6195777d824c77f3c26152b066ef5f47f18",
+      "verification_sha256": "82186721af61eb02edd775768fe195facfa9b2bbabba140f4501b80ffa387bf3"
+    },
+    {
+      "artifact_manifest_sha256": "808dd1f850c367564a3b0bace3c20153593c3f1ff1e16472c31ace550e9ca810",
+      "attempt_id": "657f4d80-68b0-46aa-ac8d-f7f09444265d",
+      "host": "h100",
+      "job_id": "fab59312145b15ad",
+      "source_commit": "65ced6195777d824c77f3c26152b066ef5f47f18",
+      "verification_sha256": "8c0539287abe450e1c64520898316593388c017b96ebbac78d1d0fc10c03e9e3"
+    },
+    {
+      "artifact_manifest_sha256": "3cc4fed023570990e60cd5d60546b90f53fa544b43a51b74785000246a007c8f",
+      "attempt_id": "af9f7a95-0a04-473b-8d5e-88876bfece7d",
+      "host": "l40",
+      "job_id": "76c5b63bdd9696e1",
+      "source_commit": "65ced6195777d824c77f3c26152b066ef5f47f18",
+      "verification_sha256": "d93663cf6cd1fa29ba12134c3bf8ebcd28a46407756cadf9684067e05169485f"
+    },
+    {
+      "artifact_manifest_sha256": "2b967545a736e2c756c3cc1bc906db95d6ee77fe2caf8c980ef82ddfaead3ca6",
+      "attempt_id": "850204d4-6510-497f-bac4-9e9f2b1b0de5",
+      "host": "v100",
+      "job_id": "ee0e9b5facef8551",
+      "source_commit": "65ced6195777d824c77f3c26152b066ef5f47f18",
+      "verification_sha256": "6927646b99e618ae82aa4f77fb1a6f2bac8548c14573eee646a70df9198fc1f7"
+    },
+    {
+      "artifact_manifest_sha256": "7bffe1206782f27d8c527b23950adc05a01de047bf47b86932737cff41061ab6",
+      "attempt_id": "1b83476f-77cb-4543-8dd1-27c5ca701ddd",
+      "host": "h100",
+      "job_id": "3f40135651a10fa2",
+      "source_commit": "65ced6195777d824c77f3c26152b066ef5f47f18",
+      "verification_sha256": "91028403e56299dfd495622334656efc3543ff8a77a9991c0ee53000a6544523"
+    },
+    {
+      "artifact_manifest_sha256": "a74dd952dc25900b59c69d487d3e51f79b0b691392869da695212500f83ea6ee",
+      "attempt_id": "9318f48a-4922-427e-a25a-01bf22ba544a",
+      "host": "h100",
+      "job_id": "0514e6155d75318a",
+      "source_commit": "65ced6195777d824c77f3c26152b066ef5f47f18",
+      "verification_sha256": "359525bf2903cb51d6a87724704fc78f11d979024d38ae4791627fa3b4cc235f"
+    },
+    {
+      "artifact_manifest_sha256": "bf11d362c3fb5ff88a1722d5c74514d40c4c91fdec3874172636e4e62863fa41",
+      "attempt_id": "319b67ad-fa60-46dc-8f94-48be14ce1047",
+      "host": "h100",
+      "job_id": "25836cba3524434c",
+      "source_commit": "65ced6195777d824c77f3c26152b066ef5f47f18",
+      "verification_sha256": "f434420caa88fc4188fad72171321c6b38c9f6f1c0f1271dc98a5ce5c2f64fa4"
+    },
+    {
+      "artifact_manifest_sha256": "9451355877184f7a5141ad52459ea1d1344a41c358e481296e1755f7c0ae1bcc",
+      "attempt_id": "65235041-f22a-47b3-a438-1ccd06804fd9",
+      "host": "mtech",
+      "job_id": "e31cb96918cfaab5",
+      "source_commit": "65ced6195777d824c77f3c26152b066ef5f47f18",
+      "verification_sha256": "ddcd09c6f60867d917d7865044bb8054a684a401c203a2c431f57966e1a0e6b1"
+    },
+    {
+      "artifact_manifest_sha256": "8c2c7b8447962a77a87f233d8b89fe49706a34aff2e239e47156f86f10b1fc76",
+      "attempt_id": "71a80fd8-e457-4ab4-9a40-067be34c049d",
+      "host": "l40",
+      "job_id": "a2d69e35eef5ef53",
+      "source_commit": "65ced6195777d824c77f3c26152b066ef5f47f18",
+      "verification_sha256": "0dd266897ea4a0b0c1a616f47cd9ca1ecb78398daed9562afb62849d8dc07edf"
+    },
+    {
+      "artifact_manifest_sha256": "93934c7e7b7681869dceb29d8e26dd93fa8f3e1d5e2ba6f6f8e4d19b8f4ac3dc",
+      "attempt_id": "976e0995-6f73-4ee1-a647-0082bc69b474",
+      "host": "h100",
+      "job_id": "0b864f287fef53e9",
+      "source_commit": "65ced6195777d824c77f3c26152b066ef5f47f18",
+      "verification_sha256": "c58b842ed71fcc12076fbcfe2099a63084008ebfa9f7351c8c714055a360e8cb"
+    },
+    {
+      "artifact_manifest_sha256": "2d94cf71bace77b4305507aed1c6d5a3c4ff04a429df506f08502206cc97e182",
+      "attempt_id": "dedde926-b4ea-4f4a-aa5a-39ad78f4f43c",
+      "host": "h100",
+      "job_id": "49642ed94e8ca6f2",
+      "source_commit": "65ced6195777d824c77f3c26152b066ef5f47f18",
+      "verification_sha256": "7454ca6ce2d8f9970090e7313dd60fe46444e409c729c451b4a0b5dc8e1ea694"
+    },
+    {
+      "artifact_manifest_sha256": "8e4c0e1d2e1aa4f9ca2d9e53a4fb83265bfe3f4d6a2481db371e6fb5f66eaa33",
+      "attempt_id": "064ac1ec-7990-4b12-a1c7-fbb9c64544a2",
+      "host": "h100",
+      "job_id": "60bbd9b8b6046d64",
+      "source_commit": "65ced6195777d824c77f3c26152b066ef5f47f18",
+      "verification_sha256": "700f362ca70f0550ba5db312bea03cfe0ee5241f64f1abe5fd39662854097dd2"
+    },
+    {
+      "artifact_manifest_sha256": "15202f14c3b87ea51786468ea122dfe2e853118aae41ecb537095886ef49e378",
+      "attempt_id": "5e5449d7-9f9d-4eec-9e28-8483325c033d",
+      "host": "h100",
+      "job_id": "2a9525bdf78551b9",
+      "source_commit": "65ced6195777d824c77f3c26152b066ef5f47f18",
+      "verification_sha256": "561f37b07f201aa41f62909fc39093d112ccbefdeb9d88da62eedff2f9bf136b"
+    },
+    {
+      "artifact_manifest_sha256": "7e91b5d7134d65da5aae03b2508f9466dc69a91db3a61ca08b390e9b42939194",
+      "attempt_id": "78c66eeb-3193-43ec-a050-f5ccd9e14d26",
+      "host": "l40",
+      "job_id": "9e8d6853fad3f92b",
+      "source_commit": "65ced6195777d824c77f3c26152b066ef5f47f18",
+      "verification_sha256": "a9babdbcc91feceb4c408e3200fe67d3b4e4dfea19f3fff2e3fb8fdd01c22e87"
+    },
+    {
+      "artifact_manifest_sha256": "862d8405b906f7d6a0f9ba78d28f69ac40164f32b3bf04ab6fde675d7f756002",
+      "attempt_id": "b6f113b4-7b87-4562-94cd-bd22d07d7f14",
+      "host": "mtech",
+      "job_id": "b4d85e4fd8cd77c9",
+      "source_commit": "65ced6195777d824c77f3c26152b066ef5f47f18",
+      "verification_sha256": "603e0042a72ce1801ce79610f04648be97ad892cbb0cdfb555858873ab91621a"
+    },
+    {
+      "artifact_manifest_sha256": "4535fcbb5db44feabd2fcc7de42fdc4cd48c168e716a56b2bea2496a7cd3695a",
+      "attempt_id": "be48e59a-fc50-4ca4-a4af-615c12a3d954",
+      "host": "kakarot",
+      "job_id": "5c00625c53888688",
+      "source_commit": "65ced6195777d824c77f3c26152b066ef5f47f18",
+      "verification_sha256": "ca586ac0e987f353525d16c924555abfd112c73e144cfe35d141688cf729048b"
+    },
+    {
+      "artifact_manifest_sha256": "7cbd47e11f3c748b9bdd8ef3d9eee67915d95f2b0fdcde3dae7725612ef31aa7",
+      "attempt_id": "d07bd55b-eab7-49eb-b18e-c960599a5984",
+      "host": "h100",
+      "job_id": "06957e65aca39eb1",
+      "source_commit": "65ced6195777d824c77f3c26152b066ef5f47f18",
+      "verification_sha256": "c646b8a4326c50b93c98a114b059eafa3fd40bdd1e21b9d8cb9053d20872393e"
+    }
+  ],
+  "execution_slice": "target-only-after-central-dependency-verification",
+  "job_id": "5288eabc7790ce35",
+  "source_artifact_transfer": {
+    "job_id": "5288eabc7790ce35",
+    "selection_mode": "matched_count",
+    "source_attempt_id": "d07bd55b-eab7-49eb-b18e-c960599a5984",
+    "source_commit": "65ced6195777d824c77f3c26152b066ef5f47f18",
+    "source_host": "h100",
+    "source_job_id": "06957e65aca39eb1",
+    "source_semantic_id": "S14N10-seed42-t20-A05-M3",
+    "verified_source_artifacts": [
+      {
+        "copied_to_worker": false,
+        "name": "config.json",
+        "sha256": "d2aa75462d4d88cff53f687cbb87cc1ac338b8f3b98956be514e955f90f29776",
+        "source_host": "h100",
+        "source_path": "/home/rl-group4/Projects/FedQCL_Task/research_results/compact-65ced6195777/S14N10-seed42-t20-A05-M3/config.json",
+        "worker_host": "kakarot",
+        "worker_path": "/home/anurag-basistha/Projects/Untapped/FedQCL_Task/research_results/compact-65ced6195777/S14N10-seed42-t20-A05-M3/config.json"
+      },
+      {
+        "copied_to_worker": false,
+        "name": "participation_schedule.json",
+        "sha256": "52b705d8be594b0f87153bcf2b5f130b9e626e647e63bb6fd6be7b43c009d1a0",
+        "source_host": "h100",
+        "source_path": "/home/rl-group4/Projects/FedQCL_Task/research_results/compact-65ced6195777/S14N10-seed42-t20-A05-M3/participation_schedule.json",
+        "worker_host": "kakarot",
+        "worker_path": "/home/anurag-basistha/Projects/Untapped/FedQCL_Task/research_results/compact-65ced6195777/S14N10-seed42-t20-A05-M3/participation_schedule.json"
+      }
+    ],
+    "worker_host": "kakarot"
+  }
+}

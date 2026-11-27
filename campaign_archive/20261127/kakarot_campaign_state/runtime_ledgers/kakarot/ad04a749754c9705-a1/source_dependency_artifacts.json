@@ -1,0 +1,75 @@
+{
+  "job_id": "ad04a749754c9705",
+  "selection_mode": "matched_bytes",
+  "source_attempt_id": "cf11ee3f-6822-4816-adae-ee79fbf77d61",
+  "source_commit": "65ced6195777d824c77f3c26152b066ef5f47f18",
+  "source_host": "h100",
+  "source_job_id": "6899cbe9188f8ff7",
+  "source_semantic_id": "S14N10-seed42-t20-A03-M2",
+  "verified_source_artifacts": [
+    {
+      "copied_to_worker": false,
+      "name": "config.json",
+      "sha256": "91eda9051e187d151c4b1572117327ce7ce6bba60c1f27554bdf21feee109157",
+      "source_host": "h100",
+      "source_path": "/home/rl-group4/Projects/FedQCL_Task/research_results/compact-65ced6195777/S14N10-seed42-t20-A03-M2/config.json",
+      "worker_host": "kakarot",
+      "worker_path": "/home/anurag-basistha/Projects/Untapped/FedQCL_Task/research_results/compact-65ced6195777/S14N10-seed42-t20-A03-M2/config.json"
+    },
+    {
+      "copied_to_worker": false,
+      "name": "participation_schedule.json",
+      "sha256": "15b70621d166ec662dbe555d8d62af69bd54587ccc822e8c14bd95b1f5ff940f",
+      "source_host": "h100",
+      "source_path": "/home/rl-group4/Projects/FedQCL_Task/research_results/compact-65ced6195777/S14N10-seed42-t20-A03-M2/participation_schedule.json",
+      "worker_host": "kakarot",
+      "worker_path": "/home/anurag-basistha/Projects/Untapped/FedQCL_Task/research_results/compact-65ced6195777/S14N10-seed42-t20-A03-M2/participation_schedule.json"
+    },
+    {
+      "copied_to_worker": false,
+      "name": "matched_byte_count_schedule.json",
+      "sha256": "4d9559d5716dfbbee6e86c28f1d926965f48252237707e89faa9a1270b4eae97",
+      "source_host": "h100",
+      "source_path": "/home/rl-group4/Projects/FedQCL_Task/research_results/compact-65ced6195777/S14N10-seed42-t20-A03-M2/matched_byte_count_schedule.json",
+      "worker_host": "kakarot",
+      "worker_path": "/home/anurag-basistha/Projects/Untapped/FedQCL_Task/research_results/compact-65ced6195777/S14N10-seed42-t20-A03-M2/matched_byte_count_schedule.json"
+    },
+    {
+      "copied_to_worker": false,
+      "name": "rounds.jsonl",
+      "sha256": "10b7b733ea5fe98858f838a411b980fad97558732e8f077e9e2a81e0826579a9",
+      "source_host": "h100",
+      "source_path": "/home/rl-group4/Projects/FedQCL_Task/research_results/compact-65ced6195777/S14N10-seed42-t20-A03-M2/rounds.jsonl",
+      "worker_host": "kakarot",
+      "worker_path": "/home/anurag-basistha/Projects/Untapped/FedQCL_Task/research_results/compact-65ced6195777/S14N10-seed42-t20-A03-M2/rounds.jsonl"
+    },
+    {
+      "copied_to_worker": false,
+      "name": "communication_rounds.jsonl",
+      "sha256": "769aa5132953a3b73c0efc668d1ddfe06b7f1632094e60bd8fd6e493153aa08e",
+      "source_host": "h100",
+      "source_path": "/home/rl-group4/Projects/FedQCL_Task/research_results/compact-65ced6195777/S14N10-seed42-t20-A03-M2/communication_rounds.jsonl",
+      "worker_host": "kakarot",
+      "worker_path": "/home/anurag-basistha/Projects/Untapped/FedQCL_Task/research_results/compact-65ced6195777/S14N10-seed42-t20-A03-M2/communication_rounds.jsonl"
+    },
+    {
+      "copied_to_worker": false,
+      "name": "model_wire_schema.json",
+      "sha256": "ea489f241339359d7408998763b4bd056a0fa0685e26e6b5614cec2c1c0bba97",
+      "source_host": "h100",
+      "source_path": "/home/rl-group4/Projects/FedQCL_Task/research_results/compact-65ced6195777/S14N10-seed42-t20-A03-M2/model_wire_schema.json",
+      "worker_host": "kakarot",
+      "worker_path": "/home/anurag-basistha/Projects/Untapped/FedQCL_Task/research_results/compact-65ced6195777/S14N10-seed42-t20-A03-M2/model_wire_schema.json"
+    },
+    {
+      "copied_to_worker": false,
+      "name": "matched_byte_plan.json",
+      "sha256": "c6c9db5469376e786bd7dacd3d272dbbc816d79b809c143ab601b6ba3af2cc93",
+      "source_host": "h100",
+      "source_path": "/home/rl-group4/Projects/FedQCL_Task/research_results/compact-65ced6195777/S14N10-seed42-t20-A03-M2/matched_byte_plan.json",
+      "worker_host": "kakarot",
+      "worker_path": "/home/anurag-basistha/Projects/Untapped/FedQCL_Task/research_results/compact-65ced6195777/S14N10-seed42-t20-A03-M2/matched_byte_plan.json"
+    }
+  ],
+  "worker_host": "kakarot"
+}

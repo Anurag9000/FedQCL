@@ -1,0 +1,1 @@
+["/home/anurag-basistha/.venvs/fedqcl-sync-py312/bin/python", "scripts/compact_campaign.py", "--ledger", "/home/anurag-basistha/.local/state/fedqcl-sync-campaign-65ced6195777/job_ledger.jsonl", "--output", "/home/anurag-basistha/Projects/Untapped/FedQCL_Task/research_results/compact-65ced6195777/shortlist.json"]

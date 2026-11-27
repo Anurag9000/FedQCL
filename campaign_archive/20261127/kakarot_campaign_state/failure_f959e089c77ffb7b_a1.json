@@ -1,0 +1,12 @@
+{
+  "attempt_id": "6f2731cf-6b04-46ea-a53a-f7e45ebd8d97",
+  "attempt_no": 1,
+  "captured_at": "2026-11-27T12:39:42.326511+00:00",
+  "exit_code": "1",
+  "failure_class": "nonzero-exit-needs-triage",
+  "host": "kakarot",
+  "job_id": "f959e089c77ffb7b",
+  "log_tail": "Traceback (most recent call last):\n  File \"/home/anurag-basistha/Projects/Untapped/FedQCL_Task/scripts/run_campaign.py\", line 388, in <module>\n    if __name__==\"__main__\":sys.exit(main())\n                                     ^^^^^^\n  File \"/home/anurag-basistha/Projects/Untapped/FedQCL_Task/scripts/run_campaign.py\", line 289, in main\n    if any(j.get(\"source_commit\")!=commit for j in jobs):raise ValueError(\"ledger source commit differs; rebuild ledger\")\n                                                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nValueError: ledger source commit differs; rebuild ledger\n",
+  "root_cause": "Process exited 1; full available log tail is preserved in the failure receipt and must be diagnosed before retry.",
+  "semantic_id": "compact-analysis"
+}

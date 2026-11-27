@@ -1,0 +1,56 @@
+{
+  "archive_sha256": "be89517591623aeeb63d9f8a477cc16c12f64727c240ee6c9a3d39c6dee65817",
+  "replicas": [
+    {
+      "archive_bytes": 1539041280,
+      "archive_sha256": "be89517591623aeeb63d9f8a477cc16c12f64727c240ee6c9a3d39c6dee65817",
+      "data_jobs_validated": 12,
+      "datasets": {
+        "S01-seed42-ab0bf722e3ab-754f8fe1e3df": "f4e8c36d1c7b6f1c2ed7ebe9b6ca0c4bfe32746715f3e2fd90971dcff77fc1ce",
+        "S03-seed42-ab0bf722e3ab-5e35eab20860": "bce78ce337c7fa6658565e5bdfe72db74c43f759e28c30e293ca7e4a1628c30e",
+        "S04-seed42-ab0bf722e3ab-184096137e32": "8b9df8097308f6c6a63a3f57cb3c7e7aad9b9fb7cf9b75be12a04793ac3f4bd7",
+        "S10-seed42-ab0bf722e3ab-906c41b997cd": "e47418496eb4b1d9c7865252be55b5019c8e417c11f351c3a97c8158440c747f",
+        "S13-seed42-ab0bf722e3ab-bce1b94da572": "4a3326ea0b05f74ad9191098a94f4450023f59cb3c79bffa69e9b5463b5ef9a1",
+        "S14N10-seed42-ab0bf722e3ab-ae7caae7d3ba": "277c4b237a14c65ef6ae48ea9f422f011b6654547cfab64e74f25d76113b4c32"
+      },
+      "host": "h100",
+      "source_archive": "/tmp/fedqcl-compact-primary-datasets-65ced619.tar",
+      "validation_output": "validated-generate-and-validate 12"
+    },
+    {
+      "archive_bytes": 1539041280,
+      "archive_sha256": "be89517591623aeeb63d9f8a477cc16c12f64727c240ee6c9a3d39c6dee65817",
+      "data_jobs_validated": 12,
+      "datasets": {
+        "S01-seed42-ab0bf722e3ab-754f8fe1e3df": "f4e8c36d1c7b6f1c2ed7ebe9b6ca0c4bfe32746715f3e2fd90971dcff77fc1ce",
+        "S03-seed42-ab0bf722e3ab-5e35eab20860": "bce78ce337c7fa6658565e5bdfe72db74c43f759e28c30e293ca7e4a1628c30e",
+        "S04-seed42-ab0bf722e3ab-184096137e32": "8b9df8097308f6c6a63a3f57cb3c7e7aad9b9fb7cf9b75be12a04793ac3f4bd7",
+        "S10-seed42-ab0bf722e3ab-906c41b997cd": "e47418496eb4b1d9c7865252be55b5019c8e417c11f351c3a97c8158440c747f",
+        "S13-seed42-ab0bf722e3ab-bce1b94da572": "4a3326ea0b05f74ad9191098a94f4450023f59cb3c79bffa69e9b5463b5ef9a1",
+        "S14N10-seed42-ab0bf722e3ab-ae7caae7d3ba": "277c4b237a14c65ef6ae48ea9f422f011b6654547cfab64e74f25d76113b4c32"
+      },
+      "host": "mtech",
+      "source_archive": "/tmp/fedqcl-compact-primary-datasets-65ced619.tar",
+      "validation_output": "validated-generate-and-validate 12"
+    },
+    {
+      "archive_bytes": 1539041280,
+      "archive_sha256": "be89517591623aeeb63d9f8a477cc16c12f64727c240ee6c9a3d39c6dee65817",
+      "data_jobs_validated": 12,
+      "datasets": {
+        "S01-seed42-ab0bf722e3ab-754f8fe1e3df": "f4e8c36d1c7b6f1c2ed7ebe9b6ca0c4bfe32746715f3e2fd90971dcff77fc1ce",
+        "S03-seed42-ab0bf722e3ab-5e35eab20860": "bce78ce337c7fa6658565e5bdfe72db74c43f759e28c30e293ca7e4a1628c30e",
+        "S04-seed42-ab0bf722e3ab-184096137e32": "8b9df8097308f6c6a63a3f57cb3c7e7aad9b9fb7cf9b75be12a04793ac3f4bd7",
+        "S10-seed42-ab0bf722e3ab-906c41b997cd": "e47418496eb4b1d9c7865252be55b5019c8e417c11f351c3a97c8158440c747f",
+        "S13-seed42-ab0bf722e3ab-bce1b94da572": "4a3326ea0b05f74ad9191098a94f4450023f59cb3c79bffa69e9b5463b5ef9a1",
+        "S14N10-seed42-ab0bf722e3ab-ae7caae7d3ba": "277c4b237a14c65ef6ae48ea9f422f011b6654547cfab64e74f25d76113b4c32"
+      },
+      "host": "v100",
+      "source_archive": "/tmp/fedqcl-compact-primary-datasets-65ced619.tar",
+      "validation_output": "validated-generate-and-validate 12"
+    }
+  ],
+  "schema": 1,
+  "source_commit": "65ced6195777d824c77f3c26152b066ef5f47f18",
+  "verified": true
+}

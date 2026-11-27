@@ -1,0 +1,157 @@
+{
+  "expected_peak_mib": 2577,
+  "observed_at": "2026-11-26T02:25:44+00:00",
+  "provisional_until_full_run_completion": true,
+  "schema": 1,
+  "scope": "controlled CIFAR-100 five-client production workloads; VRAM only; no GPU utilization queried",
+  "source_observations": {
+    "cross_device_gap_mib": 543,
+    "h100_active_process_max_mib": 2034,
+    "kakarot_real_data_sampled_peak_mib": 1491
+  },
+  "updated_attempts": [
+    {
+      "basis": "max active H100 process allocation 2034 MiB plus observed cross-device profile gap 543 MiB; current visible allocation is already subtracted by device free VRAM",
+      "gpu_uuid": "GPU-cd9f5077-eca6-1005-ba3f-70c270c88cfa",
+      "host": "h100",
+      "new_expected_peak_bytes": 2702180352,
+      "observed_at": "2026-11-26T02:25:44+00:00",
+      "observed_process_vram_bytes": 2124414976,
+      "previous_expected_peak_bytes": 6442450944,
+      "profile_peak_mib": 2577,
+      "semantic_id": "S14-seed42-k3-A06-M3"
+    },
+    {
+      "basis": "max active H100 process allocation 2034 MiB plus observed cross-device profile gap 543 MiB; current visible allocation is already subtracted by device free VRAM",
+      "gpu_uuid": "GPU-cd9f5077-eca6-1005-ba3f-70c270c88cfa",
+      "host": "h100",
+      "new_expected_peak_bytes": 2702180352,
+      "observed_at": "2026-11-26T02:25:44+00:00",
+      "observed_process_vram_bytes": 2044723200,
+      "previous_expected_peak_bytes": 6442450944,
+      "profile_peak_mib": 2577,
+      "semantic_id": "S14-seed42-k3-A08-M1"
+    },
+    {
+      "basis": "max active H100 process allocation 2034 MiB plus observed cross-device profile gap 543 MiB; current visible allocation is already subtracted by device free VRAM",
+      "gpu_uuid": "GPU-cd9f5077-eca6-1005-ba3f-70c270c88cfa",
+      "host": "h100",
+      "new_expected_peak_bytes": 2702180352,
+      "observed_at": "2026-11-26T02:25:44+00:00",
+      "observed_process_vram_bytes": 2078277632,
+      "previous_expected_peak_bytes": 6442450944,
+      "profile_peak_mib": 2577,
+      "semantic_id": "S14-seed42-k3-A07-M1"
+    },
+    {
+      "basis": "max active H100 process allocation 2034 MiB plus observed cross-device profile gap 543 MiB; current visible allocation is already subtracted by device free VRAM",
+      "gpu_uuid": "GPU-cd9f5077-eca6-1005-ba3f-70c270c88cfa",
+      "host": "h100",
+      "new_expected_peak_bytes": 2702180352,
+      "observed_at": "2026-11-26T02:25:44+00:00",
+      "observed_process_vram_bytes": 2124414976,
+      "previous_expected_peak_bytes": 6442450944,
+      "profile_peak_mib": 2577,
+      "semantic_id": "S14-seed42-k3-B-RANDOM"
+    },
+    {
+      "basis": "max active H100 process allocation 2034 MiB plus observed cross-device profile gap 543 MiB; current visible allocation is already subtracted by device free VRAM",
+      "gpu_uuid": "GPU-cd9f5077-eca6-1005-ba3f-70c270c88cfa",
+      "host": "h100",
+      "new_expected_peak_bytes": 2702180352,
+      "observed_at": "2026-11-26T02:25:44+00:00",
+      "observed_process_vram_bytes": 2044723200,
+      "previous_expected_peak_bytes": 6442450944,
+      "profile_peak_mib": 2577,
+      "semantic_id": "S14-seed42-k3-A04-M2"
+    },
+    {
+      "basis": "max active H100 process allocation 2034 MiB plus observed cross-device profile gap 543 MiB; current visible allocation is already subtracted by device free VRAM",
+      "gpu_uuid": "GPU-82a9af1f-2357-f050-8166-0dc1869e3cc9",
+      "host": "h100",
+      "new_expected_peak_bytes": 2702180352,
+      "observed_at": "2026-11-26T02:25:44+00:00",
+      "observed_process_vram_bytes": 2090860544,
+      "previous_expected_peak_bytes": 6442450944,
+      "profile_peak_mib": 2577,
+      "semantic_id": "S14-seed42-k3-A06-M2"
+    },
+    {
+      "basis": "max active H100 process allocation 2034 MiB plus observed cross-device profile gap 543 MiB; current visible allocation is already subtracted by device free VRAM",
+      "gpu_uuid": "GPU-82a9af1f-2357-f050-8166-0dc1869e3cc9",
+      "host": "h100",
+      "new_expected_peak_bytes": 2702180352,
+      "observed_at": "2026-11-26T02:25:44+00:00",
+      "observed_process_vram_bytes": 2044723200,
+      "previous_expected_peak_bytes": 6442450944,
+      "profile_peak_mib": 2577,
+      "semantic_id": "S14-seed42-k3-A08-M2"
+    },
+    {
+      "basis": "max active H100 process allocation 2034 MiB plus observed cross-device profile gap 543 MiB; current visible allocation is already subtracted by device free VRAM",
+      "gpu_uuid": "GPU-82a9af1f-2357-f050-8166-0dc1869e3cc9",
+      "host": "h100",
+      "new_expected_peak_bytes": 2702180352,
+      "observed_at": "2026-11-26T02:25:44+00:00",
+      "observed_process_vram_bytes": 2044723200,
+      "previous_expected_peak_bytes": 6442450944,
+      "profile_peak_mib": 2577,
+      "semantic_id": "S14-seed42-k3-A04-M3"
+    },
+    {
+      "basis": "max active H100 process allocation 2034 MiB plus observed cross-device profile gap 543 MiB; current visible allocation is already subtracted by device free VRAM",
+      "gpu_uuid": "GPU-82a9af1f-2357-f050-8166-0dc1869e3cc9",
+      "host": "h100",
+      "new_expected_peak_bytes": 2702180352,
+      "observed_at": "2026-11-26T02:25:44+00:00",
+      "observed_process_vram_bytes": 2044723200,
+      "previous_expected_peak_bytes": 6442450944,
+      "profile_peak_mib": 2577,
+      "semantic_id": "S14-seed42-k3-A08-M3"
+    },
+    {
+      "basis": "max active H100 process allocation 2034 MiB plus observed cross-device profile gap 543 MiB; current visible allocation is already subtracted by device free VRAM",
+      "gpu_uuid": "GPU-cd9f5077-eca6-1005-ba3f-70c270c88cfa",
+      "host": "h100",
+      "new_expected_peak_bytes": 2702180352,
+      "observed_at": "2026-11-26T02:25:44+00:00",
+      "observed_process_vram_bytes": 2095054848,
+      "previous_expected_peak_bytes": 6442450944,
+      "profile_peak_mib": 2577,
+      "semantic_id": "S14-seed42-k3-A04-M1"
+    },
+    {
+      "basis": "max active H100 process allocation 2034 MiB plus observed cross-device profile gap 543 MiB; current visible allocation is already subtracted by device free VRAM",
+      "gpu_uuid": "GPU-82a9af1f-2357-f050-8166-0dc1869e3cc9",
+      "host": "h100",
+      "new_expected_peak_bytes": 2702180352,
+      "observed_at": "2026-11-26T02:25:44+00:00",
+      "observed_process_vram_bytes": 2111832064,
+      "previous_expected_peak_bytes": 6442450944,
+      "profile_peak_mib": 2577,
+      "semantic_id": "S14-seed42-k3-A03-M1"
+    },
+    {
+      "basis": "max active H100 process allocation 2034 MiB plus observed cross-device profile gap 543 MiB; current visible allocation is already subtracted by device free VRAM",
+      "gpu_uuid": "GPU-82a9af1f-2357-f050-8166-0dc1869e3cc9",
+      "host": "h100",
+      "new_expected_peak_bytes": 2702180352,
+      "observed_at": "2026-11-26T02:25:44+00:00",
+      "observed_process_vram_bytes": 2132803584,
+      "previous_expected_peak_bytes": 6442450944,
+      "profile_peak_mib": 2577,
+      "semantic_id": "S14-seed42-k3-A05-M1"
+    },
+    {
+      "basis": "max active H100 process allocation 2034 MiB plus observed cross-device profile gap 543 MiB; current visible allocation is already subtracted by device free VRAM",
+      "gpu_uuid": "GPU-82a9af1f-2357-f050-8166-0dc1869e3cc9",
+      "host": "h100",
+      "new_expected_peak_bytes": 2702180352,
+      "observed_at": "2026-11-26T02:25:44+00:00",
+      "observed_process_vram_bytes": 2132803584,
+      "previous_expected_peak_bytes": 6442450944,
+      "profile_peak_mib": 2577,
+      "semantic_id": "S14-seed42-k3-A05-M2"
+    }
+  ]
+}

@@ -1,0 +1,32 @@
+[
+  {
+    "job_id": "59a98993db18e6d1",
+    "host": "h100",
+    "gpu": 0,
+    "reserve_gib": 6
+  },
+  {
+    "job_id": "d95a3636711fc59b",
+    "host": "h100",
+    "gpu": 1,
+    "reserve_gib": 6
+  },
+  {
+    "job_id": "5e94c41ce411dbdb",
+    "host": "l40",
+    "gpu": 0,
+    "reserve_gib": 6
+  },
+  {
+    "job_id": "c48b413d71635b22",
+    "host": "mtech",
+    "gpu": 0,
+    "reserve_gib": 6
+  },
+  {
+    "job_id": "7aabf291b3f37690",
+    "host": "kakarot",
+    "gpu": 0,
+    "reserve_gib": 4
+  }
+]

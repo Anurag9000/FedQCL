@@ -1,0 +1,10 @@
+[
+  "tmux",
+  "new-session",
+  "-d",
+  "-s",
+  "fedqcl-sync-cal-lr005-l40",
+  "bash",
+  "-lc",
+  "cd /home/anurag/Projects/FedQCL_Task && CUDA_VISIBLE_DEVICES=GPU-3140fe39-ae53-5b09-cf69-c14d95dc252a PYTHONDONTWRITEBYTECODE=1 /home/anurag/.venvs/fedqcl-taskil-py312/bin/python scripts/run_campaign.py --ledger /tmp/fedqcl_sync_lr005_l40.jsonl --job-id d53b80802a7179dd --resume --device cuda --gpu-id 0 --workers 1 > /tmp/fedqcl-sync-cal-lr005-l40.log 2>&1; rc=$?; echo $rc > /tmp/fedqcl-sync-cal-lr005-l40.exit"
+]

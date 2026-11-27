@@ -1,0 +1,108 @@
+{
+  "campaign_job_states": {
+    "RUNNING": 1,
+    "VERIFIED_COMPLETE": 178
+  },
+  "devices": [
+    {
+      "device_index": 0,
+      "gpu_name": "NVIDIA H100 NVL",
+      "host_key": "gpu2",
+      "last_snapshot_utc": "2026-11-25T22:41:08+00:00",
+      "min_observed_free_bytes": 96500449280,
+      "peak_used_bytes": 3441426432,
+      "snapshot_count": 3,
+      "total_bytes": 100485038080
+    },
+    {
+      "device_index": 1,
+      "gpu_name": "NVIDIA H100 NVL",
+      "host_key": "gpu2",
+      "last_snapshot_utc": "2026-11-25T22:41:08+00:00",
+      "min_observed_free_bytes": 99341041664,
+      "peak_used_bytes": 600834048,
+      "snapshot_count": 3,
+      "total_bytes": 100485038080
+    },
+    {
+      "device_index": 0,
+      "gpu_name": "NVIDIA H100 NVL",
+      "host_key": "h100",
+      "last_snapshot_utc": "2026-11-27T12:10:33+00:00",
+      "min_observed_free_bytes": 1173356544,
+      "peak_used_bytes": 98768519168,
+      "snapshot_count": 235,
+      "total_bytes": 100485038080
+    },
+    {
+      "device_index": 1,
+      "gpu_name": "NVIDIA H100 NVL",
+      "host_key": "h100",
+      "last_snapshot_utc": "2026-11-27T12:10:34+00:00",
+      "min_observed_free_bytes": 20945305600,
+      "peak_used_bytes": 78997618688,
+      "snapshot_count": 239,
+      "total_bytes": 100485038080
+    },
+    {
+      "device_index": 0,
+      "gpu_name": "NVIDIA L40",
+      "host_key": "iiitd",
+      "last_snapshot_utc": "2026-11-25T22:41:08+00:00",
+      "min_observed_free_bytes": 46037729280,
+      "peak_used_bytes": 1668284416,
+      "snapshot_count": 3,
+      "total_bytes": 48305799168
+    },
+    {
+      "device_index": 0,
+      "gpu_name": "NVIDIA GeForce RTX 3050 6GB Laptop GPU",
+      "host_key": "kakarot",
+      "last_snapshot_utc": "2026-11-27T12:48:06+00:00",
+      "min_observed_free_bytes": 2919235584,
+      "peak_used_bytes": 3167748096,
+      "snapshot_count": 315,
+      "total_bytes": 6442450944
+    },
+    {
+      "device_index": 0,
+      "gpu_name": "NVIDIA L40",
+      "host_key": "l40",
+      "last_snapshot_utc": "2026-11-27T12:10:34+00:00",
+      "min_observed_free_bytes": 6078595072,
+      "peak_used_bytes": 41627418624,
+      "snapshot_count": 230,
+      "total_bytes": 48305799168
+    },
+    {
+      "device_index": 0,
+      "gpu_name": "Tesla V100-PCIE-32GB",
+      "host_key": "mtech",
+      "last_snapshot_utc": "2026-11-27T12:10:34+00:00",
+      "min_observed_free_bytes": 651165696,
+      "peak_used_bytes": 33428602880,
+      "snapshot_count": 232,
+      "total_bytes": 34359738368
+    },
+    {
+      "device_index": 0,
+      "gpu_name": "Tesla V100-PCIE-32GB",
+      "host_key": "v100",
+      "last_snapshot_utc": "2026-11-27T12:10:34+00:00",
+      "min_observed_free_bytes": 37748736,
+      "peak_used_bytes": 34040971264,
+      "snapshot_count": 227,
+      "total_bytes": 34359738368
+    }
+  ],
+  "generated_at": "2026-11-27T13:41:43+00:00",
+  "latest_remote_telemetry_note": "Latest H100, L40, Mtech V100 and V100 server samples are from 2026-11-27 12:10 UTC. A fresh remote snapshot attempt was blocked by the B550 Tailscale SSH additional-check timeout. Kakarot fresh VRAM was separately observed at 2026-11-27 12:59 UTC.",
+  "scope": "historical campaign GPU telemetry from fleet_state.sqlite3; this is not a live VRAM reading",
+  "training_runs_verified_by_execution_host": {
+    "h100": 75,
+    "kakarot": 8,
+    "l40": 20,
+    "mtech": 5,
+    "v100": 15
+  }
+}

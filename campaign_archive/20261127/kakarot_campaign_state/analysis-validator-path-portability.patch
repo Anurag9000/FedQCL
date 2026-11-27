@@ -1,0 +1,31 @@
+diff --git a/scripts/run_campaign.py b/scripts/run_campaign.py
+index f2abeea..ea94a33 100644
+--- a/scripts/run_campaign.py
++++ b/scripts/run_campaign.py
+@@ -27,6 +27,16 @@ def verify_controlled_source(root,config):
+     if set(manifest["shards"])!=expected:return False
+     return all(sha_file(root/name)==h for name,h in manifest["shards"].items())
+ 
++def local_decision_audit_config(config, output_root):
++    """Resolve a recorded count-schedule path against a validated local mirror."""
++    schedule = config.get("sync_count_schedule")
++    local = Path(output_root) / "participation_schedule.json"
++    if schedule and not Path(schedule).is_file() and local.is_file():
++        resolved = dict(config)
++        resolved["sync_count_schedule"] = str(local)
++        return resolved
++    return config
++
+ def valid(job):
+     if not all(Path(x).is_file() for x in job["artifacts"]):return False
+     try:
+@@ -152,7 +162,8 @@ def valid(job):
+             if any((len(x["selected"])!=(cfg["clients"] if i==0 else cfg["k"]) if cfg.get("selection_mode","fixed")=="fixed" else (i==0 and len(x["selected"])!=cfg["clients"])) or x["selected"]!=x["accepted"] or x["accepted"]!=x["downloaded"] for i,x in enumerate(rounds)):return False
+             from flcore.sync.decision_audit import verify_decisions
+             decisions=[json.loads(l) for l in (out/"decisions.jsonl").read_text().splitlines()]
+-            verify_decisions(resolved_config,rounds,decisions,events)
++            audit_config=local_decision_audit_config(resolved_config,out)
++            verify_decisions(audit_config,rounds,decisions,events)
+             if entry["method"]=="M2" and not any(e["kind"]=="BANK_AGGREGATE" for e in events):return False
+             if baseline:
+                 if any(report is not None for row in rounds for report in row["sampled_reports"].values()):return False

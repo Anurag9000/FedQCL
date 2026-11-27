@@ -1,0 +1,11 @@
+{
+  "profile": "kakarot-s14-a08m3-first-counterfactual",
+  "exit_code": 0,
+  "baseline_used_mib": 225,
+  "observed_peak_device_used_mib": 1491,
+  "observed_peak_delta_mib": 1266,
+  "samples": 160,
+  "sampling_interval_ms": 250,
+  "metric": "nvidia-smi memory only; no utilization queried",
+  "output": "/home/anurag-basistha/.local/state/fedqcl-sync-campaign-65ced6195777/profiling/kakarot-s14-a08m3-sampled/output"
+}

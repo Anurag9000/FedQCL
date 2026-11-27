@@ -1,0 +1,16 @@
+{
+  "correction": "The shortlist now receives an atomic fleet-ledger claim, a unique attempt directory, a persistent systemd user unit, an exit receipt, and the standard independent run_campaign.valid reconciliation before stage expansion.",
+  "files": {
+    "advance_screening_stage.py": "f05db668b7bb7e6bb0113a6c79366d2307083d0d83c9d3ae774efd135a04803f",
+    "test_advance_screening_stage.py": "f1bec28bfc5d6c748f815d4dc52985b67244b61ac0b341de0b96818d07f9d228"
+  },
+  "issue": "The stage-advance script previously ran compact shortlist selection inline and changed the ledger job to VERIFIED_COMPLETE without a durable execution attempt.",
+  "recorded_at": "2026-11-26T10:14:11+00:00",
+  "scope": "operational orchestration only; scientific repository and live training attempts unchanged",
+  "updated_at": "2026-11-26T10:17:38+00:00",
+  "verification": {
+    "focused_test": "passed; also proves an already-populated shared results root is allowed while an existing shortlist artifact is guarded",
+    "live_stage_check": "still reports WAITING_FOR_SCREENING at 22 of 27; no live campaign state changed",
+    "py_compile": "passed"
+  }
+}

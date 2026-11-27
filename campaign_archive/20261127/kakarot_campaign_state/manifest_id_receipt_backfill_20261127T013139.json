@@ -1,0 +1,406 @@
+{
+  "backup": "/home/anurag-basistha/.local/state/fedqcl-sync-campaign-65ced6195777/fleet_state_before_manifest_receipt_backfill_20261127T013139.sqlite3",
+  "updated_receipts": 50,
+  "validated": [
+    {
+      "attempt_id": "75ff2042-dffa-4b89-8933-c91402158057",
+      "dataset_manifest_id": "e47418496eb4b1d9c7865252be55b5019c8e417c11f351c3a97c8158440c747f",
+      "host": "h100",
+      "job_id": "00455c676cf6d7f2",
+      "semantic_id": "S10-seed42-k3-A05-M3",
+      "verification_receipt": "/home/anurag-basistha/.local/state/fedqcl-sync-campaign-65ced6195777/verification_00455c676cf6d7f2.json"
+    },
+    {
+      "attempt_id": "1359f6c2-dd36-4dc0-a8d5-c7cc7b4e97e3",
+      "dataset_manifest_id": "18ac0532329a578042655ba5d123020baee4f2f01ee28e5314215aad0747f2e1",
+      "host": "kakarot",
+      "job_id": "97fa8a69f6e4981f",
+      "semantic_id": "S14-seed42-k1-A03-M1",
+      "verification_receipt": "/home/anurag-basistha/.local/state/fedqcl-sync-campaign-65ced6195777/verification_97fa8a69f6e4981f.json"
+    },
+    {
+      "attempt_id": "9d8996e0-f67a-4a84-a454-475e4758421c",
+      "dataset_manifest_id": "18ac0532329a578042655ba5d123020baee4f2f01ee28e5314215aad0747f2e1",
+      "host": "v100",
+      "job_id": "4a8f83e577611976",
+      "semantic_id": "S14-seed42-k1-A05-M3",
+      "verification_receipt": "/home/anurag-basistha/.local/state/fedqcl-sync-campaign-65ced6195777/verification_4a8f83e577611976.json"
+    },
+    {
+      "attempt_id": "e7cf77ef-0dda-4c0c-94e5-468452035726",
+      "dataset_manifest_id": "18ac0532329a578042655ba5d123020baee4f2f01ee28e5314215aad0747f2e1",
+      "host": "h100",
+      "job_id": "4b555cc4f8587358",
+      "semantic_id": "S14-seed42-k3-A01-M1",
+      "verification_receipt": "/home/anurag-basistha/.local/state/fedqcl-sync-campaign-65ced6195777/verification_4b555cc4f8587358.json"
+    },
+    {
+      "attempt_id": "ce060845-d566-4635-b283-f857a54b85ec",
+      "dataset_manifest_id": "18ac0532329a578042655ba5d123020baee4f2f01ee28e5314215aad0747f2e1",
+      "host": "h100",
+      "job_id": "03e7b2c31ff47055",
+      "semantic_id": "S14-seed42-k3-A01-M2",
+      "verification_receipt": "/home/anurag-basistha/.local/state/fedqcl-sync-campaign-65ced6195777/verification_03e7b2c31ff47055.json"
+    },
+    {
+      "attempt_id": "60b5027f-6500-4d28-9901-4702bd3a4a1f",
+      "dataset_manifest_id": "18ac0532329a578042655ba5d123020baee4f2f01ee28e5314215aad0747f2e1",
+      "host": "mtech",
+      "job_id": "8dbd0868c07a004b",
+      "semantic_id": "S14-seed42-k3-A01-M3",
+      "verification_receipt": "/home/anurag-basistha/.local/state/fedqcl-sync-campaign-65ced6195777/verification_8dbd0868c07a004b.json"
+    },
+    {
+      "attempt_id": "123da252-3ae1-4ad3-9ac1-65afcb8ba944",
+      "dataset_manifest_id": "18ac0532329a578042655ba5d123020baee4f2f01ee28e5314215aad0747f2e1",
+      "host": "v100",
+      "job_id": "542b97d35ed4bce0",
+      "semantic_id": "S14-seed42-k3-A02-M1",
+      "verification_receipt": "/home/anurag-basistha/.local/state/fedqcl-sync-campaign-65ced6195777/verification_542b97d35ed4bce0.json"
+    },
+    {
+      "attempt_id": "f18eeeb2-ea5a-4d9a-9f38-aa3244b52941",
+      "dataset_manifest_id": "18ac0532329a578042655ba5d123020baee4f2f01ee28e5314215aad0747f2e1",
+      "host": "l40",
+      "job_id": "52bebf3c8b81c9bb",
+      "semantic_id": "S14-seed42-k3-A02-M2",
+      "verification_receipt": "/home/anurag-basistha/.local/state/fedqcl-sync-campaign-65ced6195777/verification_52bebf3c8b81c9bb.json"
+    },
+    {
+      "attempt_id": "eafda0e7-5bf7-47e0-b91e-4f153826254d",
+      "dataset_manifest_id": "18ac0532329a578042655ba5d123020baee4f2f01ee28e5314215aad0747f2e1",
+      "host": "h100",
+      "job_id": "59a98993db18e6d1",
+      "semantic_id": "S14-seed42-k3-A02-M3",
+      "verification_receipt": "/home/anurag-basistha/.local/state/fedqcl-sync-campaign-65ced6195777/verification_59a98993db18e6d1.json"
+    },
+    {
+      "attempt_id": "f9c9a703-72bb-45ba-9303-e6f513fda907",
+      "dataset_manifest_id": "18ac0532329a578042655ba5d123020baee4f2f01ee28e5314215aad0747f2e1",
+      "host": "h100",
+      "job_id": "d95a3636711fc59b",
+      "semantic_id": "S14-seed42-k3-A03-M1",
+      "verification_receipt": "/home/anurag-basistha/.local/state/fedqcl-sync-campaign-65ced6195777/verification_d95a3636711fc59b.json"
+    },
+    {
+      "attempt_id": "a4e35bb0-c596-4a1a-8cf5-eabc3538662c",
+      "dataset_manifest_id": "18ac0532329a578042655ba5d123020baee4f2f01ee28e5314215aad0747f2e1",
+      "host": "l40",
+      "job_id": "5e94c41ce411dbdb",
+      "semantic_id": "S14-seed42-k3-A03-M2",
+      "verification_receipt": "/home/anurag-basistha/.local/state/fedqcl-sync-campaign-65ced6195777/verification_5e94c41ce411dbdb.json"
+    },
+    {
+      "attempt_id": "ed8ef922-fec8-41ed-843c-281b0fc055a4",
+      "dataset_manifest_id": "18ac0532329a578042655ba5d123020baee4f2f01ee28e5314215aad0747f2e1",
+      "host": "mtech",
+      "job_id": "c48b413d71635b22",
+      "semantic_id": "S14-seed42-k3-A03-M3",
+      "verification_receipt": "/home/anurag-basistha/.local/state/fedqcl-sync-campaign-65ced6195777/verification_c48b413d71635b22.json"
+    },
+    {
+      "attempt_id": "9b3a7e57-c873-49bf-93e8-22883cba6cf3",
+      "dataset_manifest_id": "18ac0532329a578042655ba5d123020baee4f2f01ee28e5314215aad0747f2e1",
+      "host": "h100",
+      "job_id": "7aabf291b3f37690",
+      "semantic_id": "S14-seed42-k3-A04-M1",
+      "verification_receipt": "/home/anurag-basistha/.local/state/fedqcl-sync-campaign-65ced6195777/verification_7aabf291b3f37690.json"
+    },
+    {
+      "attempt_id": "957bc2cd-7d76-4c19-bf99-e16a86abfd59",
+      "dataset_manifest_id": "18ac0532329a578042655ba5d123020baee4f2f01ee28e5314215aad0747f2e1",
+      "host": "h100",
+      "job_id": "37c240812f5b0951",
+      "semantic_id": "S14-seed42-k3-A04-M2",
+      "verification_receipt": "/home/anurag-basistha/.local/state/fedqcl-sync-campaign-65ced6195777/verification_37c240812f5b0951.json"
+    },
+    {
+      "attempt_id": "eae6b617-0c95-48ce-9ce7-1041df0af645",
+      "dataset_manifest_id": "18ac0532329a578042655ba5d123020baee4f2f01ee28e5314215aad0747f2e1",
+      "host": "h100",
+      "job_id": "4cb0569458c19071",
+      "semantic_id": "S14-seed42-k3-A04-M3",
+      "verification_receipt": "/home/anurag-basistha/.local/state/fedqcl-sync-campaign-65ced6195777/verification_4cb0569458c19071.json"
+    },
+    {
+      "attempt_id": "7f1a8376-ac9b-409b-a916-36a46fc52e00",
+      "dataset_manifest_id": "18ac0532329a578042655ba5d123020baee4f2f01ee28e5314215aad0747f2e1",
+      "host": "h100",
+      "job_id": "ee2b0169a7ba97c9",
+      "semantic_id": "S14-seed42-k3-A05-M1",
+      "verification_receipt": "/home/anurag-basistha/.local/state/fedqcl-sync-campaign-65ced6195777/verification_ee2b0169a7ba97c9.json"
+    },
+    {
+      "attempt_id": "657f4d80-68b0-46aa-ac8d-f7f09444265d",
+      "dataset_manifest_id": "18ac0532329a578042655ba5d123020baee4f2f01ee28e5314215aad0747f2e1",
+      "host": "h100",
+      "job_id": "fab59312145b15ad",
+      "semantic_id": "S14-seed42-k3-A05-M2",
+      "verification_receipt": "/home/anurag-basistha/.local/state/fedqcl-sync-campaign-65ced6195777/verification_fab59312145b15ad.json"
+    },
+    {
+      "attempt_id": "af9f7a95-0a04-473b-8d5e-88876bfece7d",
+      "dataset_manifest_id": "18ac0532329a578042655ba5d123020baee4f2f01ee28e5314215aad0747f2e1",
+      "host": "l40",
+      "job_id": "76c5b63bdd9696e1",
+      "semantic_id": "S14-seed42-k3-A05-M3",
+      "verification_receipt": "/home/anurag-basistha/.local/state/fedqcl-sync-campaign-65ced6195777/verification_76c5b63bdd9696e1.json"
+    },
+    {
+      "attempt_id": "850204d4-6510-497f-bac4-9e9f2b1b0de5",
+      "dataset_manifest_id": "18ac0532329a578042655ba5d123020baee4f2f01ee28e5314215aad0747f2e1",
+      "host": "v100",
+      "job_id": "ee0e9b5facef8551",
+      "semantic_id": "S14-seed42-k3-A06-M1",
+      "verification_receipt": "/home/anurag-basistha/.local/state/fedqcl-sync-campaign-65ced6195777/verification_ee0e9b5facef8551.json"
+    },
+    {
+      "attempt_id": "1b83476f-77cb-4543-8dd1-27c5ca701ddd",
+      "dataset_manifest_id": "18ac0532329a578042655ba5d123020baee4f2f01ee28e5314215aad0747f2e1",
+      "host": "h100",
+      "job_id": "3f40135651a10fa2",
+      "semantic_id": "S14-seed42-k3-A06-M2",
+      "verification_receipt": "/home/anurag-basistha/.local/state/fedqcl-sync-campaign-65ced6195777/verification_3f40135651a10fa2.json"
+    },
+    {
+      "attempt_id": "9318f48a-4922-427e-a25a-01bf22ba544a",
+      "dataset_manifest_id": "18ac0532329a578042655ba5d123020baee4f2f01ee28e5314215aad0747f2e1",
+      "host": "h100",
+      "job_id": "0514e6155d75318a",
+      "semantic_id": "S14-seed42-k3-A06-M3",
+      "verification_receipt": "/home/anurag-basistha/.local/state/fedqcl-sync-campaign-65ced6195777/verification_0514e6155d75318a.json"
+    },
+    {
+      "attempt_id": "319b67ad-fa60-46dc-8f94-48be14ce1047",
+      "dataset_manifest_id": "18ac0532329a578042655ba5d123020baee4f2f01ee28e5314215aad0747f2e1",
+      "host": "h100",
+      "job_id": "25836cba3524434c",
+      "semantic_id": "S14-seed42-k3-A07-M1",
+      "verification_receipt": "/home/anurag-basistha/.local/state/fedqcl-sync-campaign-65ced6195777/verification_25836cba3524434c.json"
+    },
+    {
+      "attempt_id": "65235041-f22a-47b3-a438-1ccd06804fd9",
+      "dataset_manifest_id": "18ac0532329a578042655ba5d123020baee4f2f01ee28e5314215aad0747f2e1",
+      "host": "mtech",
+      "job_id": "e31cb96918cfaab5",
+      "semantic_id": "S14-seed42-k3-A07-M2",
+      "verification_receipt": "/home/anurag-basistha/.local/state/fedqcl-sync-campaign-65ced6195777/verification_e31cb96918cfaab5.json"
+    },
+    {
+      "attempt_id": "71a80fd8-e457-4ab4-9a40-067be34c049d",
+      "dataset_manifest_id": "18ac0532329a578042655ba5d123020baee4f2f01ee28e5314215aad0747f2e1",
+      "host": "l40",
+      "job_id": "a2d69e35eef5ef53",
+      "semantic_id": "S14-seed42-k3-A07-M3",
+      "verification_receipt": "/home/anurag-basistha/.local/state/fedqcl-sync-campaign-65ced6195777/verification_a2d69e35eef5ef53.json"
+    },
+    {
+      "attempt_id": "976e0995-6f73-4ee1-a647-0082bc69b474",
+      "dataset_manifest_id": "18ac0532329a578042655ba5d123020baee4f2f01ee28e5314215aad0747f2e1",
+      "host": "h100",
+      "job_id": "0b864f287fef53e9",
+      "semantic_id": "S14-seed42-k3-A08-M1",
+      "verification_receipt": "/home/anurag-basistha/.local/state/fedqcl-sync-campaign-65ced6195777/verification_0b864f287fef53e9.json"
+    },
+    {
+      "attempt_id": "dedde926-b4ea-4f4a-aa5a-39ad78f4f43c",
+      "dataset_manifest_id": "18ac0532329a578042655ba5d123020baee4f2f01ee28e5314215aad0747f2e1",
+      "host": "h100",
+      "job_id": "49642ed94e8ca6f2",
+      "semantic_id": "S14-seed42-k3-A08-M2",
+      "verification_receipt": "/home/anurag-basistha/.local/state/fedqcl-sync-campaign-65ced6195777/verification_49642ed94e8ca6f2.json"
+    },
+    {
+      "attempt_id": "064ac1ec-7990-4b12-a1c7-fbb9c64544a2",
+      "dataset_manifest_id": "18ac0532329a578042655ba5d123020baee4f2f01ee28e5314215aad0747f2e1",
+      "host": "h100",
+      "job_id": "60bbd9b8b6046d64",
+      "semantic_id": "S14-seed42-k3-A08-M3",
+      "verification_receipt": "/home/anurag-basistha/.local/state/fedqcl-sync-campaign-65ced6195777/verification_60bbd9b8b6046d64.json"
+    },
+    {
+      "attempt_id": "78c66eeb-3193-43ec-a050-f5ccd9e14d26",
+      "dataset_manifest_id": "18ac0532329a578042655ba5d123020baee4f2f01ee28e5314215aad0747f2e1",
+      "host": "l40",
+      "job_id": "9e8d6853fad3f92b",
+      "semantic_id": "S14-seed42-k3-B-OLDEST",
+      "verification_receipt": "/home/anurag-basistha/.local/state/fedqcl-sync-campaign-65ced6195777/verification_9e8d6853fad3f92b.json"
+    },
+    {
+      "attempt_id": "5e5449d7-9f9d-4eec-9e28-8483325c033d",
+      "dataset_manifest_id": "18ac0532329a578042655ba5d123020baee4f2f01ee28e5314215aad0747f2e1",
+      "host": "h100",
+      "job_id": "2a9525bdf78551b9",
+      "semantic_id": "S14-seed42-k3-B-RANDOM",
+      "verification_receipt": "/home/anurag-basistha/.local/state/fedqcl-sync-campaign-65ced6195777/verification_2a9525bdf78551b9.json"
+    },
+    {
+      "attempt_id": "84619e89-92ef-4684-b4a3-46dd8f8f3a14",
+      "dataset_manifest_id": "18ac0532329a578042655ba5d123020baee4f2f01ee28e5314215aad0747f2e1",
+      "host": "v100",
+      "job_id": "0d5c4dbc47dc147c",
+      "semantic_id": "S14-seed42-k4-A03-M2",
+      "verification_receipt": "/home/anurag-basistha/.local/state/fedqcl-sync-campaign-65ced6195777/verification_0d5c4dbc47dc147c.json"
+    },
+    {
+      "attempt_id": "c5c1949a-ee8c-4c56-8f33-401fd4e46110",
+      "dataset_manifest_id": "18ac0532329a578042655ba5d123020baee4f2f01ee28e5314215aad0747f2e1",
+      "host": "v100",
+      "job_id": "bdfdd9bb635642f4",
+      "semantic_id": "S14-seed42-k4-A05-M3",
+      "verification_receipt": "/home/anurag-basistha/.local/state/fedqcl-sync-campaign-65ced6195777/verification_bdfdd9bb635642f4.json"
+    },
+    {
+      "attempt_id": "b6f113b4-7b87-4562-94cd-bd22d07d7f14",
+      "dataset_manifest_id": "18ac0532329a578042655ba5d123020baee4f2f01ee28e5314215aad0747f2e1",
+      "host": "mtech",
+      "job_id": "b4d85e4fd8cd77c9",
+      "semantic_id": "S14-seed42-k5-B-FULL",
+      "verification_receipt": "/home/anurag-basistha/.local/state/fedqcl-sync-campaign-65ced6195777/verification_b4d85e4fd8cd77c9.json"
+    },
+    {
+      "attempt_id": "e366ed27-8ddc-4667-b180-9d67d7721802",
+      "dataset_manifest_id": "18ac0532329a578042655ba5d123020baee4f2f01ee28e5314215aad0747f2e1",
+      "host": "v100",
+      "job_id": "9b48a77a70424923",
+      "semantic_id": "S14-seed42-t05-A03-M2",
+      "verification_receipt": "/home/anurag-basistha/.local/state/fedqcl-sync-campaign-65ced6195777/verification_9b48a77a70424923.json"
+    },
+    {
+      "attempt_id": "f8b3fc58-acdc-4018-a3e8-49b824f596be",
+      "dataset_manifest_id": "18ac0532329a578042655ba5d123020baee4f2f01ee28e5314215aad0747f2e1",
+      "host": "kakarot",
+      "job_id": "4aeb97f5a1c9ddb0",
+      "semantic_id": "S14-seed42-t05-A03-M2-B-BYTES",
+      "verification_receipt": "/home/anurag-basistha/.local/state/fedqcl-sync-campaign-65ced6195777/verification_4aeb97f5a1c9ddb0.json"
+    },
+    {
+      "attempt_id": "b688ab01-81da-4824-a559-535ebf8a38a6",
+      "dataset_manifest_id": "18ac0532329a578042655ba5d123020baee4f2f01ee28e5314215aad0747f2e1",
+      "host": "v100",
+      "job_id": "63b3f185fb87994d",
+      "semantic_id": "S14-seed42-t35-A03-M2",
+      "verification_receipt": "/home/anurag-basistha/.local/state/fedqcl-sync-campaign-65ced6195777/verification_63b3f185fb87994d.json"
+    },
+    {
+      "attempt_id": "d15f27c0-57e0-4ee7-9595-1b130338c127",
+      "dataset_manifest_id": "18ac0532329a578042655ba5d123020baee4f2f01ee28e5314215aad0747f2e1",
+      "host": "v100",
+      "job_id": "49cdcdd2922b0921",
+      "semantic_id": "S14-seed42-t35-A03-M2-B-BYTES",
+      "verification_receipt": "/home/anurag-basistha/.local/state/fedqcl-sync-campaign-65ced6195777/verification_49cdcdd2922b0921.json"
+    },
+    {
+      "attempt_id": "ff7dcfa2-0b1b-433c-813b-2dc6c4c79e24",
+      "dataset_manifest_id": "277c4b237a14c65ef6ae48ea9f422f011b6654547cfab64e74f25d76113b4c32",
+      "host": "l40",
+      "job_id": "5b8c629afbae8ac8",
+      "semantic_id": "S14N10-seed42-k10-B-FULL",
+      "verification_receipt": "/home/anurag-basistha/.local/state/fedqcl-sync-campaign-65ced6195777/verification_5b8c629afbae8ac8.json"
+    },
+    {
+      "attempt_id": "49fd7c1e-d224-4728-a675-15ccb28a15e7",
+      "dataset_manifest_id": "277c4b237a14c65ef6ae48ea9f422f011b6654547cfab64e74f25d76113b4c32",
+      "host": "v100",
+      "job_id": "93ff66917f3fa6a7",
+      "semantic_id": "S14N10-seed42-k6-A03-M1",
+      "verification_receipt": "/home/anurag-basistha/.local/state/fedqcl-sync-campaign-65ced6195777/verification_93ff66917f3fa6a7.json"
+    },
+    {
+      "attempt_id": "d9276d3d-801e-4808-920b-62bc87dec952",
+      "dataset_manifest_id": "277c4b237a14c65ef6ae48ea9f422f011b6654547cfab64e74f25d76113b4c32",
+      "host": "v100",
+      "job_id": "ded543122ec3a3d4",
+      "semantic_id": "S14N10-seed42-k8-A03-M1",
+      "verification_receipt": "/home/anurag-basistha/.local/state/fedqcl-sync-campaign-65ced6195777/verification_ded543122ec3a3d4.json"
+    },
+    {
+      "attempt_id": "39a0e239-ab68-412a-849d-d84bdbf64407",
+      "dataset_manifest_id": "277c4b237a14c65ef6ae48ea9f422f011b6654547cfab64e74f25d76113b4c32",
+      "host": "l40",
+      "job_id": "54ad8a6a24c5c26e",
+      "semantic_id": "S14N10-seed42-k8-B-RANDOM",
+      "verification_receipt": "/home/anurag-basistha/.local/state/fedqcl-sync-campaign-65ced6195777/verification_54ad8a6a24c5c26e.json"
+    },
+    {
+      "attempt_id": "9fb2bc96-86fb-4905-9902-7dfbc054b330",
+      "dataset_manifest_id": "277c4b237a14c65ef6ae48ea9f422f011b6654547cfab64e74f25d76113b4c32",
+      "host": "h100",
+      "job_id": "c2e4c679f61f2276",
+      "semantic_id": "S14N10-seed42-k9-A03-M2",
+      "verification_receipt": "/home/anurag-basistha/.local/state/fedqcl-sync-campaign-65ced6195777/verification_c2e4c679f61f2276.json"
+    },
+    {
+      "attempt_id": "e3af18c4-0f4b-4db7-a475-47c7876f181c",
+      "dataset_manifest_id": "277c4b237a14c65ef6ae48ea9f422f011b6654547cfab64e74f25d76113b4c32",
+      "host": "h100",
+      "job_id": "f8eb892107ac4662",
+      "semantic_id": "S14N10-seed42-k9-A05-M3",
+      "verification_receipt": "/home/anurag-basistha/.local/state/fedqcl-sync-campaign-65ced6195777/verification_f8eb892107ac4662.json"
+    },
+    {
+      "attempt_id": "53597ce3-ec22-4f9a-9ffb-9379653c743f",
+      "dataset_manifest_id": "277c4b237a14c65ef6ae48ea9f422f011b6654547cfab64e74f25d76113b4c32",
+      "host": "l40",
+      "job_id": "2587e8f01e505e55",
+      "semantic_id": "S14N10-seed42-t20-A03-M1",
+      "verification_receipt": "/home/anurag-basistha/.local/state/fedqcl-sync-campaign-65ced6195777/verification_2587e8f01e505e55.json"
+    },
+    {
+      "attempt_id": "bce6f206-b7b2-4e6f-9ec9-79c54c8ffb1c",
+      "dataset_manifest_id": "277c4b237a14c65ef6ae48ea9f422f011b6654547cfab64e74f25d76113b4c32",
+      "host": "h100",
+      "job_id": "8e11576bfc00ce84",
+      "semantic_id": "S14N10-seed42-t20-A03-M1-B-BYTES",
+      "verification_receipt": "/home/anurag-basistha/.local/state/fedqcl-sync-campaign-65ced6195777/verification_8e11576bfc00ce84.json"
+    },
+    {
+      "attempt_id": "b5504990-8115-4d2a-bd2e-575564cf9bd6",
+      "dataset_manifest_id": "277c4b237a14c65ef6ae48ea9f422f011b6654547cfab64e74f25d76113b4c32",
+      "host": "h100",
+      "job_id": "94ecafdd6406367b",
+      "semantic_id": "S14N10-seed42-t20-A03-M1-B-COUNT",
+      "verification_receipt": "/home/anurag-basistha/.local/state/fedqcl-sync-campaign-65ced6195777/verification_94ecafdd6406367b.json"
+    },
+    {
+      "attempt_id": "cf11ee3f-6822-4816-adae-ee79fbf77d61",
+      "dataset_manifest_id": "277c4b237a14c65ef6ae48ea9f422f011b6654547cfab64e74f25d76113b4c32",
+      "host": "h100",
+      "job_id": "6899cbe9188f8ff7",
+      "semantic_id": "S14N10-seed42-t20-A03-M2",
+      "verification_receipt": "/home/anurag-basistha/.local/state/fedqcl-sync-campaign-65ced6195777/verification_6899cbe9188f8ff7.json"
+    },
+    {
+      "attempt_id": "bb242571-1d0d-4c7f-aa18-98c1d901b54a",
+      "dataset_manifest_id": "277c4b237a14c65ef6ae48ea9f422f011b6654547cfab64e74f25d76113b4c32",
+      "host": "kakarot",
+      "job_id": "ad04a749754c9705",
+      "semantic_id": "S14N10-seed42-t20-A03-M2-B-BYTES",
+      "verification_receipt": "/home/anurag-basistha/.local/state/fedqcl-sync-campaign-65ced6195777/verification_ad04a749754c9705.json"
+    },
+    {
+      "attempt_id": "d07bd55b-eab7-49eb-b18e-c960599a5984",
+      "dataset_manifest_id": "277c4b237a14c65ef6ae48ea9f422f011b6654547cfab64e74f25d76113b4c32",
+      "host": "h100",
+      "job_id": "06957e65aca39eb1",
+      "semantic_id": "S14N10-seed42-t20-A05-M3",
+      "verification_receipt": "/home/anurag-basistha/.local/state/fedqcl-sync-campaign-65ced6195777/verification_06957e65aca39eb1.json"
+    },
+    {
+      "attempt_id": "6c191c50-e364-4e97-85ab-37527a169a77",
+      "dataset_manifest_id": "277c4b237a14c65ef6ae48ea9f422f011b6654547cfab64e74f25d76113b4c32",
+      "host": "kakarot",
+      "job_id": "1fb3db2562ab7e76",
+      "semantic_id": "S14N10-seed42-t20-A05-M3-B-BYTES",
+      "verification_receipt": "/home/anurag-basistha/.local/state/fedqcl-sync-campaign-65ced6195777/verification_1fb3db2562ab7e76.json"
+    },
+    {
+      "attempt_id": "2540860e-f35f-40b4-8a59-12516b253d93",
+      "dataset_manifest_id": "277c4b237a14c65ef6ae48ea9f422f011b6654547cfab64e74f25d76113b4c32",
+      "host": "kakarot",
+      "job_id": "5288eabc7790ce35",
+      "semantic_id": "S14N10-seed42-t20-A05-M3-B-COUNT",
+      "verification_receipt": "/home/anurag-basistha/.local/state/fedqcl-sync-campaign-65ced6195777/verification_5288eabc7790ce35.json"
+    }
+  ]
+}

@@ -1,0 +1,159 @@
+test_exact_unicast_envelope_and_empty_round (test_bandwidth_audit.BandwidthAudit.test_exact_unicast_envelope_and_empty_round) ... ok
+test_threshold_equality (test_bandwidth_audit.BandwidthAudit.test_threshold_equality) ... ok
+test_design (test_compact_campaign.CompactCampaign.test_design) ... ok
+test_distribution_subset_diagnostics (test_compact_campaign.CompactCampaign.test_distribution_subset_diagnostics) ... ok
+test_full_ledger_materialization (test_compact_campaign.CompactCampaign.test_full_ledger_materialization) ... ok
+test_rank_no_test (test_compact_campaign.CompactCampaign.test_rank_no_test) ... ok
+test_sparse_single_seed (test_compact_campaign.CompactCampaign.test_sparse_single_seed) ... ok
+test_communication_efficiency (test_comprehensive_analysis.ComprehensiveAnalysis.test_communication_efficiency) ... ok
+test_exact_matrix_and_paired_aggregation (test_comprehensive_analysis.ComprehensiveAnalysis.test_exact_matrix_and_paired_aggregation) ... ok
+test_all_named_settings_inventory (test_controlled_stream.ControlledStream.test_all_named_settings_inventory) ... ok
+test_dirichlet_parameters (test_controlled_stream.ControlledStream.test_dirichlet_parameters) ... ok
+test_independent_reconstruction (test_controlled_stream.ControlledStream.test_independent_reconstruction) ... ok
+test_paired_ten_client_split (test_controlled_stream.ControlledStream.test_paired_ten_client_split) ... ok
+test_primary_joint_allocation (test_controlled_stream.ControlledStream.test_primary_joint_allocation) ... ok
+test_core_selection_spec (test_core_ledgers.CoreLedgers.test_core_selection_spec) ... ok
+test_generated_profiles (test_core_ledgers.CoreLedgers.test_generated_profiles) ... ok
+test_aggregate_bank_not_raw_reports (test_signal_matrix.SignalMatrix.test_aggregate_bank_not_raw_reports) ... ok
+test_cached_update_source_age (test_signal_matrix.SignalMatrix.test_cached_update_source_age) ... ok
+test_cka_gram_distance (test_signal_matrix.SignalMatrix.test_cka_gram_distance) ... ok
+test_current_and_historical_js_pooled_by_support (test_signal_matrix.SignalMatrix.test_current_and_historical_js_pooled_by_support) ... ok
+test_exact_matrix (test_signal_matrix.SignalMatrix.test_exact_matrix) ... ok
+test_replay_composition_across_task_boundary (test_signal_matrix.SignalMatrix.test_replay_composition_across_task_boundary) ... ok
+test_tier_a_masked_pool_and_signed_distance (test_signal_matrix.SignalMatrix.test_tier_a_masked_pool_and_signed_distance) ... ok
+test_tier_a_prototype_moments_and_probability_rows (test_signal_matrix.SignalMatrix.test_tier_a_prototype_moments_and_probability_rows) ... ok
+test_unit_l1_distance (test_signal_matrix.SignalMatrix.test_unit_l1_distance) ... ok
+test_cache_scope_and_unknown (test_sync_advanced.Advanced.test_cache_scope_and_unknown) ... ok
+test_coverage (test_sync_advanced.Advanced.test_coverage) ... ok
+test_hybrid_unknown (test_sync_advanced.Advanced.test_hybrid_unknown) ... ok
+test_matching (test_sync_advanced.Advanced.test_matching) ... ok
+test_conflicting_profiles (test_sync_allocation.Allocation.test_conflicting_profiles) ... ok
+test_exact_inventory_and_coverage (test_sync_allocation.Allocation.test_exact_inventory_and_coverage) ... ok
+test_infeasible_floor (test_sync_allocation.Allocation.test_infeasible_floor) ... ok
+test_one_pooled_batch_not_per_task (test_sync_backbone.Backbone.test_one_pooled_batch_not_per_task) ... ok
+test_research_defaults (test_sync_backbone.Backbone.test_research_defaults) ... ok
+test_mass_strata (test_sync_baselines.Baselines.test_mass_strata) ... ok
+test_trend_only_delivered_past (test_sync_baselines.Baselines.test_trend_only_delivered_past) ... ok
+test_bootstrap_rejected_without_messages (test_sync_budget_quant.BudgetQuant.test_bootstrap_rejected_without_messages) ... ok
+test_future_deadline_lower_bound (test_sync_budget_quant.BudgetQuant.test_future_deadline_lower_bound) ... ok
+test_quantization_roundtrip (test_sync_budget_quant.BudgetQuant.test_quantization_roundtrip) ... ok
+test_closure (test_sync_campaign.Campaign.test_closure) ... ok
+test_nominal_estimate (test_sync_campaign.Campaign.test_nominal_estimate) ... ok
+test_duplicate_and_wrong_round (test_sync_distributed.Distributed.test_duplicate_and_wrong_round) ... ok
+test_fault_variants_agree (test_sync_distributed.Distributed.test_fault_variants_agree) ... ok
+test_unknown_guard_and_soft_expansion (test_sync_impact.Impact.test_unknown_guard_and_soft_expansion) ... ok
+test_ood (test_sync_impact_v2.ImpactV2.test_ood) ... ok
+test_quadratic (test_sync_impact_v2.ImpactV2.test_quadratic) ... ok
+test_aligned (test_sync_information.Information.test_aligned) ... ok
+test_representation_identity (test_sync_information.Information.test_representation_identity) ... ok
+test_xor (test_sync_information.Information.test_xor) ... ok
+test_continual_metrics (test_sync_metrics.Metrics.test_continual_metrics) ... ok
+test_sparse_no_transitive_cover (test_sync_network.Network.test_sparse_no_transitive_cover) ... ok
+test_uploaded_report_before_download_and_single_ingestion (test_sync_phase.Phases.test_uploaded_report_before_download_and_single_ingestion) ... ok
+test_bank_delta (test_sync_policies.Policies.test_bank_delta) ... ok
+test_bank_scope (test_sync_policies.Policies.test_bank_scope) ... ok
+test_distance (test_sync_policies.Policies.test_distance) ... ok
+test_due (test_sync_policies.Policies.test_due) ... ok
+test_peer_chain (test_sync_policies.Policies.test_peer_chain) ... ok
+test_peer_exact_unknown (test_sync_policies.Policies.test_peer_exact_unknown) ... ok
+test_peer_messages_and_failure (test_sync_policies.Policies.test_peer_messages_and_failure) ... ok
+test_threshold_empty (test_sync_policies.Policies.test_threshold_empty) ... ok
+test_tie_and_gradual_drift (test_sync_policies.Policies.test_tie_and_gradual_drift) ... ok
+test_transport_failed_attempt (test_sync_policies.Policies.test_transport_failed_attempt) ... ok
+test_unknown_priority (test_sync_policies.Policies.test_unknown_priority) ... ok
+test_caps_and_no_duplication (test_sync_replay_profiles.ReplayProfiles.test_caps_and_no_duplication) ... ok
+test_class_balance (test_sync_replay_profiles.ReplayProfiles.test_class_balance) ... ok
+test_probability (test_sync_statistics.Statistics.test_probability) ... ok
+test_spectral_and_cka (test_sync_statistics.Statistics.test_spectral_and_cka) ... ok
+test_inventory (test_sync_stream_windows.StreamWindows.test_inventory) ... ok
+test_unequal (test_sync_stream_windows.StreamWindows.test_unequal) ... ok
+test_end_to_end_and_resume (test_sync_training.Training.test_end_to_end_and_resume) ... skipped 'opt-in real CPU training test'
+test_richer_signal_extractors (test_sync_training.Training.test_richer_signal_extractors) ... skipped 'opt-in real CPU training test'
+test_shared_backbone_math (test_sync_training.Training.test_shared_backbone_math) ... skipped 'opt-in real CPU training test'
+test_weighted_coverage_changes_choice (test_sync_weighted.Weighted.test_weighted_coverage_changes_choice) ... ok
+test_weighted_update (test_sync_weighted.Weighted.test_weighted_update) ... ok
+test_ledger (test_sync_wire.Wire.test_ledger) ... ok
+test_round_trip (test_sync_wire.Wire.test_round_trip) ... ok
+test_truncated (test_sync_wire.Wire.test_truncated) ... ok
+test_vector_exact (test_sync_wire.Wire.test_vector_exact) ... ok
+test_campaign_checkpoint_and_exact_offline_training (test_task_il.Neural.test_campaign_checkpoint_and_exact_offline_training) ... skipped 'opt-in neural tests'
+test_real_model_private_replay (test_task_il.Neural.test_real_model_private_replay) ... skipped 'opt-in neural tests'
+test_stale_aggregation_and_variable_heads (test_task_il.Neural.test_stale_aggregation_and_variable_heads) ... skipped 'opt-in neural tests'
+test_joint_and_disjoint (test_task_il.Schedule.test_joint_and_disjoint) ... ok
+test_matrix_and_exact_participation (test_task_il.Schedule.test_matrix_and_exact_participation) ... ok
+test_overlap_delay_and_tail (test_task_il.Schedule.test_overlap_delay_and_tail) ... ok
+test_private_allocation_and_tamper (test_task_il.Schedule.test_private_allocation_and_tamper) ... ok
+test_same_data_across_participation_frequency_outage (test_task_il.Schedule.test_same_data_across_participation_frequency_outage) ... ok
+test_sharing_recurrence (test_task_il.Schedule.test_sharing_recurrence) ... ok
+test_cross_client_modes_and_interventions (test_task_il_joint.JointSchedule.test_cross_client_modes_and_interventions) ... ok
+test_every_local_transition_and_communication_budget (test_task_il_joint.JointSchedule.test_every_local_transition_and_communication_budget) ... ok
+test_exact_mirror_and_no_duplicate_configuration (test_task_il_joint.JointSchedule.test_exact_mirror_and_no_duplicate_configuration) ... ok
+test_matching_data_and_committed_dependency_graph (test_task_il_joint.JointSchedule.test_matching_data_and_committed_dependency_graph) ... ok
+test_private_overlap_allocation (test_task_il_joint.JointSchedule.test_private_overlap_allocation) ... ok
+test_end_to_end_overlap_resume_and_acceptance (test_task_il_joint.JointTraining.test_end_to_end_overlap_resume_and_acceptance) ... skipped 'opt-in neural integration test'
+
+----------------------------------------------------------------------
+Ran 93 tests in 33.761s
+
+OK (skipped=7)
+{
+  "suite": "core",
+  "planned_training_jobs": 123,
+  "planned_jobs": 179,
+  "calibration_prefixes": 3,
+  "expanded": false,
+  "settings": 25,
+  "seeds": [
+    42
+  ],
+  "budgets": [
+    1,
+    2,
+    3,
+    4
+  ],
+  "jobs": 54,
+  "training_jobs": 0,
+  "baseline_runs": 0
+}
+{
+  "suite": "core",
+  "planned_training_jobs": 123,
+  "planned_jobs": 179,
+  "calibration_prefixes": 3,
+  "expanded": false,
+  "settings": 25,
+  "seeds": [
+    42
+  ],
+  "budgets": [
+    1,
+    2,
+    3,
+    4
+  ],
+  "jobs": 82,
+  "training_jobs": 27,
+  "baseline_runs": 3
+}
+{
+  "suite": "core",
+  "planned_training_jobs": 123,
+  "planned_jobs": 179,
+  "calibration_prefixes": 3,
+  "expanded": true,
+  "settings": 25,
+  "seeds": [
+    42
+  ],
+  "budgets": [
+    1,
+    2,
+    3,
+    4
+  ],
+  "jobs": 179,
+  "training_jobs": 123,
+  "baseline_runs": 51
+}
+51f36464c28653b2987bf660cbe27184c7cbd62de1a6e06ddb70cd004621e092

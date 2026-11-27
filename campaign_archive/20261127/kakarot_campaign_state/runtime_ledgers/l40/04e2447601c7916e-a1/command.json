@@ -1,0 +1,1 @@
+["ssh", "-o", "ConnectTimeout=20", "-o", "StrictHostKeyChecking=accept-new", "-J", "b550", "anurag@192.168.3.160", "tmux new-session -d -s fedqcl-04e2447601c7916e-a1 bash /tmp/fedqcl-attempts/04e2447601c7916e-a1/run.sh"]

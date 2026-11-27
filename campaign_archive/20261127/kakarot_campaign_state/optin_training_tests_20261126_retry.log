@@ -1,0 +1,11 @@
+test_cross_client_modes_and_interventions (test_task_il_joint.JointSchedule.test_cross_client_modes_and_interventions) ... ok
+test_every_local_transition_and_communication_budget (test_task_il_joint.JointSchedule.test_every_local_transition_and_communication_budget) ... ok
+test_exact_mirror_and_no_duplicate_configuration (test_task_il_joint.JointSchedule.test_exact_mirror_and_no_duplicate_configuration) ... ok
+test_matching_data_and_committed_dependency_graph (test_task_il_joint.JointSchedule.test_matching_data_and_committed_dependency_graph) ... ok
+test_private_overlap_allocation (test_task_il_joint.JointSchedule.test_private_overlap_allocation) ... ok
+test_end_to_end_overlap_resume_and_acceptance (test_task_il_joint.JointTraining.test_end_to_end_overlap_resume_and_acceptance) ... ok
+
+----------------------------------------------------------------------
+Ran 6 tests in 4.655s
+
+OK

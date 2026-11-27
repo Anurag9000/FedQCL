@@ -1,0 +1,8 @@
+[
+  {
+    "job_id": "fab59312145b15ad",
+    "host": "kakarot",
+    "gpu": 0,
+    "reserve_gib": 4
+  }
+]

@@ -1,0 +1,58 @@
+{
+  "attempt_id": "79df7e84-1061-4a51-b581-e586f6d53707",
+  "attempt_no": 2,
+  "captured_at": "2026-11-27T10:38:38.439638+00:00",
+  "correction_commit": "856e82d",
+  "exit_code": "1",
+  "failure_class": "nonzero-exit-needs-triage",
+  "failure_evidence": {
+    "actual_replay_mismatches": [
+      {
+        "candidate_accuracy": 0.419,
+        "candidate_loss": 1.8948870120048522,
+        "realized_accuracy": 0.431,
+        "realized_loss": 1.8678763060569763,
+        "round": 13,
+        "task": 0
+      },
+      {
+        "candidate_accuracy": 0.375,
+        "candidate_loss": 2.0581772556304934,
+        "realized_accuracy": 0.384,
+        "realized_loss": 2.056017904281616,
+        "round": 13,
+        "task": 1
+      },
+      {
+        "candidate_accuracy": 0.426,
+        "candidate_loss": 1.9323920443058014,
+        "realized_accuracy": 0.426,
+        "realized_loss": 1.9324082906246185,
+        "round": 23,
+        "task": 1
+      },
+      {
+        "candidate_accuracy": 0.26,
+        "candidate_loss": 2.7226595730781553,
+        "realized_accuracy": 0.26,
+        "realized_loss": 2.7226378822326662,
+        "round": 23,
+        "task": 2
+      }
+    ],
+    "checkpoint_bytes": 302795330,
+    "final_summary_exists": false,
+    "last_round": 49,
+    "output_status": {
+      "error": "ValueError('actual subset counterfactual differs from real trajectory')",
+      "status": "failed"
+    },
+    "round_records": 50,
+    "server_model_exists": false
+  },
+  "host": "kakarot",
+  "job_id": "92f20975c8aea63b",
+  "log_tail": "",
+  "root_cause": "The training trajectory reached round 49 and saved a valid checkpoint, then final analysis rejected recomputed actual-subset counterfactual metrics that differed from the measured server trajectory. This is an analysis validation mismatch, not a training failure. Corrected in code revision 856e82d: the realized trajectory now supplies the actual-subset metrics while replay differences remain explicit diagnostics.",
+  "semantic_id": "S14-seed42-t10-A03-M1-B-BYTES"
+}

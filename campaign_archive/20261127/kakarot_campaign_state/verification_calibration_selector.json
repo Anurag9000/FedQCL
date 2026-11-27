@@ -1,0 +1,9 @@
+{
+  "artifact": "/home/anurag-basistha/Projects/Untapped/FedQCL_Task/research_results/compact-65ced6195777/calibration.json",
+  "candidate_count": 3,
+  "job_id": "a8a7b6b69e4eb864",
+  "run_campaign_valid": true,
+  "scope": "validation-only full participation; first two tasks; no test selection",
+  "selected_learning_rate": 0.01,
+  "sha256": "e3b1e66d64917818fd120fb8db4953e4b0c78d333b08dd329fae431bbb5ccb7b"
+}

@@ -1,0 +1,374 @@
+#!/usr/bin/env python3
+"""Event-driven campaign coordinator; waits for exit-file events, not GPU polling."""
+import ctypes
+import datetime
+import importlib.util
+import json
+import os
+import pathlib
+import queue
+import re
+import sqlite3
+import shlex
+import struct
+import subprocess
+import sys
+import threading
+import time
+
+import pexpect
+
+STATE = pathlib.Path(__file__).resolve().parent
+sys.path.insert(0, str(STATE))
+spec = importlib.util.spec_from_file_location("dispatch", STATE / "dispatch_jobs.py")
+dispatch = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(dispatch)
+EVENT_LOG = STATE / "event_coordinator.jsonl"
+EVENT_Q = queue.Queue()
+REMOTE_WATCHER = r'''import ctypes,os,struct,sys,json
+tmp_path=os.path.abspath(sys.argv[1])
+results_root=os.path.abspath(sys.argv[2])
+libc=ctypes.CDLL(None,use_errno=True)
+fd=libc.inotify_init1(0)
+if fd<0: raise OSError(ctypes.get_errno(),"inotify_init1")
+mask_watch=0x00000008|0x00000080|0x00000100
+wd_paths={}
+def add_dir(path):
+ path=os.path.abspath(path)
+ wd=libc.inotify_add_watch(fd,path.encode(),mask_watch)
+ if wd<0: return
+ wd_paths[wd]=path
+def add_tree(root):
+ if not os.path.isdir(root): return
+ for current,dirs,_ in os.walk(root):
+  add_dir(current)
+  dirs[:]=[d for d in dirs if not os.path.islink(os.path.join(current,d))]
+add_dir(tmp_path)
+if os.path.isdir(results_root): add_tree(results_root)
+else: add_dir(os.path.dirname(results_root))
+print("WATCH_READY",flush=True)
+while True:
+ data=os.read(fd,65536); pos=0
+ while pos+16<=len(data):
+  watch,mask,cookie,n=struct.unpack_from("iIII",data,pos); pos+=16
+  name=data[pos:pos+n].split(b"\0",1)[0].decode("utf-8","replace"); pos+=n
+  parent=wd_paths.get(watch,"")
+  target=os.path.join(parent,name) if name else parent
+  if parent==tmp_path and name.startswith("fedqcl-") and name.endswith(".exit") and (mask&0x88):
+   print("EVENT EXIT "+name,flush=True)
+  if mask&0x40000000 and mask&0x100 and os.path.isdir(target):
+   if target==results_root or target.startswith(results_root+os.sep): add_tree(target)
+  if name=="rounds.jsonl" and mask&0x88 and (parent==results_root or parent.startswith(results_root+os.sep)):
+   try:
+    with open(target,"rb") as f:
+     f.seek(0,2); end=f.tell(); f.seek(max(0,end-16777216)); lines=f.read().splitlines()
+    row=json.loads(lines[-1]); rel=os.path.relpath(parent,results_root)
+    summary={k:row.get(k) for k in ("round","task","version","selected","trained","uploaded","downloaded") if k in row}
+    print("EVENT PROGRESS "+json.dumps({"run":rel,"bytes":end,"latest":summary},sort_keys=True),flush=True)
+   except Exception as e:
+    print("EVENT PROGRESS "+json.dumps({"file":target,"parse_error":repr(e)}),flush=True)
+'''
+HEALTH_CONFIRMATION_SECONDS = 300
+POLL_INTERVAL_SECONDS = 600
+HEALTH_CONFIRMATION_AT = None
+
+
+def record(event, **data):
+    row = {"at": datetime.datetime.now(datetime.timezone.utc).isoformat(timespec="seconds"),
+           "event": event, **data}
+    with EVENT_LOG.open("a") as f:
+        f.write(json.dumps(row, sort_keys=True) + "\n")
+    print(json.dumps(row, sort_keys=True), flush=True)
+
+
+def local_watch():
+    while True:
+        proc = subprocess.Popen([sys.executable, "-u", "-c", REMOTE_WATCHER, "/tmp",
+             str(pathlib.Path(dispatch.HOSTS["kakarot"]["repo"]) / "research_results" / ("compact-" + dispatch.COMMIT[:12]))],
+             stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, bufsize=1)
+        try:
+            for line in proc.stdout:
+                line=line.strip()
+                if line=="WATCH_READY": EVENT_Q.put(("WATCH_READY", "kakarot"))
+                elif line.startswith("EVENT "): EVENT_Q.put(("EVENT", "kakarot", line[6:]))
+        except Exception as exc:
+            record("watcher_error",host="kakarot",error=repr(exc))
+        finally:
+            err=proc.stderr.read()[-1000:] if proc.poll() is not None else ""
+            if proc.poll() is not None: record("watcher_exit",host="kakarot",returncode=proc.returncode,stderr=err)
+            if proc.poll() is None: proc.terminate()
+        time.sleep(10)
+
+
+def remote_watch(host):
+    results_root = str(pathlib.PurePosixPath(dispatch.HOSTS[host]["repo"]) / "research_results" / ("compact-" + dispatch.COMMIT[:12]))
+    remote = "python3 -u -c " + shlex.quote(REMOTE_WATCHER) + " /tmp " + shlex.quote(results_root)
+    argv = dispatch.ssh_argv(host, remote)
+    while True:
+        child = None
+        try:
+            child = pexpect.spawn(argv[0], argv[1:], encoding="utf-8", timeout=None,
+                                  dimensions=(24, 120))
+            while True:
+                idx = child.expect([r"(?i)password:", r"WATCH_READY", r"EVENT [^\r\n]+", pexpect.EOF])
+                if idx == 0:
+                    child.sendline(dispatch.password(host))
+                elif idx == 1:
+                    EVENT_Q.put(("WATCH_READY", host))
+                elif idx == 2:
+                    line = child.match.group(0)
+                    EVENT_Q.put(("EVENT", host, line[6:].strip()))
+                else:
+                    break
+        except Exception as exc:
+            record("watcher_error", host=host, error=repr(exc))
+        finally:
+            if child is not None:
+                try:
+                    child.close(force=True)
+                except Exception:
+                    pass
+        time.sleep(10)
+
+
+def current_attempt_for_exit(filename):
+    match = re.fullmatch(r"fedqcl-([0-9a-f]{16})-a([0-9]+)\.exit", filename)
+    if not match:
+        return False
+    import sqlite3
+    c = sqlite3.connect(STATE / "fleet_state.sqlite3")
+    row = c.execute("SELECT 1 FROM attempts WHERE job_id=? AND attempt_no=? AND state IN "
+                    "('CLAIMED','STARTING','RUNNING','AWAITING_VERIFICATION')",
+                    (match.group(1), int(match.group(2)))).fetchone()
+    c.close()
+    return row is not None
+
+
+def run_step(name, argv):
+    p = subprocess.run(argv, cwd=STATE, text=True, capture_output=True, timeout=7200)
+    record("coordinator_step", name=name, returncode=p.returncode,
+           stdout_tail=p.stdout[-3000:], stderr_tail=p.stderr[-3000:])
+    if p.returncode:
+        raise RuntimeError(f"{name} failed with code {p.returncode}")
+    return p.stdout
+
+
+def fleet_is_full_for_next_legal_job():
+    """Enable polling only when ready work exists and fresh VRAM admits none."""
+    global HEALTH_CONFIRMATION_AT
+    jobs = dispatch_ready_jobs()
+    # A dependency wait is not GPU saturation. Stay event-driven while no
+    # training job is eligible; do not manufacture a hypothetical job as a
+    # reason to enter the 10-minute polling mode.
+    if not jobs:
+        HEALTH_CONFIRMATION_AT = None
+        return False
+    for host, uuids in dispatch.GPU_UUIDS.items():
+        for index, uuid in enumerate(uuids):
+            try:
+                row = dispatch.exact_gpu(host, index)
+                if row.get("uuid") != uuid:
+                    return False
+                free = int(row["free_mib"]) * dispatch.MIB
+                growth = dispatch.active_reservations(host, uuid)
+            except Exception as exc:
+                # Missing/stale VRAM evidence cannot prove saturation.
+                HEALTH_CONFIRMATION_AT = None
+                record("polling_mode_vram_check_error", host=host, gpu=index,
+                       error=repr(exc))
+                return False
+            for job in jobs:
+                peak = dispatch.candidate_peak_mib(job["config"].get("clients", 5))
+                if dispatch.can_admit(free, growth, int(peak) * dispatch.MIB):
+                    HEALTH_CONFIRMATION_AT = None
+                    return False
+    claimed_at = latest_active_claimed_at()
+    if claimed_at is not None:
+        elapsed = (datetime.datetime.now(datetime.timezone.utc) - claimed_at).total_seconds()
+        remaining = HEALTH_CONFIRMATION_SECONDS - elapsed
+        if remaining > 0:
+            HEALTH_CONFIRMATION_AT = time.monotonic() + remaining
+            return False
+    HEALTH_CONFIRMATION_AT = None
+    return True
+
+
+def latest_active_claimed_at():
+    c = sqlite3.connect(STATE / "fleet_state.sqlite3")
+    row = c.execute("SELECT MAX(claimed_at) FROM attempts WHERE state IN "
+                    "('CLAIMED','STARTING','RUNNING','AWAITING_VERIFICATION')").fetchone()
+    c.close()
+    if not row or not row[0]:
+        return None
+    return datetime.datetime.fromisoformat(row[0].replace("Z", "+00:00")).astimezone(datetime.timezone.utc)
+
+
+def next_monitor_deadline(polling_only):
+    if polling_only:
+        return time.monotonic() + POLL_INTERVAL_SECONDS
+    return HEALTH_CONFIRMATION_AT
+
+
+def dispatch_ready_jobs():
+    spec = importlib.util.spec_from_file_location("dispatch_ready", STATE / "dispatch_ready.py")
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module.ready_jobs()
+
+
+def campaign_complete():
+    c = sqlite3.connect(STATE / "fleet_state.sqlite3")
+    total, complete = c.execute(
+        "SELECT COUNT(*),SUM(CASE WHEN state='VERIFIED_COMPLETE' THEN 1 ELSE 0 END) "
+        "FROM jobs").fetchone()
+    active = c.execute("SELECT COUNT(*) FROM attempts WHERE state IN "
+                       "('CLAIMED','STARTING','RUNNING','AWAITING_VERIFICATION')").fetchone()[0]
+    c.close()
+    return total == 179 and complete == 179 and active == 0
+
+
+def handle_exit_events(events, current_mode=False):
+    exits=[]
+    for host, event in events:
+        if event.startswith("PROGRESS "):
+            try: summary=json.loads(event[len("PROGRESS "):])
+            except Exception: summary={"raw":event[len("PROGRESS "):][:500]}
+            record("training_progress_event",host=host,**summary)
+        elif event.startswith("EXIT "):
+            exits.append((host,event[len("EXIT "):]))
+    matches = [(host, name) for host, name in exits if current_attempt_for_exit(name)]
+    if not matches:
+        stale=[(host,name) for host,name in exits if not current_attempt_for_exit(name)]
+        if stale:record("stale_exit_events_ignored", events=stale)
+        return current_mode
+    record("active_attempt_exit_events", events=matches)
+    run_step("reconcile_exits", [sys.executable, str(STATE / "reconcile_exits.py")])
+    return refresh_capacity_and_queue("exit_event")
+
+
+def refresh_capacity_and_queue(prefix):
+    # A completion or failure changes capacity or dependencies, so refresh every
+    # authorized GPU host before admission. No utilization telemetry is queried.
+    run_step(prefix + "_fleet_vram_snapshot", [sys.executable, str(STATE / "profile_vram_only.py")])
+    run_step(prefix + "_sync_verified_screening", [sys.executable, str(STATE / "sync_verified_screening.py")])
+    run_step(prefix + "_advance_screening_stage", [sys.executable, str(STATE / "advance_screening_stage.py")])
+    run_step(prefix + "_dispatch_ready", [sys.executable, str(STATE / "dispatch_ready.py")])
+    run_step(prefix + "_dispatch_final_analysis", [sys.executable, str(STATE / "dispatch_analysis.py")])
+    mode = fleet_is_full_for_next_legal_job()
+    record("polling_mode_state", polling_only=mode,
+           reason="all GPUs lack VRAM for any ready job" if mode else
+           "a legal job may fit, or the stage is waiting on dependencies with fleet headroom")
+    return mode
+
+
+def recover_watcher(host, current_mode):
+    """Check for receipts missed during a broken event stream; snapshot only on change."""
+    out = run_step("watcher_reconnect_reconcile", [sys.executable, str(STATE / "reconcile_exits.py")])
+    changed = any(marker in out for marker in ("VERIFIED_COMPLETE ", "FAILED ", "NEEDS_AUDIT "))
+    record("watcher_reconnected", host=host, missed_attempt_change=changed)
+    return refresh_capacity_and_queue("watcher_reconnect") if changed else current_mode
+
+
+def startup_reconciliation():
+    """Close the race between process exits and watcher initialization."""
+    run_step("startup_reconcile_exits", [sys.executable, str(STATE / "reconcile_exits.py")])
+    run_step("startup_vram_snapshot", [sys.executable, str(STATE / "profile_vram_only.py")])
+    run_step("startup_sync_verified_screening", [sys.executable, str(STATE / "sync_verified_screening.py")])
+    run_step("startup_stage_advance", [sys.executable, str(STATE / "advance_screening_stage.py")])
+    run_step("startup_dispatch_ready", [sys.executable, str(STATE / "dispatch_ready.py")])
+    run_step("startup_dispatch_final_analysis", [sys.executable, str(STATE / "dispatch_analysis.py")])
+    mode = fleet_is_full_for_next_legal_job()
+    record("polling_mode_state", polling_only=mode,
+           reason="all GPUs lack VRAM for any ready job" if mode else
+           "capacity remains or the stage is waiting on dependencies")
+    return mode
+
+
+def main():
+    hosts = ["mtech", "v100", "l40", "h100"]
+    threading.Thread(target=local_watch, name="watch-kakarot", daemon=True).start()
+    for host in hosts:
+        threading.Thread(target=remote_watch, args=(host,), name="watch-" + host,
+                         daemon=True).start()
+    record("coordinator_started", watched_hosts=["kakarot", *hosts], event_source="Linux inotify close-write/move events",
+           polling="none; wakes only on attempt exit-file events")
+    ready = set()
+    while len(ready) < 1 + len(hosts):
+        kind, host, *rest = EVENT_Q.get()
+        if kind == "WATCH_READY":
+            ready.add(host)
+            record("watcher_ready", host=host, ready_count=len(ready))
+    record("all_exit_watchers_ready", hosts=sorted(ready))
+    polling_only = startup_reconciliation()
+    if campaign_complete():
+        record("campaign_verified_complete", jobs=179)
+        return
+    next_poll_at=next_monitor_deadline(polling_only)
+    pending = []
+    while True:
+        try:
+            timeout=max(0.0,next_poll_at-time.monotonic()) if next_poll_at is not None else None
+            kind, host, *rest = EVENT_Q.get(timeout=timeout)
+        except queue.Empty:
+            if not polling_only and HEALTH_CONFIRMATION_AT is not None:
+                record("five_minute_health_confirmation_due",
+                       scope="active campaign jobs and fresh VRAM admission")
+                run_step("health_confirmation_reconcile_exits",
+                         [sys.executable, str(STATE / "reconcile_exits.py")])
+                polling_only = refresh_capacity_and_queue("health_confirmation")
+                record("five_minute_health_confirmation_result", polling_only=polling_only,
+                       reason="five minutes elapsed since the latest active admission; all ready jobs still fail VRAM admission"
+                       if polling_only else "capacity, progress, or dependency state changed")
+                next_poll_at=next_monitor_deadline(polling_only)
+                if campaign_complete():
+                    record("campaign_verified_complete", jobs=179)
+                    return
+                continue
+            # Ten-minute fleet-wide checks are permitted only after measured
+            # VRAM admission confirms no next legal job fits on any GPU.
+            record("polling_only_fleet_poll_due", scope="all servers and GPUs including B550")
+            run_step("polling_only_reconcile_exits", [sys.executable, str(STATE / "reconcile_exits.py")])
+            run_step("polling_only_fleet_vram_snapshot", [sys.executable, str(STATE / "profile_vram_only.py")])
+            run_step("polling_only_sync_verified_screening", [sys.executable, str(STATE / "sync_verified_screening.py")])
+            run_step("polling_only_stage_advance", [sys.executable, str(STATE / "advance_screening_stage.py")])
+            run_step("polling_only_dispatch_ready", [sys.executable, str(STATE / "dispatch_ready.py")])
+            run_step("polling_only_dispatch_final_analysis", [sys.executable, str(STATE / "dispatch_analysis.py")])
+            polling_only = fleet_is_full_for_next_legal_job()
+            record("polling_mode_state", polling_only=polling_only,
+                   reason="all GPUs lack VRAM for any ready job" if polling_only else
+                   "capacity or dependency state changed; return to event-driven monitoring")
+            next_poll_at=next_monitor_deadline(polling_only)
+            continue
+        if kind == "WATCH_READY":
+            old_mode=polling_only
+            polling_only = recover_watcher(host, polling_only)
+            if polling_only and not old_mode: next_poll_at=next_monitor_deadline(True)
+            elif not polling_only: next_poll_at=next_monitor_deadline(False)
+            continue
+        pending.append((host, rest[0]))
+        # Coalesce simultaneous completions; this is event-queue draining, not
+        # status polling. A short timeout simply lets the batch settle.
+        while True:
+            try:
+                kind2, host2, *rest2 = EVENT_Q.get(timeout=2)
+            except queue.Empty:
+                break
+            if kind2 == "EVENT":
+                pending.append((host2, rest2[0]))
+            else:
+                record("watcher_reconnected", host=host2)
+        batch, pending = pending, []
+        try:
+            old_mode=polling_only
+            polling_only = handle_exit_events(batch,polling_only)
+            if polling_only and not old_mode: next_poll_at=next_monitor_deadline(True)
+            elif not polling_only: next_poll_at=next_monitor_deadline(False)
+            if campaign_complete():
+                record("campaign_verified_complete", jobs=179)
+                return
+        except Exception as exc:
+            record("event_action_error", error=repr(exc), events=batch)
+
+
+if __name__ == "__main__":
+    main()

@@ -1,0 +1,1 @@
+["ssh", "-o", "ConnectTimeout=20", "-J", "b550", "rl-group4@192.168.3.215", "tmux new-session -d -s fedqcl-screen-4b555cc4f8587358-a1 bash /tmp/fedqcl-attempt-4b555cc4f8587358-a1.sh"]

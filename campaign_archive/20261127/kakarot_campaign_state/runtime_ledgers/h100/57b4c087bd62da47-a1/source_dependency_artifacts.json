@@ -1,0 +1,30 @@
+{
+  "job_id": "57b4c087bd62da47",
+  "selection_mode": "matched_count",
+  "source_attempt_id": "f6187edb-c2d8-4a20-b58e-973051c30041",
+  "source_commit": "65ced6195777d824c77f3c26152b066ef5f47f18",
+  "source_host": "h100",
+  "source_job_id": "5cebf1693254229e",
+  "source_semantic_id": "S14-seed42-t35-A03-M1",
+  "verified_source_artifacts": [
+    {
+      "copied_to_worker": false,
+      "name": "config.json",
+      "sha256": "9dcbec304829323fa9450b68c2c3f69867d368c884a777d0ea13ee0359d82829",
+      "source_host": "h100",
+      "source_path": "/home/rl-group4/Projects/FedQCL_Task/research_results/compact-65ced6195777/S14-seed42-t35-A03-M1/config.json",
+      "worker_host": "h100",
+      "worker_path": "/home/rl-group4/Projects/FedQCL_Task/research_results/compact-65ced6195777/S14-seed42-t35-A03-M1/config.json"
+    },
+    {
+      "copied_to_worker": false,
+      "name": "participation_schedule.json",
+      "sha256": "74c35bdef638afa72b40a62ba8adf4bb15ebe7b2acd05b7c9efb7805cb14ff6a",
+      "source_host": "h100",
+      "source_path": "/home/rl-group4/Projects/FedQCL_Task/research_results/compact-65ced6195777/S14-seed42-t35-A03-M1/participation_schedule.json",
+      "worker_host": "h100",
+      "worker_path": "/home/rl-group4/Projects/FedQCL_Task/research_results/compact-65ced6195777/S14-seed42-t35-A03-M1/participation_schedule.json"
+    }
+  ],
+  "worker_host": "h100"
+}

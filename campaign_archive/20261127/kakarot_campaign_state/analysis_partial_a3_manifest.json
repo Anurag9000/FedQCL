@@ -1,0 +1,70 @@
+{
+  "archive_path": "/home/anurag-basistha/Projects/Untapped/FedQCL_Task/research_results/compact-65ced6195777/analysis.partial-a3-20261127T1946",
+  "archived_at": "2026-11-27T19:46:35+05:30",
+  "attempt_id": "8bdda8e8-3128-470a-a1f2-3f0f260fbe71",
+  "file_count": 15,
+  "files": {
+    "all_subset_metrics.jsonl": {
+      "sha256": "8489c411338236cb697d885a8b4683c76a0167e4bdbc3aa8f227e4d95a5cf80b",
+      "size": 36116076
+    },
+    "calibration.json": {
+      "sha256": "e3b1e66d64917818fd120fb8db4953e4b0c78d333b08dd329fae431bbb5ccb7b",
+      "size": 1062
+    },
+    "counterfactual_metrics.jsonl": {
+      "sha256": "d579666b8b252786b5ee486ac570d38d390d666dcb793482c7ad604230ad7b85",
+      "size": 1470556
+    },
+    "decision_sensitivity.jsonl": {
+      "sha256": "0f8f1af8616b5b81e620f43efd620b74ac4fefa9df546170c3571f996d2351b0",
+      "size": 45847384
+    },
+    "distribution_subset_metrics.jsonl": {
+      "sha256": "121102613941796031b6867ae428c6db016008b21ef4792b9fccfb4e27b2b291",
+      "size": 22453081
+    },
+    "equal_byte_comparisons.jsonl": {
+      "sha256": "94e96b90e5af7828d3bfca88498bd31a6ee3dca1a57f187acb3e873ca636d175",
+      "size": 2154004
+    },
+    "learning_vs_bytes.jsonl": {
+      "sha256": "8c31535976807cbe1c5fd7a47e512dd79a626c4220707c78380a85c14d2a0d42",
+      "size": 2704793
+    },
+    "omission_comparisons.jsonl": {
+      "sha256": "61c387d1a7ef5b512932d195e11daf93ed714141a5470581f847a60f5024e4fe",
+      "size": 1690325
+    },
+    "optimization_comparisons.jsonl": {
+      "sha256": "ac0eac6e641ba4e5a0ca5f9da535289c4618a7452b217f322e69af7955d9ea43",
+      "size": 3110510
+    },
+    "regime_metrics.jsonl": {
+      "sha256": "c418678629c2e5efa74f7ac4da09ad7cf67bface0c49619dc49eeeb39bf7f156",
+      "size": 601551
+    },
+    "round_metrics.jsonl": {
+      "sha256": "a505fbf9569175d4cbbc535266d7f2a92ef32f54570a94940be48a9a5cc4ef45",
+      "size": 6238991
+    },
+    "shortlist.json": {
+      "sha256": "d693191a8046fff2fecc77bf1722f217140cd57baa784baefc0eac0ee2cc8d0f",
+      "size": 48185
+    },
+    "signal_comparisons.jsonl": {
+      "sha256": "17778c75e9cac54c8843959e41c3e822490b5129fe7cc3569e137ca53f0e5e90",
+      "size": 19694695
+    },
+    "target_accuracy_bytes.jsonl": {
+      "sha256": "60f3c642789950a4b8f4b1cee8eafd2fb935cfdfcace468457d7ea25a9a926fa",
+      "size": 644773
+    },
+    "transition_response.jsonl": {
+      "sha256": "d859e459b4d2db29f48ae4638350009973343c7e958c8eb4e730878fd4c3eebd",
+      "size": 16576504
+    }
+  },
+  "reason": "incomplete analysis attempt exited 1; preserved before retry",
+  "total_bytes": 159352490
+}

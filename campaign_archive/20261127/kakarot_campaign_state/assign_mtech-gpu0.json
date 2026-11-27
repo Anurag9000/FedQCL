@@ -1,0 +1,14 @@
+[
+  {
+    "job_id": "b4d85e4fd8cd77c9",
+    "host": "mtech",
+    "gpu": 0,
+    "reserve_gib": 6
+  },
+  {
+    "job_id": "e31cb96918cfaab5",
+    "host": "mtech",
+    "gpu": 0,
+    "reserve_gib": 6
+  }
+]

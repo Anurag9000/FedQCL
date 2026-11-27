@@ -1,0 +1,695 @@
+{
+  "audit_status": "INVALID_SCOPE_SUPERSEDED",
+  "checked": 51,
+  "created_at": "2026-11-26T10:20:01+00:00",
+  "failed": [
+    {
+      "id": "4b12716e26a273e7",
+      "reason": "run_campaign.valid returned false",
+      "semantic_id": "S02-seed42-generate",
+      "verified": false
+    },
+    {
+      "id": "464eeef921f2333a",
+      "reason": "run_campaign.valid returned false",
+      "semantic_id": "S05-seed42-generate",
+      "verified": false
+    },
+    {
+      "id": "6c04c53d16ea7a6f",
+      "reason": "run_campaign.valid returned false",
+      "semantic_id": "S06-seed42-generate",
+      "verified": false
+    },
+    {
+      "id": "5353b62d4ffd4070",
+      "reason": "run_campaign.valid returned false",
+      "semantic_id": "S07-seed42-generate",
+      "verified": false
+    },
+    {
+      "id": "de38194e65786a4b",
+      "reason": "run_campaign.valid returned false",
+      "semantic_id": "S08-seed42-generate",
+      "verified": false
+    },
+    {
+      "id": "b75c9e6b2d0e7f0f",
+      "reason": "run_campaign.valid returned false",
+      "semantic_id": "S09-seed42-generate",
+      "verified": false
+    },
+    {
+      "id": "1e447795464d48d9",
+      "reason": "run_campaign.valid returned false",
+      "semantic_id": "S11-seed42-generate",
+      "verified": false
+    },
+    {
+      "id": "f33964f3c1b05ae6",
+      "reason": "run_campaign.valid returned false",
+      "semantic_id": "S12-seed42-generate",
+      "verified": false
+    },
+    {
+      "id": "f9e686722cff5105",
+      "reason": "run_campaign.valid returned false",
+      "semantic_id": "S15-seed42-generate",
+      "verified": false
+    },
+    {
+      "id": "84f62dd54db34e6c",
+      "reason": "run_campaign.valid returned false",
+      "semantic_id": "S16-seed42-generate",
+      "verified": false
+    },
+    {
+      "id": "6b98f32c2b39c119",
+      "reason": "run_campaign.valid returned false",
+      "semantic_id": "S17-seed42-generate",
+      "verified": false
+    },
+    {
+      "id": "69e9829dd3ede5c2",
+      "reason": "run_campaign.valid returned false",
+      "semantic_id": "S18-seed42-generate",
+      "verified": false
+    },
+    {
+      "id": "2f0e7f6b90819ef6",
+      "reason": "run_campaign.valid returned false",
+      "semantic_id": "S19-seed42-generate",
+      "verified": false
+    },
+    {
+      "id": "928521a925ecc075",
+      "reason": "run_campaign.valid returned false",
+      "semantic_id": "S20-seed42-generate",
+      "verified": false
+    },
+    {
+      "id": "ba50b9f93500cf8c",
+      "reason": "run_campaign.valid returned false",
+      "semantic_id": "S21-seed42-generate",
+      "verified": false
+    },
+    {
+      "id": "00ddc45a7ca14002",
+      "reason": "run_campaign.valid returned false",
+      "semantic_id": "S22-seed42-generate",
+      "verified": false
+    },
+    {
+      "id": "5f121fc1e357f8eb",
+      "reason": "run_campaign.valid returned false",
+      "semantic_id": "S23-seed42-generate",
+      "verified": false
+    },
+    {
+      "id": "f1b02ecbbcb3b84c",
+      "reason": "run_campaign.valid returned false",
+      "semantic_id": "S24-seed42-generate",
+      "verified": false
+    },
+    {
+      "id": "822b21e705d0131d",
+      "reason": "run_campaign.valid returned false",
+      "semantic_id": "S02-seed42-validate",
+      "verified": false
+    },
+    {
+      "id": "a18d441a492bbc52",
+      "reason": "run_campaign.valid returned false",
+      "semantic_id": "S05-seed42-validate",
+      "verified": false
+    },
+    {
+      "id": "003c0526ef2ff625",
+      "reason": "run_campaign.valid returned false",
+      "semantic_id": "S06-seed42-validate",
+      "verified": false
+    },
+    {
+      "id": "2da3282b5c09a7f8",
+      "reason": "run_campaign.valid returned false",
+      "semantic_id": "S07-seed42-validate",
+      "verified": false
+    },
+    {
+      "id": "2aaf2b95a1b36f23",
+      "reason": "run_campaign.valid returned false",
+      "semantic_id": "S08-seed42-validate",
+      "verified": false
+    },
+    {
+      "id": "70a3b5a92796037a",
+      "reason": "run_campaign.valid returned false",
+      "semantic_id": "S09-seed42-validate",
+      "verified": false
+    },
+    {
+      "id": "e7ef191bac6fd215",
+      "reason": "run_campaign.valid returned false",
+      "semantic_id": "S11-seed42-validate",
+      "verified": false
+    },
+    {
+      "id": "d56623116ecba63e",
+      "reason": "run_campaign.valid returned false",
+      "semantic_id": "S12-seed42-validate",
+      "verified": false
+    },
+    {
+      "id": "1417e3adca5f82b0",
+      "reason": "run_campaign.valid returned false",
+      "semantic_id": "S15-seed42-validate",
+      "verified": false
+    },
+    {
+      "id": "d64385da9e9d3e58",
+      "reason": "run_campaign.valid returned false",
+      "semantic_id": "S16-seed42-validate",
+      "verified": false
+    },
+    {
+      "id": "825887a2cf18e873",
+      "reason": "run_campaign.valid returned false",
+      "semantic_id": "S17-seed42-validate",
+      "verified": false
+    },
+    {
+      "id": "8af737a30c1177e9",
+      "reason": "run_campaign.valid returned false",
+      "semantic_id": "S18-seed42-validate",
+      "verified": false
+    },
+    {
+      "id": "9cfb837c1bd9a2a4",
+      "reason": "run_campaign.valid returned false",
+      "semantic_id": "S19-seed42-validate",
+      "verified": false
+    },
+    {
+      "id": "9500ab88f2254b3f",
+      "reason": "run_campaign.valid returned false",
+      "semantic_id": "S20-seed42-validate",
+      "verified": false
+    },
+    {
+      "id": "b8a1e9975f6fff26",
+      "reason": "run_campaign.valid returned false",
+      "semantic_id": "S21-seed42-validate",
+      "verified": false
+    },
+    {
+      "id": "963b845cefe35a71",
+      "reason": "run_campaign.valid returned false",
+      "semantic_id": "S22-seed42-validate",
+      "verified": false
+    },
+    {
+      "id": "04e31091ca62ed37",
+      "reason": "run_campaign.valid returned false",
+      "semantic_id": "S23-seed42-validate",
+      "verified": false
+    },
+    {
+      "id": "01de29a95823631e",
+      "reason": "run_campaign.valid returned false",
+      "semantic_id": "S24-seed42-validate",
+      "verified": false
+    }
+  ],
+  "reason": "The initial audit ran on Kakarot using canonical Kakarot paths, but 36 data jobs were actually executed on L40 under /home/anurag/Projects/FedQCL_Task. Missing local files were path/host mismatch, not failed results.",
+  "results": [
+    {
+      "artifact_sha256": {
+        "/home/anurag-basistha/Projects/Untapped/FedQCL_Task/research_results/compact-65ced6195777/calibration.json": "e3b1e66d64917818fd120fb8db4953e4b0c78d333b08dd329fae431bbb5ccb7b"
+      },
+      "config_sha256": "2d5d86cec712a354ef5fcc9d38116a91be101d5f9f370d1b184386dc20656474",
+      "dependency_ids": [
+        "d53b80802a7179dd",
+        "e468eeb728a9fcb7",
+        "200cc433ea56b644"
+      ],
+      "evidence": "read-only posthoc revalidation; original attempt metadata absent",
+      "id": "a8a7b6b69e4eb864",
+      "kind": "analysis",
+      "semantic_id": "compact-calibration",
+      "source_commit": "65ced6195777d824c77f3c26152b066ef5f47f18",
+      "stage": "calibration",
+      "verified": true
+    },
+    {
+      "artifact_sha256": {
+        "/home/anurag-basistha/Projects/Untapped/FedQCL_Task/research_data/S01-seed42-ab0bf722e3ab-754f8fe1e3df/manifest.json": "16a856b7eca05d7f4c82dba6ba0ec8e793db5e88dc22c7c646fafc7134d9510e"
+      },
+      "config_sha256": "c12af44e3602f3e6346bc742e0a7f60609f1615f56662804e48a21c3edb463e2",
+      "dependency_ids": [],
+      "evidence": "read-only posthoc revalidation; original attempt metadata absent",
+      "id": "7b28458965f451d6",
+      "kind": "generate",
+      "semantic_id": "S01-seed42-generate",
+      "source_commit": "65ced6195777d824c77f3c26152b066ef5f47f18",
+      "stage": "data",
+      "verified": true
+    },
+    {
+      "id": "4b12716e26a273e7",
+      "reason": "run_campaign.valid returned false",
+      "semantic_id": "S02-seed42-generate",
+      "verified": false
+    },
+    {
+      "artifact_sha256": {
+        "/home/anurag-basistha/Projects/Untapped/FedQCL_Task/research_data/S03-seed42-ab0bf722e3ab-5e35eab20860/manifest.json": "03004714f231a46b00974c36570e04c63627e92dea404677c1adc9684d49f7e8"
+      },
+      "config_sha256": "0deae8e01f132519765a2c51d1fb98471866cf46b9440927cea1ba10efba225e",
+      "dependency_ids": [],
+      "evidence": "read-only posthoc revalidation; original attempt metadata absent",
+      "id": "1a9b1c6aff4b1570",
+      "kind": "generate",
+      "semantic_id": "S03-seed42-generate",
+      "source_commit": "65ced6195777d824c77f3c26152b066ef5f47f18",
+      "stage": "data",
+      "verified": true
+    },
+    {
+      "artifact_sha256": {
+        "/home/anurag-basistha/Projects/Untapped/FedQCL_Task/research_data/S04-seed42-ab0bf722e3ab-184096137e32/manifest.json": "06216dcce758ba4648db037e354888394f75cc1fadadcfc36d14dead0f6c3867"
+      },
+      "config_sha256": "f2034d83d4c021be00fbd0833f57550b17aa1667a97ea682b559184c9cb0694b",
+      "dependency_ids": [],
+      "evidence": "read-only posthoc revalidation; original attempt metadata absent",
+      "id": "1b41b934b495400c",
+      "kind": "generate",
+      "semantic_id": "S04-seed42-generate",
+      "source_commit": "65ced6195777d824c77f3c26152b066ef5f47f18",
+      "stage": "data",
+      "verified": true
+    },
+    {
+      "id": "464eeef921f2333a",
+      "reason": "run_campaign.valid returned false",
+      "semantic_id": "S05-seed42-generate",
+      "verified": false
+    },
+    {
+      "id": "6c04c53d16ea7a6f",
+      "reason": "run_campaign.valid returned false",
+      "semantic_id": "S06-seed42-generate",
+      "verified": false
+    },
+    {
+      "id": "5353b62d4ffd4070",
+      "reason": "run_campaign.valid returned false",
+      "semantic_id": "S07-seed42-generate",
+      "verified": false
+    },
+    {
+      "id": "de38194e65786a4b",
+      "reason": "run_campaign.valid returned false",
+      "semantic_id": "S08-seed42-generate",
+      "verified": false
+    },
+    {
+      "id": "b75c9e6b2d0e7f0f",
+      "reason": "run_campaign.valid returned false",
+      "semantic_id": "S09-seed42-generate",
+      "verified": false
+    },
+    {
+      "artifact_sha256": {
+        "/home/anurag-basistha/Projects/Untapped/FedQCL_Task/research_data/S10-seed42-ab0bf722e3ab-906c41b997cd/manifest.json": "1c433d13e6be144117cdabd59f4214d02d777cc2ba137994a6dd07c4c9f6b91c"
+      },
+      "config_sha256": "247d6268684141fa45cec065f3694134b3525b8680ce9501e073cd8bcefa6f29",
+      "dependency_ids": [],
+      "evidence": "read-only posthoc revalidation; original attempt metadata absent",
+      "id": "d7c7526804a7e784",
+      "kind": "generate",
+      "semantic_id": "S10-seed42-generate",
+      "source_commit": "65ced6195777d824c77f3c26152b066ef5f47f18",
+      "stage": "data",
+      "verified": true
+    },
+    {
+      "id": "1e447795464d48d9",
+      "reason": "run_campaign.valid returned false",
+      "semantic_id": "S11-seed42-generate",
+      "verified": false
+    },
+    {
+      "id": "f33964f3c1b05ae6",
+      "reason": "run_campaign.valid returned false",
+      "semantic_id": "S12-seed42-generate",
+      "verified": false
+    },
+    {
+      "artifact_sha256": {
+        "/home/anurag-basistha/Projects/Untapped/FedQCL_Task/research_data/S13-seed42-ab0bf722e3ab-bce1b94da572/manifest.json": "434fb1625ab0f81b1473c398eb1bf799638b65ee32be3544df68fbac051824e0"
+      },
+      "config_sha256": "bf380ba87baef85169d08cb167537a73e06678c67052d6d5d832286f6fcf5cf5",
+      "dependency_ids": [],
+      "evidence": "read-only posthoc revalidation; original attempt metadata absent",
+      "id": "bc1c71b81eddf65e",
+      "kind": "generate",
+      "semantic_id": "S13-seed42-generate",
+      "source_commit": "65ced6195777d824c77f3c26152b066ef5f47f18",
+      "stage": "data",
+      "verified": true
+    },
+    {
+      "artifact_sha256": {
+        "/home/anurag-basistha/Projects/Untapped/FedQCL_Task/research_data/S14-seed42-ab0bf722e3ab-a434e45e2a6f/manifest.json": "b44d83a25c140b8a3bd645045e80796599b29eaff1ca778ffa105cd153405b91"
+      },
+      "config_sha256": "158ad63c232b2d2a64e2e5e16a426eecb520f155768cc272acbba48b07307c48",
+      "dependency_ids": [],
+      "evidence": "read-only posthoc revalidation; original attempt metadata absent",
+      "id": "c0d71281de9cdb1f",
+      "kind": "generate",
+      "semantic_id": "S14-seed42-generate",
+      "source_commit": "65ced6195777d824c77f3c26152b066ef5f47f18",
+      "stage": "data",
+      "verified": true
+    },
+    {
+      "artifact_sha256": {
+        "/home/anurag-basistha/Projects/Untapped/FedQCL_Task/research_data/S14N10-seed42-ab0bf722e3ab-ae7caae7d3ba/manifest.json": "a8d5221e095f39aa554b858a766efc7eadf84acca23a046fa78152eb07f271e1"
+      },
+      "config_sha256": "6c4e59734ae302b0a7fafeabdf448c3faf3b82253137926ec30d61f61e44dfb9",
+      "dependency_ids": [],
+      "evidence": "read-only posthoc revalidation; original attempt metadata absent",
+      "id": "f0ec6859d8f53d6f",
+      "kind": "generate",
+      "semantic_id": "S14N10-seed42-generate",
+      "source_commit": "65ced6195777d824c77f3c26152b066ef5f47f18",
+      "stage": "data",
+      "verified": true
+    },
+    {
+      "id": "f9e686722cff5105",
+      "reason": "run_campaign.valid returned false",
+      "semantic_id": "S15-seed42-generate",
+      "verified": false
+    },
+    {
+      "id": "84f62dd54db34e6c",
+      "reason": "run_campaign.valid returned false",
+      "semantic_id": "S16-seed42-generate",
+      "verified": false
+    },
+    {
+      "id": "6b98f32c2b39c119",
+      "reason": "run_campaign.valid returned false",
+      "semantic_id": "S17-seed42-generate",
+      "verified": false
+    },
+    {
+      "id": "69e9829dd3ede5c2",
+      "reason": "run_campaign.valid returned false",
+      "semantic_id": "S18-seed42-generate",
+      "verified": false
+    },
+    {
+      "id": "2f0e7f6b90819ef6",
+      "reason": "run_campaign.valid returned false",
+      "semantic_id": "S19-seed42-generate",
+      "verified": false
+    },
+    {
+      "id": "928521a925ecc075",
+      "reason": "run_campaign.valid returned false",
+      "semantic_id": "S20-seed42-generate",
+      "verified": false
+    },
+    {
+      "id": "ba50b9f93500cf8c",
+      "reason": "run_campaign.valid returned false",
+      "semantic_id": "S21-seed42-generate",
+      "verified": false
+    },
+    {
+      "id": "00ddc45a7ca14002",
+      "reason": "run_campaign.valid returned false",
+      "semantic_id": "S22-seed42-generate",
+      "verified": false
+    },
+    {
+      "id": "5f121fc1e357f8eb",
+      "reason": "run_campaign.valid returned false",
+      "semantic_id": "S23-seed42-generate",
+      "verified": false
+    },
+    {
+      "id": "f1b02ecbbcb3b84c",
+      "reason": "run_campaign.valid returned false",
+      "semantic_id": "S24-seed42-generate",
+      "verified": false
+    },
+    {
+      "artifact_sha256": {
+        "/home/anurag-basistha/Projects/Untapped/FedQCL_Task/research_data/S01-seed42-ab0bf722e3ab-754f8fe1e3df/ground_truth/allocation_index.npz": "b21adfb74e6575307c61c5edaa8ace2e50129cc4503a1fa09b5516ed4cfcdaba",
+        "/home/anurag-basistha/Projects/Untapped/FedQCL_Task/research_data/S01-seed42-ab0bf722e3ab-754f8fe1e3df/ground_truth/distributions.npz": "dc13f669cda655eff69b9f501248645a9cc17799eb59e2ca293b77ccb7025608",
+        "/home/anurag-basistha/Projects/Untapped/FedQCL_Task/research_data/S01-seed42-ab0bf722e3ab-754f8fe1e3df/ground_truth/specification.json": "10538dbe79b0f141ded4a0e9fe09f543fea5dcebd4b17761492a2b240291a541",
+        "/home/anurag-basistha/Projects/Untapped/FedQCL_Task/research_data/S01-seed42-ab0bf722e3ab-754f8fe1e3df/validation_receipt.json": "a5f416e0724f43ae6f0dc3ad4d3744dc0de5c46932c67070162fb50f4c58d255"
+      },
+      "config_sha256": "c12af44e3602f3e6346bc742e0a7f60609f1615f56662804e48a21c3edb463e2",
+      "dependency_ids": [
+        "7b28458965f451d6"
+      ],
+      "evidence": "read-only posthoc revalidation; original attempt metadata absent",
+      "id": "dfffcef2bccfde2b",
+      "kind": "validate",
+      "semantic_id": "S01-seed42-validate",
+      "source_commit": "65ced6195777d824c77f3c26152b066ef5f47f18",
+      "stage": "data",
+      "verified": true
+    },
+    {
+      "id": "822b21e705d0131d",
+      "reason": "run_campaign.valid returned false",
+      "semantic_id": "S02-seed42-validate",
+      "verified": false
+    },
+    {
+      "artifact_sha256": {
+        "/home/anurag-basistha/Projects/Untapped/FedQCL_Task/research_data/S03-seed42-ab0bf722e3ab-5e35eab20860/ground_truth/allocation_index.npz": "60800259c069c0fcb9089502e7333f7aa4449a4da5acf8e79cd18d7fdb4e7bd4",
+        "/home/anurag-basistha/Projects/Untapped/FedQCL_Task/research_data/S03-seed42-ab0bf722e3ab-5e35eab20860/ground_truth/distributions.npz": "8cb934e4fced216639714f4444f37fe84e86ac6a3d8f987b952965cac70dc889",
+        "/home/anurag-basistha/Projects/Untapped/FedQCL_Task/research_data/S03-seed42-ab0bf722e3ab-5e35eab20860/ground_truth/specification.json": "3a891ec88ecf3cc736942701429d7c9450ca6157985e602eae28ab26936db466",
+        "/home/anurag-basistha/Projects/Untapped/FedQCL_Task/research_data/S03-seed42-ab0bf722e3ab-5e35eab20860/validation_receipt.json": "fa420550d64470952b3810dace04cea74998e4e7abb71e6d98ea0b18a2fdc79b"
+      },
+      "config_sha256": "0deae8e01f132519765a2c51d1fb98471866cf46b9440927cea1ba10efba225e",
+      "dependency_ids": [
+        "1a9b1c6aff4b1570"
+      ],
+      "evidence": "read-only posthoc revalidation; original attempt metadata absent",
+      "id": "c73fa314a4b742fd",
+      "kind": "validate",
+      "semantic_id": "S03-seed42-validate",
+      "source_commit": "65ced6195777d824c77f3c26152b066ef5f47f18",
+      "stage": "data",
+      "verified": true
+    },
+    {
+      "artifact_sha256": {
+        "/home/anurag-basistha/Projects/Untapped/FedQCL_Task/research_data/S04-seed42-ab0bf722e3ab-184096137e32/ground_truth/allocation_index.npz": "3c3314ec699b4b374b2ea9fc7f2f1a7429e75a72f6e5d56608931ce4bc0099ef",
+        "/home/anurag-basistha/Projects/Untapped/FedQCL_Task/research_data/S04-seed42-ab0bf722e3ab-184096137e32/ground_truth/distributions.npz": "2aee7214cbd43f9d56d8d6af583747f084bc403f962a7b5437163496be969d29",
+        "/home/anurag-basistha/Projects/Untapped/FedQCL_Task/research_data/S04-seed42-ab0bf722e3ab-184096137e32/ground_truth/specification.json": "f529ef9da624403951d8f40550bdfd3162a0468d08621fc4893b63916d1952e3",
+        "/home/anurag-basistha/Projects/Untapped/FedQCL_Task/research_data/S04-seed42-ab0bf722e3ab-184096137e32/validation_receipt.json": "c2c0df8ddea88b65a8623e5901b748d4390ac67cc1b75468afb4f4be1a3ff4a9"
+      },
+      "config_sha256": "f2034d83d4c021be00fbd0833f57550b17aa1667a97ea682b559184c9cb0694b",
+      "dependency_ids": [
+        "1b41b934b495400c"
+      ],
+      "evidence": "read-only posthoc revalidation; original attempt metadata absent",
+      "id": "80289f3d35d2f13a",
+      "kind": "validate",
+      "semantic_id": "S04-seed42-validate",
+      "source_commit": "65ced6195777d824c77f3c26152b066ef5f47f18",
+      "stage": "data",
+      "verified": true
+    },
+    {
+      "id": "a18d441a492bbc52",
+      "reason": "run_campaign.valid returned false",
+      "semantic_id": "S05-seed42-validate",
+      "verified": false
+    },
+    {
+      "id": "003c0526ef2ff625",
+      "reason": "run_campaign.valid returned false",
+      "semantic_id": "S06-seed42-validate",
+      "verified": false
+    },
+    {
+      "id": "2da3282b5c09a7f8",
+      "reason": "run_campaign.valid returned false",
+      "semantic_id": "S07-seed42-validate",
+      "verified": false
+    },
+    {
+      "id": "2aaf2b95a1b36f23",
+      "reason": "run_campaign.valid returned false",
+      "semantic_id": "S08-seed42-validate",
+      "verified": false
+    },
+    {
+      "id": "70a3b5a92796037a",
+      "reason": "run_campaign.valid returned false",
+      "semantic_id": "S09-seed42-validate",
+      "verified": false
+    },
+    {
+      "artifact_sha256": {
+        "/home/anurag-basistha/Projects/Untapped/FedQCL_Task/research_data/S10-seed42-ab0bf722e3ab-906c41b997cd/ground_truth/allocation_index.npz": "1c5abda22de633f04ef107a0741bdce32b3dc8bd8f9aeca77757adba178b776f",
+        "/home/anurag-basistha/Projects/Untapped/FedQCL_Task/research_data/S10-seed42-ab0bf722e3ab-906c41b997cd/ground_truth/distributions.npz": "62ebaae558456135ebffd094dc1fc6140a08a85bf870c4e835de1dfa478ec748",
+        "/home/anurag-basistha/Projects/Untapped/FedQCL_Task/research_data/S10-seed42-ab0bf722e3ab-906c41b997cd/ground_truth/specification.json": "50d8dd6b7019af5e0d85c6d2b782a7d7dca2ab18707d0522145e40ce7c8835e2",
+        "/home/anurag-basistha/Projects/Untapped/FedQCL_Task/research_data/S10-seed42-ab0bf722e3ab-906c41b997cd/validation_receipt.json": "0aa2131f60b1ccad62b050ecc8cad7cd91c2308213be4bd51254d7e6959359b0"
+      },
+      "config_sha256": "247d6268684141fa45cec065f3694134b3525b8680ce9501e073cd8bcefa6f29",
+      "dependency_ids": [
+        "d7c7526804a7e784"
+      ],
+      "evidence": "read-only posthoc revalidation; original attempt metadata absent",
+      "id": "d06eb95f51c5d6bb",
+      "kind": "validate",
+      "semantic_id": "S10-seed42-validate",
+      "source_commit": "65ced6195777d824c77f3c26152b066ef5f47f18",
+      "stage": "data",
+      "verified": true
+    },
+    {
+      "id": "e7ef191bac6fd215",
+      "reason": "run_campaign.valid returned false",
+      "semantic_id": "S11-seed42-validate",
+      "verified": false
+    },
+    {
+      "id": "d56623116ecba63e",
+      "reason": "run_campaign.valid returned false",
+      "semantic_id": "S12-seed42-validate",
+      "verified": false
+    },
+    {
+      "artifact_sha256": {
+        "/home/anurag-basistha/Projects/Untapped/FedQCL_Task/research_data/S13-seed42-ab0bf722e3ab-bce1b94da572/ground_truth/allocation_index.npz": "d5cf9a06680a11138bef565362dd1ec63c7386ead432276cf79037b07c2c5e91",
+        "/home/anurag-basistha/Projects/Untapped/FedQCL_Task/research_data/S13-seed42-ab0bf722e3ab-bce1b94da572/ground_truth/distributions.npz": "fb1f036187ada5fd302484e14a7e0b9e3e24d998f706b15b4acb21807f1703fc",
+        "/home/anurag-basistha/Projects/Untapped/FedQCL_Task/research_data/S13-seed42-ab0bf722e3ab-bce1b94da572/ground_truth/specification.json": "edb23491680a5cc7d5e51f7f76593ae2dc586002dfca4ff73318d9c01a4f1714",
+        "/home/anurag-basistha/Projects/Untapped/FedQCL_Task/research_data/S13-seed42-ab0bf722e3ab-bce1b94da572/validation_receipt.json": "fc715d7419dd4e81fc0d55fb193b196879d44bdd8b5f09fa7bf076289493f714"
+      },
+      "config_sha256": "bf380ba87baef85169d08cb167537a73e06678c67052d6d5d832286f6fcf5cf5",
+      "dependency_ids": [
+        "bc1c71b81eddf65e"
+      ],
+      "evidence": "read-only posthoc revalidation; original attempt metadata absent",
+      "id": "fc776151640c9a5c",
+      "kind": "validate",
+      "semantic_id": "S13-seed42-validate",
+      "source_commit": "65ced6195777d824c77f3c26152b066ef5f47f18",
+      "stage": "data",
+      "verified": true
+    },
+    {
+      "artifact_sha256": {
+        "/home/anurag-basistha/Projects/Untapped/FedQCL_Task/research_data/S14-seed42-ab0bf722e3ab-a434e45e2a6f/ground_truth/allocation_index.npz": "f0743b11dfb7630c8e1ed0f5a2c28cb1b48c1023183673bd351e5539dcb6b0ce",
+        "/home/anurag-basistha/Projects/Untapped/FedQCL_Task/research_data/S14-seed42-ab0bf722e3ab-a434e45e2a6f/ground_truth/distributions.npz": "ac247b30ce784af581494515828d998113f0f573385a43f249cb77e87b29c8f2",
+        "/home/anurag-basistha/Projects/Untapped/FedQCL_Task/research_data/S14-seed42-ab0bf722e3ab-a434e45e2a6f/ground_truth/specification.json": "c0100e6ac588282de4307239ba8950922740bb06fb8488a8e45f054840e8de14",
+        "/home/anurag-basistha/Projects/Untapped/FedQCL_Task/research_data/S14-seed42-ab0bf722e3ab-a434e45e2a6f/validation_receipt.json": "7a131c7835e1ce471292e2756209db74194f5f1baeab6ca299cda7c99a28550b"
+      },
+      "config_sha256": "158ad63c232b2d2a64e2e5e16a426eecb520f155768cc272acbba48b07307c48",
+      "dependency_ids": [
+        "c0d71281de9cdb1f"
+      ],
+      "evidence": "read-only posthoc revalidation; original attempt metadata absent",
+      "id": "b5b664570c8c2603",
+      "kind": "validate",
+      "semantic_id": "S14-seed42-validate",
+      "source_commit": "65ced6195777d824c77f3c26152b066ef5f47f18",
+      "stage": "data",
+      "verified": true
+    },
+    {
+      "artifact_sha256": {
+        "/home/anurag-basistha/Projects/Untapped/FedQCL_Task/research_data/S14N10-seed42-ab0bf722e3ab-ae7caae7d3ba/ground_truth/allocation_index.npz": "6a92838873bae5136a6ec197a270e32b9bc5992db67805fa29f28f11169c61db",
+        "/home/anurag-basistha/Projects/Untapped/FedQCL_Task/research_data/S14N10-seed42-ab0bf722e3ab-ae7caae7d3ba/ground_truth/distributions.npz": "75033a5c9f4f0faab18c273f7ec9d4840f9f15f8168650d9d24a00f2b92a0599",
+        "/home/anurag-basistha/Projects/Untapped/FedQCL_Task/research_data/S14N10-seed42-ab0bf722e3ab-ae7caae7d3ba/ground_truth/specification.json": "70acfd0a48afab29fc1180723428c94d9d394b9d8e5e93f527b3333fc51269b3",
+        "/home/anurag-basistha/Projects/Untapped/FedQCL_Task/research_data/S14N10-seed42-ab0bf722e3ab-ae7caae7d3ba/validation_receipt.json": "d3aa1c50b579ec716f1c1565642337478bb30499f57eea05a89460699ed106fa"
+      },
+      "config_sha256": "6c4e59734ae302b0a7fafeabdf448c3faf3b82253137926ec30d61f61e44dfb9",
+      "dependency_ids": [
+        "f0ec6859d8f53d6f"
+      ],
+      "evidence": "read-only posthoc revalidation; original attempt metadata absent",
+      "id": "dd4b2489f8dad1da",
+      "kind": "validate",
+      "semantic_id": "S14N10-seed42-validate",
+      "source_commit": "65ced6195777d824c77f3c26152b066ef5f47f18",
+      "stage": "data",
+      "verified": true
+    },
+    {
+      "id": "1417e3adca5f82b0",
+      "reason": "run_campaign.valid returned false",
+      "semantic_id": "S15-seed42-validate",
+      "verified": false
+    },
+    {
+      "id": "d64385da9e9d3e58",
+      "reason": "run_campaign.valid returned false",
+      "semantic_id": "S16-seed42-validate",
+      "verified": false
+    },
+    {
+      "id": "825887a2cf18e873",
+      "reason": "run_campaign.valid returned false",
+      "semantic_id": "S17-seed42-validate",
+      "verified": false
+    },
+    {
+      "id": "8af737a30c1177e9",
+      "reason": "run_campaign.valid returned false",
+      "semantic_id": "S18-seed42-validate",
+      "verified": false
+    },
+    {
+      "id": "9cfb837c1bd9a2a4",
+      "reason": "run_campaign.valid returned false",
+      "semantic_id": "S19-seed42-validate",
+      "verified": false
+    },
+    {
+      "id": "9500ab88f2254b3f",
+      "reason": "run_campaign.valid returned false",
+      "semantic_id": "S20-seed42-validate",
+      "verified": false
+    },
+    {
+      "id": "b8a1e9975f6fff26",
+      "reason": "run_campaign.valid returned false",
+      "semantic_id": "S21-seed42-validate",
+      "verified": false
+    },
+    {
+      "id": "963b845cefe35a71",
+      "reason": "run_campaign.valid returned false",
+      "semantic_id": "S22-seed42-validate",
+      "verified": false
+    },
+    {
+      "id": "04e31091ca62ed37",
+      "reason": "run_campaign.valid returned false",
+      "semantic_id": "S23-seed42-validate",
+      "verified": false
+    },
+    {
+      "id": "01de29a95823631e",
+      "reason": "run_campaign.valid returned false",
+      "semantic_id": "S24-seed42-validate",
+      "verified": false
+    }
+  ],
+  "scope": "all verified jobs missing attempt rows at audit start",
+  "source_commit": "65ced6195777d824c77f3c26152b066ef5f47f18",
+  "superseded_by": "posthoc_reverification_data_jobs_l40.json",
+  "verified": 15
+}

@@ -1,0 +1,17 @@
+{
+  "f959e089c77ffb7b": {
+    "command": [
+      "/home/anurag-basistha/.venvs/fedqcl-sync-py312/bin/python",
+      "scripts/analyze_controlled_campaign.py",
+      "--ledger",
+      "/home/anurag-basistha/.local/state/fedqcl-sync-campaign-65ced6195777/job_ledger_expanded.jsonl",
+      "--output",
+      "/home/anurag-basistha/Projects/Untapped/FedQCL_Task/research_results/compact-65ced6195777/analysis"
+    ],
+    "dependency_artifacts": {},
+    "device": "cpu",
+    "device_slot": "cpu-control",
+    "exit_code": 1,
+    "status": "failed"
+  }
+}

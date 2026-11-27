@@ -1,0 +1,13 @@
+{
+  "checkpoint_bytes": 302243394,
+  "checkpoint_sha256": "a78f395f02e1afd03f980b249134e88b36ab206b09bcbfcfd53e400c2c4e0aef",
+  "files": {
+    "communication_events.jsonl": "18223c40f7687b9e2d5e8ef74647348557fead7798c4e024c243bd99817dae33",
+    "config.json": "c8cd9b757194f498bea44f98c65ece0af0793866c290e40921225e4245e456f2",
+    "provenance.json": "82aa445e22de1520e2c49477278a4d00abddf32bbaf509675913c533cdf2e521",
+    "rounds.jsonl": "1005e4ed4ee6ceb1945365ad1fe102f6571a3ee94354fb7ff52594646b3465fc",
+    "server_metrics.jsonl": "b3f20cc695bd330c3e29697bacbe1dd61a968c869e1aa37f0b917050cb3c1f57",
+    "status.json": "09f463e5f28fe49431626de22c6699491e7ae8292b79bbd8252f0e05ba4b9422"
+  },
+  "transfer_tar_sha256": "7e8915f85e3be51a889e303993ec370ef1a749f9b6fcf56eb286948a6e6ec60c"
+}

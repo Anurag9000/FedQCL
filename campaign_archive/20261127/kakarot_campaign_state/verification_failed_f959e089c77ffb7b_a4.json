@@ -1,0 +1,9 @@
+{
+  "job_id": "f959e089c77ffb7b",
+  "attempt_id": "6d64d5cd-b2c4-4cf1-b679-2bb647334700",
+  "host": "kakarot",
+  "exit_code": 0,
+  "validator_output": "",
+  "stderr": "ck (most recent call last):\n  File \"/tmp/fedqcl-verify-attempt.py\", line 15, in <module>\n    resolved_config=json.loads((pathlib.Path(job['artifacts'][0]).parent/'config.json').read_text())\n                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/anurag-basistha/.local/share/uv/python/cpython-3.12.16-linux-x86_64-gnu/lib/python3.12/pathlib.py\", line 1027, in read_text\n    with self.open(mode='r', encoding=encoding, errors=errors) as f:\n         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/anurag-basistha/.local/share/uv/python/cpython-3.12.16-linux-x86_64-gnu/lib/python3.12/pathlib.py\", line 1013, in open\n    return io.open(self, mode, buffering, encoding, errors, newline)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nFileNotFoundError: [Errno 2] No such file or directory: '/home/anurag-basistha/Projects/Untapped/FedQCL_Task/research_results/compact-65ced6195777/analysis/config.json'\n",
+  "verified": false
+}

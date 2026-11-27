@@ -1,0 +1,20 @@
+[
+  {
+    "job_id": "76c5b63bdd9696e1",
+    "host": "l40",
+    "gpu": 0,
+    "reserve_gib": 6
+  },
+  {
+    "job_id": "9e8d6853fad3f92b",
+    "host": "l40",
+    "gpu": 0,
+    "reserve_gib": 6
+  },
+  {
+    "job_id": "a2d69e35eef5ef53",
+    "host": "l40",
+    "gpu": 0,
+    "reserve_gib": 6
+  }
+]

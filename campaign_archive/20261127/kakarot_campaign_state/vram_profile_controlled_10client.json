@@ -1,0 +1,97 @@
+{
+  "candidate_peak_mib": 4020,
+  "margin_basis": "Observed range across 14 live ten-client allocations: 3310 minus 2600 equals 710 MiB.",
+  "max_observed_live_allocation_mib": 3310,
+  "measurement_scope": "Live per-process VRAM allocation for active ten-client controlled runs; not a complete lifetime peak. No GPU utilization queried.",
+  "observations": [
+    {
+      "allocation_mib": 3310,
+      "gpu": 0,
+      "host": "v100",
+      "run": "S14N10-seed42-k6-A03-M1"
+    },
+    {
+      "allocation_mib": 2650,
+      "gpu": 0,
+      "host": "l40",
+      "run": "S14N10-seed42-k10-B-FULL"
+    },
+    {
+      "allocation_mib": 2656,
+      "gpu": 0,
+      "host": "l40",
+      "run": "S14N10-seed42-t20-A03-M1"
+    },
+    {
+      "allocation_mib": 2600,
+      "gpu": 0,
+      "host": "l40",
+      "run": "S14N10-seed42-k8-B-RANDOM"
+    },
+    {
+      "allocation_mib": 2898,
+      "gpu": 0,
+      "host": "h100",
+      "run": "S14N10-seed42-t20-A03-M2"
+    },
+    {
+      "allocation_mib": 2904,
+      "gpu": 0,
+      "host": "h100",
+      "run": "S14N10-seed42-k6-A03-M2"
+    },
+    {
+      "allocation_mib": 2912,
+      "gpu": 0,
+      "host": "h100",
+      "run": "S14N10-seed42-k8-A03-M2"
+    },
+    {
+      "allocation_mib": 2906,
+      "gpu": 0,
+      "host": "h100",
+      "run": "S14N10-seed42-k9-A03-M1"
+    },
+    {
+      "allocation_mib": 2888,
+      "gpu": 0,
+      "host": "h100",
+      "run": "S14N10-seed42-k9-B-RANDOM"
+    },
+    {
+      "allocation_mib": 2950,
+      "gpu": 1,
+      "host": "h100",
+      "run": "S14N10-seed42-t20-A05-M3"
+    },
+    {
+      "allocation_mib": 2944,
+      "gpu": 1,
+      "host": "h100",
+      "run": "S14N10-seed42-k6-A05-M3"
+    },
+    {
+      "allocation_mib": 2944,
+      "gpu": 1,
+      "host": "h100",
+      "run": "S14N10-seed42-k8-A05-M3"
+    },
+    {
+      "allocation_mib": 2888,
+      "gpu": 1,
+      "host": "h100",
+      "run": "S14N10-seed42-k6-B-RANDOM"
+    },
+    {
+      "allocation_mib": 2976,
+      "gpu": 1,
+      "host": "h100",
+      "run": "S14N10-seed42-k9-A05-M3"
+    }
+  ],
+  "observed_window_start_utc": "2026-11-26T17:19:00.208161+00:00",
+  "profile_margin_mib": 710,
+  "profile_status": "provisional pending complete late-task and counterfactual phase peaks",
+  "recorded_at_utc": "2026-11-26T17:19:16+00:00",
+  "schema": 1
+}

@@ -1,0 +1,104 @@
+import base64,concurrent.futures,importlib.util,json,pathlib,sqlite3,subprocess,shlex,re,sys
+S=pathlib.Path(__file__).resolve().parent
+sp=importlib.util.spec_from_file_location('d',S/'dispatch_jobs.py');d=importlib.util.module_from_spec(sp);sp.loader.exec_module(d)
+DB=S/'fleet_state.sqlite3'
+c=sqlite3.connect(DB);c.row_factory=sqlite3.Row
+rows=c.execute("select j.job_id,j.semantic_id,a.attempt_id,a.attempt_no,a.host,a.device_index,a.session_id from attempts a join jobs j on j.job_id=a.job_id where a.state in ('CLAIMED','STARTING','RUNNING','AWAITING_VERIFICATION') order by a.host").fetchall();c.close()
+groups={}
+for r in rows:groups.setdefault(r['host'],[]).append(r)
+if not groups:
+ print('RECONCILED 0',flush=True)
+ raise SystemExit(0)
+script=S/'verify_attempt_remote.py'
+def check_host(item):
+ host,items=item
+ d.copy_to(host,str(script),'/tmp/fedqcl-verify-attempt.py')
+ cmd='; '.join(
+  "if test -f /tmp/fedqcl-"+r['job_id']+f"-a{r['attempt_no']}.exit; then "
+  +"code=$(tr -d '\\n' < /tmp/fedqcl-"+r['job_id']+f"-a{r['attempt_no']}.exit); "
+  +"printf 'JOBEXIT|"+r['job_id']+"|%s|' \"$code\"; "
+  +"if test \"$code\" != 0; then tail -c 16000 /tmp/fedqcl-"+r['job_id']+f"-a{r['attempt_no']}.log 2>/dev/null | base64 -w0; fi; printf '\\n'; "
+  +"else printf 'JOBEXIT|"+r['job_id']+"|ACTIVE|\\n'; fi"
+  for r in items)
+ rc,out,err=d.invoke(host,d.ssh_argv(host,cmd),timeout=90)
+ exits={}
+ for line in out.replace('\r','').splitlines():
+  if line.startswith('JOBEXIT|'):
+   parts=line.split('|',3)
+   if len(parts)>=3 and parts[1] in {r['job_id'] for r in items}:
+    evidence=''
+    if len(parts)==4 and parts[3].strip():
+     try:evidence=base64.b64decode(parts[3].strip()).decode('utf-8','replace')
+     except Exception:evidence='[remote failure log was not valid base64]'
+    exits[parts[1]]={'code':parts[2].strip(),'evidence':evidence}
+ return host,items,exits
+finished=[];host_errors=[];snapshots=[]
+with concurrent.futures.ThreadPoolExecutor(max_workers=max(1,len(groups))) as pool:
+ futures={pool.submit(check_host,item):item[0] for item in groups.items()}
+ for future in concurrent.futures.as_completed(futures):
+  host=futures[future]
+  try:snapshots.append(future.result())
+  except Exception as exc:
+   # Keep this host's live attempts unchanged for a later retry, but do not
+   # discard exit receipts from other hosts just because one route is down.
+   host_errors.append({'host':host,'error':repr(exc)})
+for host,items,exits in snapshots:
+ for r in items:
+  result=exits.get(r['job_id'],{'code':'ACTIVE','evidence':''})
+  code=result['code']
+  if code=='ACTIVE':continue
+  if code!='0':
+   evidence=result.get('evidence','')
+   if re.search(r'CUDA out of memory|OutOfMemoryError|CUDNN_STATUS_ALLOC_FAILED',evidence,re.I):
+    failure_class='cuda-oom'
+    root_cause='Process exited '+code+' with a CUDA allocation failure. Preserve the scientific configuration; revise measured VRAM peak/reservations and retry after verifying the device has capacity.'
+    state='FAILED'
+   elif 'No space left on device' in evidence:
+    failure_class='disk-capacity'
+    root_cause='Process exited '+code+' after a disk-capacity error. Inspect authorized storage and preserve scientific outputs before retrying.'
+    state='NEEDS_AUDIT'
+   elif re.search(r'ModuleNotFoundError|ImportError|No module named',evidence):
+    failure_class='environment-or-import'
+    root_cause='Process exited '+code+' with an import/dependency error. Inspect the host environment and attempt log before retrying.'
+    state='NEEDS_AUDIT'
+   else:
+    failure_class='nonzero-exit-needs-triage'
+    root_cause='Process exited '+code+'; full available log tail is preserved in the failure receipt and must be diagnosed before retry.'
+    state='NEEDS_AUDIT'
+   failure=S/f"failure_{r['job_id']}_a{r['attempt_no']}.json"
+   failure.write_text(json.dumps({'job_id':r['job_id'],'semantic_id':r['semantic_id'],
+    'attempt_id':r['attempt_id'],'attempt_no':r['attempt_no'],'host':host,'exit_code':code,
+    'failure_class':failure_class,'root_cause':root_cause,'log_tail':evidence,
+    'captured_at':__import__('datetime').datetime.now(__import__('datetime').timezone.utc).isoformat()},
+    sort_keys=True,indent=2)+'\n')
+   subprocess.run(['python3',str(S/'fleet_state.py'),'attempt','--attempt',r['attempt_id'],
+    '--state',state,'--exit-code',code,'--failure-class',failure_class,'--root-cause',root_cause],check=True)
+   print(state,r['job_id'],r['semantic_id'],host,failure_class,flush=True)
+   continue
+  attempt_dir=S/'runtime_ledgers'/host/(r['job_id']+'-a'+str(r['attempt_no']))
+  wrapper=attempt_dir/'run.sh' if attempt_dir.is_dir() else attempt_dir.with_suffix('.sh')
+  match=re.search(r'^LEDGER=(.+)$',wrapper.read_text(),re.M)
+  if not match:raise RuntimeError('attempt wrapper does not declare LEDGER: '+str(wrapper))
+  remote_ledger=match.group(1).strip()
+  command=d.HOSTS[host]['python']+' /tmp/fedqcl-verify-attempt.py '+shlex.quote(d.HOSTS[host]['repo'])+' '+shlex.quote(remote_ledger)+' '+shlex.quote(r['job_id'])+' '+shlex.quote(r['attempt_id'])
+  rc,out,err=d.invoke(host,d.ssh_argv(host,command),timeout=900)
+  receipt=None
+  for line in out.replace('\r','').splitlines():
+   if line.startswith('{'):
+    try:
+     cand=json.loads(line)
+     if cand.get('job_id')==r['job_id']:receipt=cand
+    except Exception:pass
+  if not receipt or not receipt.get('verified'):
+   p=S/f"verification_failed_{r['job_id']}_a{r['attempt_no']}.json"
+   p.write_text(json.dumps({'job_id':r['job_id'],'attempt_id':r['attempt_id'],'host':host,'exit_code':0,'validator_output':out[-2000:],'stderr':err[-1000:],'verified':False},indent=2)+'\n')
+   subprocess.run(['python3',str(S/'fleet_state.py'),'attempt','--attempt',r['attempt_id'],'--state','NEEDS_AUDIT','--exit-code','0','--root-cause','Process exited 0 but independent run_campaign.valid validation did not pass; inspect verification_failed receipt'],check=True)
+   print('NEEDS_AUDIT',r['job_id'],host,flush=True);continue
+  verification=S/f'verification_{r["job_id"]}.json';artifacts=S/f'artifacts_{r["job_id"]}.json'
+  verification.write_text(json.dumps({k:v for k,v in receipt.items() if k!='artifacts'},sort_keys=True,indent=2)+'\n')
+  artifacts.write_text(json.dumps(receipt['artifacts'],sort_keys=True,indent=2)+'\n')
+  subprocess.run(['python3',str(S/'fleet_state.py'),'attempt','--attempt',r['attempt_id'],'--state','VERIFIED_COMPLETE','--exit-code','0','--verification',str(verification),'--artifacts',str(artifacts)],check=True)
+  finished.append((r['job_id'],r['semantic_id'],host,receipt.get('summary')))
+  print('VERIFIED_COMPLETE',r['job_id'],r['semantic_id'],host,flush=True)
+for item in host_errors:print('HOST_UNAVAILABLE',item['host'],item['error'],file=sys.stderr,flush=True)
+print('RECONCILED',len(finished),'HOST_ERRORS',len(host_errors),flush=True)

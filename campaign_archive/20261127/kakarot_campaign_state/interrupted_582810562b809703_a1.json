@@ -1,0 +1,11 @@
+{
+  "attempt_id": "f1e0418f-7fbc-456f-ba32-3f84b50e5199",
+  "attempt_no": 1,
+  "captured_at": "2026-11-27T10:29:52.825881+00:00",
+  "evidence": "persistent session and attempt process absent; host_boot=2026-11-27 15:30:10",
+  "failure_class": "attempt-process-lost",
+  "host": "kakarot",
+  "job_id": "582810562b809703",
+  "root_cause": "Attempt process and persistent session were both absent and no exit receipt remained at reconciliation. This is an interruption, not a successful completion. Evidence: persistent session and attempt process absent; host_boot=2026-11-27 15:30:10",
+  "semantic_id": "S14-seed42-t20-A03-M1-B-COUNT"
+}

@@ -1,0 +1,37 @@
+{
+  "b550": {
+    "gpu_present": null,
+    "raw_vram_query": "",
+    "reachable": false,
+    "returncode": null,
+    "stderr": "TimeoutExpired(['ssh', '-o', 'BatchMode=yes', '-o', 'ConnectTimeout=20', 'b550', 'hostname; if command -v nvidia-smi >/dev/null 2>&1; then nvidia-smi --query-gpu=index,uuid,name,memory.total,memory.used,memory.free --format=csv,noheader,nounits; else echo NO_NVIDIA_SMI; fi'], 30)"
+  },
+  "devices": [
+    {
+      "free_mib": 5761,
+      "host": "kakarot",
+      "index": 0,
+      "name": "NVIDIA GeForce RTX 3050 6GB Laptop GPU",
+      "processes": [],
+      "total_mib": 6144,
+      "used_mib": 44,
+      "uuid": "GPU-afd673d9-2d18-0fe5-f8f6-e506b7bae080"
+    }
+  ],
+  "measurement_scope": "VRAM only; no GPU utilization queried",
+  "observed_at": "2026-11-27T15:04:07.059166+00:00",
+  "unreachable_hosts": [
+    {
+      "error": "RuntimeError('v100 GPU query failed ilscale SSH requires an additional check.\\n# To authenticate, visit: https://login.tailscale.com/a/lf848a2a321e94\\nConnection timed out during banner exchange\\nConnection to UNKNOWN port 65535 timed out\\n')",
+      "host": "v100"
+    },
+    {
+      "error": "RuntimeError('mtech GPU query failed ilscale SSH requires an additional check.\\n# To authenticate, visit: https://login.tailscale.com/a/lf848a2a321e94\\nConnection timed out during banner exchange\\nConnection to UNKNOWN port 65535 timed out\\n')",
+      "host": "mtech"
+    },
+    {
+      "error": "RuntimeError('l40 app VRAM query failed ')",
+      "host": "l40"
+    }
+  ]
+}

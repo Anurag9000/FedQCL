@@ -1,0 +1,8 @@
+[
+  {
+    "job_id": "fab59312145b15ad",
+    "host": "h100",
+    "gpu": 1,
+    "reserve_gib": 6
+  }
+]

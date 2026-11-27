@@ -1,0 +1,436 @@
+{
+  "created_at_utc": "2026-11-27T12:04:02Z",
+  "items": [
+    {
+      "attempt": 1,
+      "attempt_id": "d6d392d1-3ec3-4d65-9e04-532682400a3a",
+      "job_id": "3da85a3fc5d9f8fd",
+      "local_files": [
+        {
+          "bytes": 11864,
+          "mtime": 1795739998.4648585,
+          "name": "matched_byte_plan.json"
+        },
+        {
+          "bytes": 25508,
+          "mtime": 1795739993.9501157,
+          "name": "model_wire_schema.json"
+        },
+        {
+          "bytes": 252,
+          "mtime": 1795739979.3957627,
+          "name": "matched_byte_count_schedule.json"
+        },
+        {
+          "bytes": 36054,
+          "mtime": 1795739989.3665977,
+          "name": "communication_rounds.jsonl"
+        },
+        {
+          "bytes": 433502,
+          "mtime": 1795739984.7149272,
+          "name": "rounds.jsonl"
+        },
+        {
+          "bytes": 3777,
+          "mtime": 1795739970.2360182,
+          "name": "config.json"
+        },
+        {
+          "bytes": 150,
+          "mtime": 1795739974.9555745,
+          "name": "participation_schedule.json"
+        }
+      ],
+      "local_output": "/home/anurag-basistha/Projects/Untapped/FedQCL_Task/research_results/compact-65ced6195777/S14-seed42-t05-A03-M1",
+      "semantic_id": "S14-seed42-t05-A03-M1",
+      "source_host": "l40"
+    },
+    {
+      "attempt": 1,
+      "attempt_id": "e366ed27-8ddc-4667-b180-9d67d7721802",
+      "job_id": "9b48a77a70424923",
+      "local_files": [
+        {
+          "bytes": 11738,
+          "mtime": 1795716452.3955595,
+          "name": "matched_byte_plan.json"
+        },
+        {
+          "bytes": 25508,
+          "mtime": 1795716447.6452148,
+          "name": "model_wire_schema.json"
+        },
+        {
+          "bytes": 252,
+          "mtime": 1795716432.580176,
+          "name": "matched_byte_count_schedule.json"
+        },
+        {
+          "bytes": 37106,
+          "mtime": 1795716442.8637884,
+          "name": "communication_rounds.jsonl"
+        },
+        {
+          "bytes": 430123,
+          "mtime": 1795716437.8549197,
+          "name": "rounds.jsonl"
+        },
+        {
+          "bytes": 3793,
+          "mtime": 1795716422.8375568,
+          "name": "config.json"
+        },
+        {
+          "bytes": 150,
+          "mtime": 1795716427.8333848,
+          "name": "participation_schedule.json"
+        }
+      ],
+      "local_output": "/home/anurag-basistha/Projects/Untapped/FedQCL_Task/research_results/compact-65ced6195777/S14-seed42-t05-A03-M2",
+      "semantic_id": "S14-seed42-t05-A03-M2",
+      "source_host": "v100"
+    },
+    {
+      "attempt": 2,
+      "attempt_id": "d2a0525f-7a17-41a8-93ab-3d37678e1ff3",
+      "job_id": "9ccb8e51f88861b4",
+      "local_files": [
+        {
+          "bytes": 154433,
+          "mtime": 1795715548.6074235,
+          "name": "distributions.npz"
+        },
+        {
+          "bytes": 645,
+          "mtime": 1795715548.6363788,
+          "name": "validation_receipt.json"
+        },
+        {
+          "bytes": 294883,
+          "mtime": 1795715548.607579,
+          "name": "allocation_index.npz"
+        },
+        {
+          "bytes": 1730388,
+          "mtime": 1795715548.634867,
+          "name": "dataset_manifest.json"
+        },
+        {
+          "bytes": 12129,
+          "mtime": 1795715548.6075253,
+          "name": "specification.json"
+        }
+      ],
+      "local_output": "/home/anurag-basistha/Projects/Untapped/FedQCL_Task/research_results/compact-65ced6195777/S14-seed42-t05-A03-M2-B-COUNT",
+      "semantic_id": "S14-seed42-t05-A03-M2-B-COUNT",
+      "source_host": "h100"
+    },
+    {
+      "attempt": 1,
+      "attempt_id": "c8f8c189-618b-436f-acdd-23da3e4e6543",
+      "job_id": "6d0632cb8515ed99",
+      "local_files": [
+        {
+          "bytes": 11522,
+          "mtime": 1795758617.2455091,
+          "name": "matched_byte_plan.json"
+        },
+        {
+          "bytes": 25508,
+          "mtime": 1795758603.7198353,
+          "name": "model_wire_schema.json"
+        },
+        {
+          "bytes": 252,
+          "mtime": 1795758590.9092925,
+          "name": "matched_byte_count_schedule.json"
+        },
+        {
+          "bytes": 35129,
+          "mtime": 1795758601.1848187,
+          "name": "communication_rounds.jsonl"
+        },
+        {
+          "bytes": 425516,
+          "mtime": 1795758595.7403216,
+          "name": "rounds.jsonl"
+        },
+        {
+          "bytes": 3783,
+          "mtime": 1795758585.5487192,
+          "name": "config.json"
+        },
+        {
+          "bytes": 150,
+          "mtime": 1795758587.9725494,
+          "name": "participation_schedule.json"
+        }
+      ],
+      "local_output": "/home/anurag-basistha/Projects/Untapped/FedQCL_Task/research_results/compact-65ced6195777/S14-seed42-t10-A03-M1",
+      "semantic_id": "S14-seed42-t10-A03-M1",
+      "source_host": "h100"
+    },
+    {
+      "attempt": 1,
+      "attempt_id": "33dfc3a7-b1b2-4fb9-b34f-db8d7714a1ed",
+      "job_id": "a0654e04a5320b33",
+      "local_files": [
+        {
+          "bytes": 3783,
+          "mtime": 1795758621.707399,
+          "name": "config.json"
+        },
+        {
+          "bytes": 150,
+          "mtime": 1795758626.289654,
+          "name": "participation_schedule.json"
+        }
+      ],
+      "local_output": "/home/anurag-basistha/Projects/Untapped/FedQCL_Task/research_results/compact-65ced6195777/S14-seed42-t20-A03-M1",
+      "semantic_id": "S14-seed42-t20-A03-M1",
+      "source_host": "h100"
+    },
+    {
+      "attempt": 2,
+      "attempt_id": "d15f27c0-57e0-4ee7-9595-1b130338c127",
+      "job_id": "49cdcdd2922b0921",
+      "local_files": [
+        {
+          "bytes": 154433,
+          "mtime": 1795715379.3275247,
+          "name": "distributions.npz"
+        },
+        {
+          "bytes": 645,
+          "mtime": 1795715379.359209,
+          "name": "validation_receipt.json"
+        },
+        {
+          "bytes": 294883,
+          "mtime": 1795715379.3276694,
+          "name": "allocation_index.npz"
+        },
+        {
+          "bytes": 1730388,
+          "mtime": 1795715379.3576014,
+          "name": "dataset_manifest.json"
+        },
+        {
+          "bytes": 12129,
+          "mtime": 1795715379.327626,
+          "name": "specification.json"
+        }
+      ],
+      "local_output": "/home/anurag-basistha/Projects/Untapped/FedQCL_Task/research_results/compact-65ced6195777/S14-seed42-t35-A03-M2-B-BYTES",
+      "semantic_id": "S14-seed42-t35-A03-M2-B-BYTES",
+      "source_host": "v100"
+    },
+    {
+      "attempt": 1,
+      "attempt_id": "53597ce3-ec22-4f9a-9ffb-9379653c743f",
+      "job_id": "2587e8f01e505e55",
+      "local_files": [
+        {
+          "bytes": 11910,
+          "mtime": 1795715873.096838,
+          "name": "matched_byte_plan.json"
+        },
+        {
+          "bytes": 25508,
+          "mtime": 1795715867.8579922,
+          "name": "model_wire_schema.json"
+        },
+        {
+          "bytes": 266,
+          "mtime": 1795715851.3208683,
+          "name": "matched_byte_count_schedule.json"
+        },
+        {
+          "bytes": 32679,
+          "mtime": 1795715862.4523969,
+          "name": "communication_rounds.jsonl"
+        },
+        {
+          "bytes": 776404,
+          "mtime": 1795715857.273216,
+          "name": "rounds.jsonl"
+        },
+        {
+          "bytes": 3786,
+          "mtime": 1795715840.6028247,
+          "name": "config.json"
+        },
+        {
+          "bytes": 164,
+          "mtime": 1795715845.9620447,
+          "name": "participation_schedule.json"
+        }
+      ],
+      "local_output": "/home/anurag-basistha/Projects/Untapped/FedQCL_Task/research_results/compact-65ced6195777/S14N10-seed42-t20-A03-M1",
+      "semantic_id": "S14N10-seed42-t20-A03-M1",
+      "source_host": "l40"
+    },
+    {
+      "attempt": 2,
+      "attempt_id": "bce6f206-b7b2-4e6f-9ec9-79c54c8ffb1c",
+      "job_id": "8e11576bfc00ce84",
+      "local_files": [
+        {
+          "bytes": 494743,
+          "mtime": 1795715037.3709867,
+          "name": "distributions.npz"
+        },
+        {
+          "bytes": 645,
+          "mtime": 1795715037.4329588,
+          "name": "validation_receipt.json"
+        },
+        {
+          "bytes": 309859,
+          "mtime": 1795715037.3712144,
+          "name": "allocation_index.npz"
+        },
+        {
+          "bytes": 3458482,
+          "mtime": 1795715037.431959,
+          "name": "dataset_manifest.json"
+        },
+        {
+          "bytes": 14784,
+          "mtime": 1795715037.3711665,
+          "name": "specification.json"
+        }
+      ],
+      "local_output": "/home/anurag-basistha/Projects/Untapped/FedQCL_Task/research_results/compact-65ced6195777/S14N10-seed42-t20-A03-M1-B-BYTES",
+      "semantic_id": "S14N10-seed42-t20-A03-M1-B-BYTES",
+      "source_host": "h100"
+    },
+    {
+      "attempt": 2,
+      "attempt_id": "b5504990-8115-4d2a-bd2e-575564cf9bd6",
+      "job_id": "94ecafdd6406367b",
+      "local_files": [
+        {
+          "bytes": 494743,
+          "mtime": 1795715125.374985,
+          "name": "distributions.npz"
+        },
+        {
+          "bytes": 645,
+          "mtime": 1795715125.4393442,
+          "name": "validation_receipt.json"
+        },
+        {
+          "bytes": 309859,
+          "mtime": 1795715125.3752108,
+          "name": "allocation_index.npz"
+        },
+        {
+          "bytes": 3458482,
+          "mtime": 1795715125.437142,
+          "name": "dataset_manifest.json"
+        },
+        {
+          "bytes": 14784,
+          "mtime": 1795715125.375164,
+          "name": "specification.json"
+        }
+      ],
+      "local_output": "/home/anurag-basistha/Projects/Untapped/FedQCL_Task/research_results/compact-65ced6195777/S14N10-seed42-t20-A03-M1-B-COUNT",
+      "semantic_id": "S14N10-seed42-t20-A03-M1-B-COUNT",
+      "source_host": "h100"
+    },
+    {
+      "attempt": 1,
+      "attempt_id": "cf11ee3f-6822-4816-adae-ee79fbf77d61",
+      "job_id": "6899cbe9188f8ff7",
+      "local_files": [
+        {
+          "bytes": 11712,
+          "mtime": 1795722256.198036,
+          "name": "matched_byte_plan.json"
+        },
+        {
+          "bytes": 25508,
+          "mtime": 1795722251.3656726,
+          "name": "model_wire_schema.json"
+        },
+        {
+          "bytes": 270,
+          "mtime": 1795722237.1366706,
+          "name": "matched_byte_count_schedule.json"
+        },
+        {
+          "bytes": 30582,
+          "mtime": 1795722246.213034,
+          "name": "communication_rounds.jsonl"
+        },
+        {
+          "bytes": 774090,
+          "mtime": 1795722241.4087927,
+          "name": "rounds.jsonl"
+        },
+        {
+          "bytes": 3798,
+          "mtime": 1795722228.649972,
+          "name": "config.json"
+        },
+        {
+          "bytes": 168,
+          "mtime": 1795722233.5249157,
+          "name": "participation_schedule.json"
+        }
+      ],
+      "local_output": "/home/anurag-basistha/Projects/Untapped/FedQCL_Task/research_results/compact-65ced6195777/S14N10-seed42-t20-A03-M2",
+      "semantic_id": "S14N10-seed42-t20-A03-M2",
+      "source_host": "h100"
+    },
+    {
+      "attempt": 1,
+      "attempt_id": "d07bd55b-eab7-49eb-b18e-c960599a5984",
+      "job_id": "06957e65aca39eb1",
+      "local_files": [
+        {
+          "bytes": 14027,
+          "mtime": 1795721138.4358299,
+          "name": "matched_byte_plan.json"
+        },
+        {
+          "bytes": 25508,
+          "mtime": 1795721133.7193017,
+          "name": "model_wire_schema.json"
+        },
+        {
+          "bytes": 275,
+          "mtime": 1795721091.8549898,
+          "name": "matched_byte_count_schedule.json"
+        },
+        {
+          "bytes": 39575,
+          "mtime": 1795721128.5509105,
+          "name": "communication_rounds.jsonl"
+        },
+        {
+          "bytes": 43077485,
+          "mtime": 1795721123.3952026,
+          "name": "rounds.jsonl"
+        },
+        {
+          "bytes": 3791,
+          "mtime": 1795721082.0939276,
+          "name": "config.json"
+        },
+        {
+          "bytes": 173,
+          "mtime": 1795721086.849943,
+          "name": "participation_schedule.json"
+        }
+      ],
+      "local_output": "/home/anurag-basistha/Projects/Untapped/FedQCL_Task/research_results/compact-65ced6195777/S14N10-seed42-t20-A05-M3",
+      "semantic_id": "S14N10-seed42-t20-A05-M3",
+      "source_host": "h100"
+    }
+  ],
+  "reason": "nonempty local output directory failed validator; preserve before verified source mirror recovery"
+}

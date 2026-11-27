@@ -1,0 +1,27 @@
+{
+  "attempt_id": "c171a691-e27e-4bd2-a4ad-4704b0aa43ec",
+  "checkpoint": {
+    "bytes": 302243394,
+    "path": "/home/rl-group4/Projects/FedQCL_Task/research_results/compact-65ced6195777/S14-seed42-k5-B-FULL-LR0.02/checkpoint.pt",
+    "preserved_on_host": true,
+    "sha256": "76925b660ef1bb97adde1c91adb154c382281d1e9462ee78174b859bf46a75c8"
+  },
+  "dataset_manifest_id": "18ac0532329a578042655ba5d123020baee4f2f01ee28e5314215aad0747f2e1",
+  "exit_code": 0,
+  "expected_rounds": 20,
+  "host": "h100",
+  "job_id": "200cc433ea56b644",
+  "observed_rounds": 20,
+  "run_campaign_valid": true,
+  "source_commit": "65ced6195777d824c77f3c26152b066ef5f47f18",
+  "transfer_tar_sha256": "565db6b84cfd2a453c4ad4a0159bff86067a935e094a5bde79fd6157cfc192f8",
+  "transferred_prefix_artifacts_sha256": {
+    "communication_events.jsonl": "18223c40f7687b9e2d5e8ef74647348557fead7798c4e024c243bd99817dae33",
+    "config.json": "43405352375fc2325d09f7ba27c1d2cd5a2f80c3a4a926c9aae9678e4aed7e4c",
+    "provenance.json": "038fb59d98eb559a24730572dc8015c69d8f8714e484e778a5a61f71246f3e29",
+    "rounds.jsonl": "f5977d117091391b29722bdffa2008c5f63f3e493cc3a05964eb80c5a6c149e7",
+    "server_metrics.jsonl": "800dd21000207d8cfc31c2747c87617856e68a08792b06ad4907bd1f34f2fa27",
+    "status.json": "09f463e5f28fe49431626de22c6699491e7ae8292b79bbd8252f0e05ba4b9422"
+  },
+  "validated_against_local_verified_dataset": true
+}

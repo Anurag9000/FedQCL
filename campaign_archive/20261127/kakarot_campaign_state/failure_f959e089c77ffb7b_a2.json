@@ -1,0 +1,12 @@
+{
+  "attempt_id": "0a2c84e6-5d51-4dfd-bb16-285183fee5e3",
+  "attempt_no": 2,
+  "captured_at": "2026-11-27T12:48:06.295877+00:00",
+  "exit_code": "1",
+  "failure_class": "nonzero-exit-needs-triage",
+  "host": "kakarot",
+  "job_id": "f959e089c77ffb7b",
+  "log_tail": "",
+  "root_cause": "Process exited 1; full available log tail is preserved in the failure receipt and must be diagnosed before retry.",
+  "semantic_id": "compact-analysis"
+}

@@ -1,0 +1,33 @@
+==================================================
+Algorithm: FedAvg
+Local batch size: 13
+Local epochs: 5
+Local learing rate: 0.01
+Local learing rate decay: False
+Total number of clients: 5
+Clients join in each round: 1.0
+Clients randomly join: False
+Client drop rate: 0.0
+Client select regarding time: False
+Running times: 1
+Dataset: /home/anurag-basistha/Projects/Untapped/FedQCL_Task/research_data/S14-seed42-ab0bf722e3ab-a434e45e2a6f
+Number of classes: 20
+Backbone: resnet18
+Using device: cuda
+Using DP: False
+Auto break: False
+Global rounds: 4
+Cuda device id: 0
+DLG attack: False
+Total number of new clients: 0
+Fine tuning epoches on new clients: 0
+==================================================
+Traceback (most recent call last):
+  File "/home/anurag-basistha/Projects/Untapped/FedQCL_Task/system/main.py", line 267, in <module>
+    run(args)
+  File "/home/anurag-basistha/Projects/Untapped/FedQCL_Task/system/main.py", line 85, in run
+    return run_research(args)
+           ^^^^^^^^^^^^^^^^^^
+  File "/home/anurag-basistha/Projects/Untapped/FedQCL_Task/system/flcore/sync/engine.py", line 253, in run_research
+    raise ValueError('dataset manifest does not match workload')
+ValueError: dataset manifest does not match workload

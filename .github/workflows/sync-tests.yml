@@ -1,5 +1,12 @@
 name: Selective synchronization tests
 on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'system/**'
+      - 'scripts/**'
+      - 'tests/**'
+      - '.github/workflows/sync-tests.yml'
   push:
     branches: [main]
     paths:

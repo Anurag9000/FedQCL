@@ -26,6 +26,10 @@ TUNING_PROFILES={
     "rmp-half":["--sync-representative-beta",".5"],
     "rmp-full":["--sync-representative-beta","1"],
     "rmp-proxy":["--sync-representative-beta","1","--sync-utility-proxy"],
+    "rmp-proxy-strict":["--sync-representative-beta","1","--sync-utility-proxy","--sync-representative-distance",".2"],
+    "rmp-proxy-broad":["--sync-representative-beta","1","--sync-utility-proxy","--sync-representative-distance",".55"],
+    "rmp-retention":["--sync-representative-beta",".5","--sync-utility-past","2","--sync-utility-retention",".01"],
+    "joint-tuned":["--sync-utility-match",".5","--sync-utility-mass",".25","--sync-utility-past","2","--sync-utility-fair",".1"],
 }
 def cases():
     rows=[]
@@ -204,6 +208,19 @@ def verify(job,root,cfg,summary,rounds,metrics,events):
         from itertools import combinations
         expected={s for k in range(n+1) for s in combinations(range(n),k)}
         if len(cf)!=len(c["counterfactual_rounds"])*2**n or any({tuple(x["subset"]) for x in cf if x["round"]==r}!=expected for r in c["counterfactual_rounds"]):return False
+    if cfg.get("sync_representative_beta",0.):
+        from types import SimpleNamespace
+        from flcore.sync.representative import plan,weights
+        a=SimpleNamespace(**cfg)
+        for item in cf:
+            live=rounds[item["round"]]
+            view={int(i):v for i,v in live["utility_reports"].items()}
+            own={int(i):v for i,v in live["supplied_samples"].items()}
+            subset=item["subset"];p=plan(view,subset,a)
+            expected=dict(zip(subset,weights(subset,own,p)))
+            actual={int(i):v for i,v in item["aggregation_weights"].items()}
+            if item["representation"]!=p or actual!=expected:return False
+            if item["actual"] and actual!={int(i):v for i,v in live["aggregation_weights"].items()}:return False
     audit=json.loads((root/"analysis/ground_truth_comparison.json").read_text())
     if audit["ground_truth_hash"]!=receipt["ground_truth_hash"] or len(audit["rounds"])!=c["rounds"] or set(x["round"] for x in audit["counterfactuals"])!=set(c["counterfactual_rounds"]):return False
     held=json.loads((root/"heldout_test_metrics.json").read_text())

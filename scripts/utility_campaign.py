@@ -14,7 +14,7 @@ ARCHIVE=ROOT/"research_results/compact-65ced6195777/analysis"
 EXPECTED_LR=.01
 FINALISTS={"M1":"A03-M1","M2":"A03-M2","M3":"A05-M3"}
 MODES={"local":"own","server":"server","peer":"peer","loss":"own","balanced":"random","random":"random"}
-OUTPUTS=("matrix.json","matrix.csv","paired_comparisons.csv","oracle_diagnostics.csv","learning_vs_bytes.jsonl","equal_bytes.jsonl","pareto_front.csv","target_accuracy_bytes.jsonl","tuning_selection.csv","report.md")
+OUTPUTS=("matrix.json","matrix.csv","paired_comparisons.csv","oracle_diagnostics.csv","learning_vs_bytes.jsonl","equal_bytes.jsonl","pareto_front.csv","target_accuracy_bytes.jsonl","tuning_selection.csv","fixed_off_rankings.csv","report.md")
 
 # Bounded profiles; only seed-42 validation selects the winner.
 TUNING_PROFILES={
@@ -291,7 +291,10 @@ def analyze(ledger,out):
                    "comparison":comparison,"clients":x["clients"],"clients_off":x["clients_off"],"reference_clients_off":b["clients_off"],
                    "same_optimizer_steps":x["optimizer_steps"]==b["optimizer_steps"],
                    "same_processed_samples":x["processed_samples"]==b["processed_samples"],
-                   "same_replay_samples":x["replay_samples"]==b["replay_samples"]}
+                   "same_replay_samples":x["replay_samples"]==b["replay_samples"],
+                   "reference_name":b["name"],"fresh":x["fresh"],"delta_aggregation":x["delta_aggregation"],"max_skip":x["max_skip"],
+                   "method_test_accuracy":x["test_final_accuracy"],"reference_test_accuracy":b["test_final_accuracy"],
+                   "method_forgetting":x["forgetting"],"reference_forgetting":b["forgetting"]}
                 for metric in ("final_accuracy","test_final_accuracy","forgetting","total_bytes","statistics_bytes","optimizer_steps","processed_samples"):p[metric+"_delta"]=x[metric]-b[metric]
                 pairs.append(p)
                 for point in compare_equal_bytes(curves[ident],curves[b["experiment_id"]]):e.write(json.dumps({**p,**point})+"\n")
@@ -323,6 +326,18 @@ def analyze(ledger,out):
                               "experiment_id":x["experiment_id"],"reference":b["experiment_id"],
                               **{m+"_delta":x[m]-b[m] for m in ("final_accuracy","test_final_accuracy","forgetting","total_bytes")}})
     write_csv(out/"tuning_selection.csv",tuned)
+    # Descriptive test ranking, never consumed by online selection or tuning.
+    groups=defaultdict(list)
+    for p in pairs:
+        ref=p["reference_name"]
+        if p["comparison"]=="fixed_matched" and (ref in ("full","random","stale-random","delta-random") or ref.startswith(("random-k","random-skip"))):
+            key=tuple(p[k] for k in ("setting_id","seed","clients","clients_off","fresh","delta_aggregation","max_skip","reference"))
+            groups[key].append(p)
+    fixed=[]
+    for key,group in sorted(groups.items()):
+        for place,p in enumerate(sorted(group,key=lambda x:(-x["test_final_accuracy_delta"],x["forgetting_delta"],x["experiment_id"])),1):
+            fixed.append({**p,"rank_within_matched_group":place})
+    write_csv(out/"fixed_off_rankings.csv",fixed)
     write_csv(out/"matrix.csv",matrix);write_csv(out/"paired_comparisons.csv",pairs);write_csv(out/"oracle_diagnostics.csv",oracles)
     (out/"matrix.json").write_text(json.dumps({"training_runs":len(matrix),"results":matrix},indent=2,allow_nan=False))
     report=["# Utility follow-up: measured results","",f"Verified trajectories: {len(matrix)}.","","Validation drives method development; final test metrics are descriptive, not used to choose methods.","","## Paired comparisons","","| Method | Reference | Validation accuracy delta | Bytes delta | Forgetting delta |","|---|---|---:|---:|---:|"]

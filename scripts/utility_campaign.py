@@ -101,6 +101,28 @@ def cases():
                 if label=="default":continue
                 add("tuning" if seed==42 else "tuning-confirmation",sid,seed,"tune-"+label,"server",options=options)
             if seed==44:add("tuning-confirmation",sid,seed,"server","server")
+    # Archive-informed pruning: remove only the 31 configurations classified
+    # low-potential in the pre-run review. Keep every full-participation
+    # control, random/diagnostic run, tuning profile and adaptive budget job.
+    weak={"A02-M1","A04-M2","A08-M2"}
+    def low_priority(case):
+        sid,k,n,name=case["setting_id"],case["k"],case["clients"],case["name"]
+        if k==n or case["stage"] not in ("fixed","aggregation"):return False
+        if name.startswith("fixed-A"):
+            selector=name[len("fixed-"):].rsplit("-k",1)[0]
+        elif name.startswith("fresh-A"):
+            selector=name[len("fresh-"):]
+        else:return False
+        return ((sid=="S14" and selector in weak) or
+                (sid=="S04" and selector in weak|{"A03-M1"}) or
+                (sid=="S14N10" and k==6 and selector in FINALISTS.values()))
+    removed=[case for case in rows if low_priority(case)]
+    if len(removed)!=31:raise ValueError("unexpected low-priority inventory")
+    rows=[case for case in rows if not low_priority(case)]
+    if any(case["source"] and not any(
+        (x["setting_id"],x["seed"],x["name"])==
+        (case["setting_id"],case["seed"],case["source"]) for x in rows)
+        for case in rows):raise ValueError("pruning removed a matched-control dependency")
     if len({(x["setting_id"],x["seed"],x["name"]) for x in rows})!=len(rows):
         raise ValueError("duplicate utility case")
     return rows

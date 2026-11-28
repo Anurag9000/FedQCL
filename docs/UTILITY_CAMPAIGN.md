@@ -49,8 +49,7 @@ retention, uncertainty, precision, sketch dimension, deadline and horizon.
 Prespecified independent seed and setting confirmations and a 10-client
 scale check are included. The primary claims are empirical, not guaranteed.
 
-Limitations: this revision does not fit or deploy an archive-trained
-predictor, use a shared lightweight proxy, implement delta aggregation,
+Limitations: this revision does not fit an archive-trained predictor directly (old reports lack the new causal features), use a shared lightweight proxy, implement delta aggregation,
 measure physical networks, or implement adaptive report resizing. The
 analytical risk penalty is not a calibrated confidence interval. The hard
 cap reserve is intentionally conservative. The utility probes do not modify
@@ -59,3 +58,5 @@ equal participant counts. The exact subset search is limited to ten clients.
 The archive excludes model checkpoints and source datasets; regenerated
 streams must pass independent verification. No production results are
 asserted by the ledger.
+
+The new M2 calibration job fits a frozen six-feature ridge model on three S14 seed-42 analytical development trajectories and qualifies it using three separate S04 trajectories. It consumes validation counterfactual outcomes only, never held-out test metrics. Six seed-43 learned-policy runs depend on the model receipt; if the held-setting ranking fails qualification, the learned policy falls back to randomized selection. The empirical residual is not a statistical confidence guarantee. The original archive supplies LR and finalist identities, not new-probe training features.

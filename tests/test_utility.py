@@ -24,3 +24,16 @@ class Utility(unittest.TestCase):
         ids=tuple(range(5));last={i:0 for i in ids};visits={i:1 for i in ids}
         s,d=choose(a,ids,last,(),1,1,visits,{i:None for i in ids},0,{"tensor_bytes":1})
         self.assertEqual(len(s),2);self.assertEqual(d["reason"],"missing_evidence")
+
+    def test_fresh_random_matches_old_roster(self):
+        from flcore.sync.policies import baseline_select
+        a=self.args();ids=tuple(range(5));last={i:0 for i in ids};visits={i:1 for i in ids}
+        for r in range(1,10):
+            s,_=choose(a,ids,last,(0,),r,1,visits,{},0,{"tensor_bytes":1})
+            self.assertEqual(s,baseline_select("random",ids,(0,),last,2,42,r))
+    def test_fit_disjoint_groups(self):
+        from flcore.sync.utility_calibration import fit
+        train=[dict(group="train",round=1,subset=[i],features=[1.,float(i),0.,1.,.2,.1],target=float(i)) for i in range(5)]
+        cal=[dict(x,group="held") for x in train]
+        self.assertTrue(fit(train,cal)["qualified"])
+        with self.assertRaises(ValueError):fit(train,train)

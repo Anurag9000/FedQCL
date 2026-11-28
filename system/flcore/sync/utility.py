@@ -127,7 +127,12 @@ def choose(a,ids,last,due,r,version,visits,view,used,schema):
             desired=max(len(due),int(remain/max(1,a.global_rounds-r+1)/(2*schema["tensor_bytes"]+MODEL_ENVELOPE)))
             distance=min(abs(len(s)-desired) for s in pool);pool=[s for s in pool if abs(len(s)-desired)==distance]
         if mode=="balanced":return min(pool,key=lambda s:(sum(visits[i] for i in s),s)),{"reason":"balanced","candidates":[]}
-        return rng.choice(pool),{"reason":"random","candidates":[]}
+        k=len(pool[0])
+        chosen=baseline_select("random",ids,due,last,k,a.seed,r)
+        if chosen not in pool:chosen=rng.choice(pool)
+        return chosen,{"reason":"random","candidates":[]}
+    if not any(v is not None for v in view.values()):
+        return rng.choice(pool),{"reason":"missing_evidence","candidates":[]}
     ranked=[]
     for s in pool:
         if mode in ("local","loss"):
@@ -140,13 +145,19 @@ def choose(a,ids,last,due,r,version,visits,view,used,schema):
         if score is not None:
             # Price per complete exchange; for fixed k this is constant.
             score-=a.sync_utility_price*len(s)
-            ranked.append({"subset":list(s),"score":score,"risk":risk,"retention_ok":ok})
+            ranked.append({"subset":list(s),"score":score,"risk":risk,"retention_ok":ok,"features":[1.,score,risk,float(ok),len(s)/len(ids),r/max(1,a.global_rounds)]})
+    model=getattr(a,"utility_model",None)
+    if model and model["qualified"]:
+        for x in ranked:
+            x["analytical_score"]=x["score"]
+            x["score"]=float(np.dot(model["coef"],x["features"]))
+            x["risk"]+=model["calibration_error"]
     safe=[x for x in ranked if x["retention_ok"]];candidates=safe or ranked
     if not candidates:return rng.choice(pool),{"reason":"missing_evidence","candidates":ranked}
     best=max(candidates,key=lambda x:(x["score"],tuple(-i for i in x["subset"])))
     matched=[x for x in candidates if len(x["subset"])==len(best["subset"])]
     advantage=best["score"]-sum(x["score"] for x in matched)/len(matched)
-    if advantage<=a.sync_utility_gate*(1+best["risk"]):
+    if (model and not model["qualified"]) or advantage<=a.sync_utility_gate*(1+best["risk"])+(model["calibration_error"] if model and model["qualified"] else 0.):
         chosen=rng.choice([tuple(x["subset"]) for x in matched]);reason="uncertain_random"
     else:chosen=tuple(best["subset"]);reason="utility" if safe else "least_harm_relaxation"
     return chosen,{"reason":reason,"candidates":ranked,"advantage":advantage,"best":best["subset"]}
@@ -165,7 +176,10 @@ def decide(ctl,r,ids,last,due):
                 if j!=i:views[j][i]=tr.send(r,"observe",i,j,"UTILITY_PEER_REPORT",reports[i])
         view=views[ids[0]]
         if any(v!=view for v in views.values()):raise ValueError("inconsistent utility peer view")
-    used=sum(e["serialized_bytes"] for e in tr.events);visits={i:sum(i in x["complete"] for x in ctl.decisions) for i in ids}
+    used=sum(e["serialized_bytes"] for e in tr.events if e["round"]<r)
+    observed=sum(e["serialized_bytes"] for e in tr.events if e["round"]==r)
+    if observed>OVERHEAD:raise ValueError("utility telemetry overhead bound exceeded")
+    visits={i:sum(i in x["complete"] for x in ctl.decisions) for i in ids}
     selected,info=choose(a,ids,last,due,r,ctl.model_version,visits,view,used,ctl.utility_schema)
     if mode=="peer":
         for i in ids:
@@ -176,7 +190,7 @@ def decide(ctl,r,ids,last,due):
     ctl.decisions.append({"round":r,"available":ids,"due":due,"selected":selected,"multiplicity":None,"threshold":float(a.sync_threshold),
         "deadline_cap_violations":[i for i in due if i not in selected],"scores":{},"references":{},"bank_versions":{i:0 for i in ids},"coverage":{},"impact":None,
         "reasons":{i:"bootstrap" if r==0 else "mandatory" if i in due and i in selected else info["reason"] if i in selected else "deferred" for i in ids},
-        "utility":info,"utility_used_before_admission":used,"utility_cap":ceiling(a,ctl.utility_schema)})
+        "utility":info,"utility_used_before_admission":used+observed,"utility_cap":ceiling(a,ctl.utility_schema)})
     return selected
 
 def check_budget(ctl,r):
@@ -187,12 +201,20 @@ def check_budget(ctl,r):
 
 def verify_decisions(config,rounds,decisions,events):
     from .wire import unpack
-    a=SimpleNamespace(**config);ids=tuple(range(a.num_clients));last={i:-1 for i in ids};visits={i:0 for i in ids};version=0
+    a=SimpleNamespace(**config)
+    if config.get("sync_utility_model"):
+        from pathlib import Path
+        import hashlib
+        raw=Path(config["sync_utility_model"]).read_bytes()
+        if hashlib.sha256(raw).hexdigest()!=config["sync_utility_model_sha256"]:raise ValueError("utility model fingerprint")
+        a.utility_model=json.loads(raw)
+    ids=tuple(range(a.num_clients));last={i:-1 for i in ids};visits={i:0 for i in ids};version=0
     # Use schema measured in model transfers; identity is not needed by feasibility.
     schema={"tensor_bytes":next(e["tensor_bytes"] for e in events if e["kind"]=="MODEL_INITIAL")}
     consumed=sum(e["serialized_bytes"] for e in events if e["round"]==-1)
     if len(rounds)!=len(decisions):raise ValueError("utility decision inventory")
     for r,(row,dec) in enumerate(zip(rounds,decisions)):
+        if row["round"]!=r or dec["round"]!=r or tuple(dec["available"])!=ids:raise ValueError("utility round inventory")
         view={};re= [e for e in events if e["round"]==r];before=0;reports={int(i):v for i,v in row["utility_reports"].items()}
         for e in re:
             if e["phase"]!="observe":continue
@@ -203,14 +225,22 @@ def verify_decisions(config,rounds,decisions,events):
                 if payload!=expected:raise ValueError("utility report mismatch")
                 if i in view and view[i]!=payload:raise ValueError("peer view mismatch")
                 view[i]=payload
-        if a.sync_utility in ("local","loss","server","peer") and set(view)!=set(ids):raise ValueError("utility telemetry roster")
+        kind={"local":"UTILITY_SCALAR","loss":"UTILITY_SCALAR","server":"UTILITY_REPORT","peer":"UTILITY_PEER_REPORT"}.get(a.sync_utility)
+        expected=[(i,j) for i in ids for j in ids if i!=j] if a.sync_utility=="peer" else [(i,"server") for i in ids] if kind else []
+        actual=[(e["sender"],e["receiver"]) for e in re if e["kind"]==kind]
+        if sorted(actual)!=sorted(expected) or any(e["kind"].startswith("UTILITY_") and (e["kind"]!=kind or e["phase"]!="observe") for e in re):raise ValueError("utility telemetry transaction roster")
+        if kind and set(view)!=set(ids):raise ValueError("utility telemetry roster")
+        if a.sync_utility=="peer":
+            elections=[e for e in re if e["kind"]=="ELECTION_RESULT"]
+            if sorted(e["sender"] for e in elections)!=list(ids) or any(e["receiver"]!="server" or unpack(base64.b64decode(e["encoded_envelope_b64"]))["payload"]["selected"]!=list(row["selected"]) for e in elections):raise ValueError("utility peer election roster")
         due=due_clients(ids,last,r,a.sync_max_skip)
-        selected,info=choose(a,ids,last,due,r,version,visits,view,consumed+before,schema)
+        selected,info=choose(a,ids,last,due,r,version,visits,view,consumed,schema)
+        if list(due)!=list(dec["due"]) or [i for i in due if i not in selected]!=dec["deadline_cap_violations"]:raise ValueError("utility deadline mismatch")
         if list(selected)!=list(row["selected"]) or list(selected)!=list(dec["selected"]) or json.dumps(info,sort_keys=True)!=json.dumps(dec["utility"],sort_keys=True):raise ValueError("utility decision mismatch")
         if dec["utility_used_before_admission"]!=consumed+before or dec["utility_cap"]!=ceiling(a,schema):raise ValueError("utility budget evidence")
         consumed+=sum(e["serialized_bytes"] for e in re)
         if ceiling(a,schema) is not None and consumed>ceiling(a,schema):raise ValueError("utility cumulative cap")
         for i in selected:last[i]=r;visits[i]+=1
         version+=bool(selected)
-        if row["version"]!=version or list(dec["complete"])!=list(selected):raise ValueError("utility completion")
+        if row["version"]!=version or list(dec["complete"])!=list(selected) or {int(i):v for i,v in row["last_complete_sync"].items()}!=last:raise ValueError("utility completion")
     return True

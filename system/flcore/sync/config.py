@@ -41,6 +41,7 @@ def add_arguments(parser):
     p.add_argument("--sync-utility-risk",type=float,default=.1)
     p.add_argument("--sync-utility-gate",type=float,default=.01)
     p.add_argument("--sync-utility-retention",type=float,default=.05)
+    p.add_argument("--sync-utility-model",help="Frozen qualified offline model, M2 only")
     p.add_argument("--sync-utility-precision",choices=["fp64","fp32","fp16","int8"],default="fp32")
     p.add_argument("--sync-local-capture",action="store_true",default=True)
     p.add_argument("--sync-balanced-sampler",action="store_true")
@@ -98,6 +99,7 @@ def validate(a):
         raise ValueError("fresh-start requires reliable audited controlled pretraining")
     if utility!="off":
         expected={"local":"own","loss":"own","server":"server","peer":"peer","balanced":"random","random":"random"}
+        if a.sync_utility_model and utility!="server":raise ValueError("learned utility model requires server telemetry")
         if not fresh or a.sync_policy!=expected[utility] or a.num_clients>10 or a.sync_wire_format!="binary" or a.sync_count_schedule:
             raise ValueError("utility protocol requires fresh audited start, compatible mechanism and <=10 clients")
         if not 0<=a.sync_utility_budget<=1 or not 1<=a.sync_sketch_dim<=4096 or a.sync_observation_size>128:

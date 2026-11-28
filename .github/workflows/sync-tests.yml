@@ -25,8 +25,10 @@ jobs:
       - run: python scripts/build_job_ledger.py
       - run: python scripts/run_campaign.py --estimate-only
       - run: python scripts/run_campaign.py --dry-run --stage calibration
-      - run: python scripts/build_task_il_ledger.py
-      - run: python scripts/run_campaign.py --ledger experiments/task_il_core/job_ledger.jsonl --dry-run
+      - run: python scripts/build_job_ledger.py --suite utility
+      - run: python scripts/run_campaign.py --ledger experiments/job_ledger_utility.jsonl --estimate-only
+      - run: python scripts/build_task_il_ledger.py --output /tmp/fedqcl-ci/task_il/job_ledger.jsonl
+      - run: python scripts/run_campaign.py --ledger /tmp/fedqcl-ci/task_il/job_ledger.jsonl --dry-run
       - run: python scripts/build_job_ledger.py --suite utility
       - run: python scripts/run_campaign.py --ledger experiments/job_ledger_utility.jsonl --estimate-only
       - run: python scripts/run_campaign.py --ledger experiments/job_ledger_utility.jsonl --dry-run --stage development

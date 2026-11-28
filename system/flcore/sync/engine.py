@@ -263,7 +263,7 @@ def run_research(args):
         config["ground_truth_hash"]=receipt["ground_truth_hash"]
         counterfactual_schedule=set(manifest["controlled_stream"]["counterfactual_rounds"])
     integrity_manifest={k:manifest[k] for k in ("schema","manifest_id","public_probe_per_class","shards") if k in manifest} if manifest else None
-    for field in ('sync_impact_model','sync_count_schedule','sync_failures','sync_byte_schedule'):
+    for field in ('sync_impact_model','sync_count_schedule','sync_failures','sync_byte_schedule','sync_utility_model'):
         path=getattr(a,field,None)
         if path:config[field+'_sha256']=hashlib.sha256(Path(path).read_bytes()).hexdigest()
     try:
@@ -320,6 +320,9 @@ def run_research(args):
     ctl.args.encoder=None
     ctl.args.dataset_manifest=None
     ctl.args._verified_shards={}
+    if getattr(a,"sync_utility_model",None):
+        from .utility_calibration import load_model
+        ctl.args.utility_model=load_model(a.sync_utility_model)
     # Research-only allocations, manifest and oracle outputs are excluded.
     metrics=[]; rounds=[]; start=0
     ckpt=out/"checkpoint.pt"

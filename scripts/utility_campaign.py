@@ -49,6 +49,7 @@ def cases():
     # Same predefined method; confirmation is not winner-picked on test accuracy.
     for sid,seed in (("S01",43),("S08",43),("S13",43),("S18",43),("S04",43),("S14",43)):
         for mode in ("random","server"):add("confirmation",sid,seed,mode,mode)
+        add("learned",sid,seed,"server-learned","server")
     for mode in ("random","server","peer"):
         add("scale","S14N10",42,mode,mode,k=6)
     return rows
@@ -75,7 +76,7 @@ def build(output):
         d=add("data","generate",ident+"-generate",cfg,[sys.executable,"scripts/generate_streams.py","--regime","clustered","--dataset","cifar100","--seed",str(seed),"--clients",str(spec["clients"]),"--output",str(folder),"--public-probe-per-class",str(PUBLIC_PROBE_PER_CLASS),"--controlled-stream",str(sp),"--download"],[],[folder/"manifest.json"])
         v=add("data","validate",ident+"-validate",cfg,[sys.executable,"scripts/validate_streams.py",str(folder),"--receipt",str(folder/"validation_receipt.json"),"--verify-source"],[d],[folder/"validation_receipt.json",*[folder/"ground_truth"/x for x in ("distributions.npz","specification.json","allocation_index.npz")]])
         data[sid,seed]=(folder,v,cfg,spec)
-    training=[]
+    training=[];calibration_key=None;model_path=root/"analysis"/"utility_model.json"
     for case in cases():
         sid,seed,name=case["setting_id"],case["seed"],case["name"]
         folder,dep,dcfg,spec=data[sid,seed];n=case["clients"];k=case["k"]
@@ -88,6 +89,11 @@ def build(output):
         flags+=case["options"]
         cmd=[sys.executable,"main.py","-data",str(folder),"-m","resnet18","-algo","FedAvg","-tasks","5","-nb","20","-nc",str(n),"-gr","49","-lbs","13","-lr",str(EXPECTED_LR),"-ls","5","-memory_size",str(2500//n),"-memory_batch_size","13","-seed",str(seed),"--sync-er","--sync-memory-profile","uniform","--sync-aggregation","complete","--sync-weighting","current","--sync-local-capture","--sync-policy",case["policy"],"--sync-k",str(k),"--sync-mode","fixed","--sync-threshold",".1","--sync-max-skip","4","--sync-output",str(out),"--sync-checkpoint","--sync-eval-split","validation",*flags]
         dependencies=[dep];source_out=None
+        if case["stage"]=="learned":
+            if calibration_key is None:
+                selected=[source_jobs[s,42,n][0] for s in ("S14","S04") for n in ("server","server-b40","server-b60")]
+                calibration_key=add("calibration","analysis","utility-calibration",{"scope":"utility_calibration","sources":selected},[sys.executable,"scripts/fit_utility.py","--ledger",str(output.resolve()),"--output",str(model_path)],selected,[model_path])
+            dependencies.append(calibration_key);cmd+=["--sync-utility-model",str(model_path)]
         if case["source"]:
             src,source_out=source_jobs[sid,seed,case["source"]]
             dependencies.append(src);cmd+=["--sync-count-schedule",str(source_out/"participation_schedule.json")]
@@ -136,6 +142,7 @@ def verify(job,root,cfg,summary,rounds,metrics,events):
     if receipt!=json.loads((Path(c["data_root"])/"validation_receipt.json").read_text()) or summary["ground_truth_hash"]!=receipt["ground_truth_hash"] or cfg["ground_truth_hash"]!=receipt["ground_truth_hash"]:return False
     manifest=json.loads((truth/"dataset_manifest.json").read_text())
     if manifest["controlled_stream_sha256"]!=c["stream_spec_sha256"] or manifest["manifest_id"]!=cfg["dataset_manifest_id"]:return False
+    if c["stage"]=="learned" and cfg["sync_utility_model_sha256"]!=sha_file(cfg["sync_utility_model"]):return False
     if c["source_output"]:
         src=Path(c["source_output"]);path=src/"participation_schedule.json"
         if cfg["sync_count_schedule_sha256"]!=sha_file(path) or json.loads(path.read_text())!=[len(x["selected"]) for x in rounds]:return False
@@ -183,6 +190,7 @@ def analyze(ledger,out):
             if x["mode"] not in ("random","off") or x["name"].startswith(("fresh-","stale-")):
                 ref="random-b"+str(int(x["budget"]*100)) if x["budget"] else "random" if x["fresh"] else "stale-random"
                 refs.append(ref)
+            if x["name"]=="server-learned":refs.append("server")
             if x["name"].startswith("fresh-") and (*key,x["name"].replace("fresh-","stale-")) in by_id:refs.append(x["name"].replace("fresh-","stale-"))
             if x["name"]=="random" and (*key,"stale-random") in by_id:refs.append("stale-random")
             if x["budget"] and x["mode"]!="random":refs.append(x["name"]+"-count")

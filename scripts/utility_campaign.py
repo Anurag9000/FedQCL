@@ -26,12 +26,15 @@ def cases():
             add("development",sid,42,mode,mode)
         add("development",sid,42,"full",policy="full",k=5)
         add("aggregation",sid,42,"stale-random",policy="random",fresh=False)
+        add("aggregation",sid,42,"delta-random",policy="random",fresh=False,options=["--sync-delta-aggregation"])
         for mech,selector in FINALISTS.items():
             entry=next(x for x in read_core_signal_entries() if x["id"]==selector)
             add("aggregation",sid,42,"fresh-"+selector,policy=entry["policy"],options=entry["flags"])
             # The archive is a historical reference, but rerun matched stale controls
             # to avoid relying on different source revisions or incomplete artifacts.
-            if mech=="M2":add("aggregation",sid,42,"stale-"+selector,policy=entry["policy"],fresh=False,options=entry["flags"])
+            if mech=="M2":
+                add("aggregation",sid,42,"stale-"+selector,policy=entry["policy"],fresh=False,options=entry["flags"])
+                add("aggregation",sid,42,"delta-"+selector,policy=entry["policy"],fresh=False,options=[*entry["flags"],"--sync-delta-aggregation"])
         for budget in (.4,.6):
             for mode in ("random","server","local","peer"):
                 name=f"{mode}-b{int(budget*100)}"
@@ -44,7 +47,7 @@ def cases():
         ("fp16",["--sync-utility-precision","fp16"]),("int8",["--sync-utility-precision","int8"]),
         ("small-sketch",["--sync-sketch-dim","256"]),("large-sketch",["--sync-sketch-dim","2048"]),
         ("skip2",["--sync-max-skip","2"]),("skip8",["--sync-max-skip","8"]),
-        ("horizon3",["--sync-counterfactual-horizon","3"])):
+        ("horizon3",["--sync-counterfactual-horizon","3"]),("proxy",["--sync-utility-proxy"]),("adaptive-precision",["--sync-utility-adaptive-precision"])):
         add("ablation","S14",42,"server-"+label,"server",options=options)
     # Same predefined method; confirmation is not winner-picked on test accuracy.
     for sid,seed in (("S01",43),("S08",43),("S13",43),("S18",43),("S04",43),("S14",43)):
@@ -62,7 +65,7 @@ def build(output):
     if lr["learning_rate"]!=EXPECTED_LR or shortlist["finalists"]!=FINALISTS:raise ValueError("archive reference contract")
     jobs=[];root=ROOT/"research_results"/("utility-"+commit[:12])
     def add(stage,kind,ident,cfg,cmd,deps,artifacts):
-        identity={k:v for k,v in cfg.items() if k not in ("data_root","source_output")}
+        identity={k:v for k,v in cfg.items() if k not in ("data_root","source_output","expected_flags","source_jobs")}
         key=hashlib.sha256(json.dumps([kind,ident,commit,identity],sort_keys=True).encode()).hexdigest()[:16]
         jobs.append(dict(id=key,semantic_id=ident,stage=stage,kind=kind,config=cfg,command=cmd,dependencies=list(deps),artifacts=list(map(str,artifacts)),source_commit=commit,schema=2))
         return key
@@ -92,14 +95,14 @@ def build(output):
         if case["stage"]=="learned":
             if calibration_key is None:
                 selected=[source_jobs[s,42,n][0] for s in ("S14","S04") for n in ("server","server-b40","server-b60")]
-                calibration_key=add("calibration","analysis","utility-calibration",{"scope":"utility_calibration","sources":selected},[sys.executable,"scripts/fit_utility.py","--ledger",str(output.resolve()),"--output",str(model_path)],selected,[model_path])
+                calibration_key=add("calibration","analysis","utility-calibration",{"scope":"utility_calibration","sources":selected,"source_jobs":[j for j in jobs if j["id"] in selected]},[sys.executable,"scripts/fit_utility.py","--ledger",str(output.resolve()),"--output",str(model_path)],selected,[model_path])
             dependencies.append(calibration_key);cmd+=["--sync-utility-model",str(model_path)]
         if case["source"]:
             src,source_out=source_jobs[sid,seed,case["source"]]
             dependencies.append(src);cmd+=["--sync-count-schedule",str(source_out/"participation_schedule.json")]
         # Record the actual CLI values for validation, including override flags.
         resolved={}
-        bools={x[2:].replace("-","_") for x in CORE_RUNTIME_FLAGS}|{"sync_fresh_start","sync_all_subsets","sync_native_space","sync_er","sync_local_capture","sync_checkpoint"}
+        bools={x[2:].replace("-","_") for x in CORE_RUNTIME_FLAGS}|{"sync_fresh_start","sync_all_subsets","sync_native_space","sync_er","sync_local_capture","sync_checkpoint","sync_delta_aggregation","sync_utility_proxy","sync_utility_adaptive_precision"}
         for i,arg in enumerate(cmd):
             if arg.startswith("--sync-"):
                 field=arg[2:].replace("-","_")
@@ -151,7 +154,12 @@ def verify(job,root,cfg,summary,rounds,metrics,events):
     if c["budget"] and any(d["deadline_cap_violations"] for d in decisions):return False
     cf=rows(root/"counterfactuals.jsonl")
     if set(x["round"] for x in cf)!=set(c["counterfactual_rounds"]):return False
-    if c["all_subsets"] and len(cf)!=len(c["counterfactual_rounds"])*2**n:return False
+    if c["all_subsets"]:
+        from itertools import combinations
+        expected={s for k in range(n+1) for s in combinations(range(n),k)}
+        if len(cf)!=len(c["counterfactual_rounds"])*2**n or any({tuple(x["subset"]) for x in cf if x["round"]==r}!=expected for r in c["counterfactual_rounds"]):return False
+    audit=json.loads((root/"analysis/ground_truth_comparison.json").read_text())
+    if audit["ground_truth_hash"]!=receipt["ground_truth_hash"] or len(audit["rounds"])!=c["rounds"] or set(x["round"] for x in audit["counterfactuals"])!=set(c["counterfactual_rounds"]):return False
     held=json.loads((root/"heldout_test_metrics.json").read_text())
     if held["evaluation_split"]!="test" or held["ground_truth_hash"]!=receipt["ground_truth_hash"] or sum(x["count"] for x in held["rows"])!=10000 or len(held["rows"])!=5:return False
     if summary["test_final_accuracy"]!=mean(x["accuracy"] for x in held["rows"]) and not math.isclose(summary["test_final_accuracy"],mean(x["accuracy"] for x in held["rows"]),abs_tol=1e-12):return False
@@ -191,6 +199,8 @@ def analyze(ledger,out):
                 ref="random-b"+str(int(x["budget"]*100)) if x["budget"] else "random" if x["fresh"] else "stale-random"
                 refs.append(ref)
             if x["name"]=="server-learned":refs.append("server")
+            if x["name"].startswith("delta-"):
+                refs.extend(["stale-"+x["name"][6:],"random" if x["name"]=="delta-random" else "fresh-"+x["name"][6:]])
             if x["name"].startswith("fresh-") and (*key,x["name"].replace("fresh-","stale-")) in by_id:refs.append(x["name"].replace("fresh-","stale-"))
             if x["name"]=="random" and (*key,"stale-random") in by_id:refs.append("stale-random")
             if x["budget"] and x["mode"]!="random":refs.append(x["name"]+"-count")

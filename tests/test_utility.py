@@ -37,3 +37,10 @@ class Utility(unittest.TestCase):
         cal=[dict(x,group="held") for x in train]
         self.assertTrue(fit(train,cal)["qualified"])
         with self.assertRaises(ValueError):fit(train,train)
+
+    def test_adaptive_precision_causal(self):
+        from flcore.sync.utility import precision_for
+        a=self.args(sync_sketch_dim=1024,sync_utility_precision="fp32")
+        self.assertEqual(precision_for(a,[]),("fp32",1024))
+        self.assertEqual(precision_for(a,[{"utility":{"reason":"utility"}}]),("int8",256))
+        self.assertEqual(precision_for(a,[{"utility":{"reason":"missing_evidence"}}]),("fp32",1024))

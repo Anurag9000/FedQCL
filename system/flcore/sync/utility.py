@@ -17,6 +17,22 @@ def encode_vector(v,precision):
     dtype={"fp64":np.float64,"fp32":np.float32,"fp16":np.float16}[precision]
     return {"counts":x.astype(dtype).astype(float).tolist(),"labels":[],"schema":1,"metric":"utility","utility_precision":precision}
 
+def precision_for(a,prior):
+    # Only previous decisions influence the next requested representation.
+    reason=prior[-1].get("utility",{}).get("reason") if prior else None
+    return ("int8",min(256,a.sync_sketch_dim)) if reason=="utility" else (a.sync_utility_precision,a.sync_sketch_dim)
+
+def proxy_gradient(x,y,task,classes,total,ex):
+    """Common zero-logit classifier head on deterministic pooled input features."""
+    import torch
+    z=torch.nn.functional.adaptive_avg_pool2d(x,(4,4)).flatten(1)
+    z=torch.cat((z,torch.ones((len(z),1),device=z.device)),dim=1)
+    z=z/z.norm(dim=1,keepdim=True).clamp_min(1.)
+    error=torch.full((len(z),total),1/total,device=z.device)
+    error[torch.arange(len(z),device=z.device),y+task*classes]-=1
+    grad=error.T@z/len(z)
+    return np.asarray(ex.sketch([("common_fixed_head",grad)]),float)
+
 def probe(ex,c,data,t,r,version,mode):
     start=time.monotonic()
     cost={"forward_examples":0,"backward_examples":0,"seconds":0.,"quantization_l2":0.,"replay_loss_by_task":{},"replay_loss_change_by_task":{}}
@@ -42,10 +58,13 @@ def probe(ex,c,data,t,r,version,mode):
         for bx,by in zip(x.split(c.batch_size),y.split(c.batch_size)):
             value=torch.nn.functional.cross_entropy(m(bx,k),by,reduction="sum")/len(x)
             loss+=float(value.detach());cost["forward_examples"]+=len(bx)
-            if mode!="loss":value.backward();cost["backward_examples"]+=len(bx)
+            if mode!="loss" and not ex.args.sync_utility_proxy:value.backward();cost["backward_examples"]+=len(bx)
         losses[str(k)]=loss;support[str(k)]=len(x)
         if mode!="loss":
-            v=np.asarray(ex.sketch((n,p.grad) for n,p in m.named_parameters() if p.grad is not None),float)
+            if ex.args.sync_utility_proxy:
+                v=proxy_gradient(x,y,k,c.classes_per_task,c.num_tasks*c.classes_per_task,ex)
+                cost["proxy_examples"]=cost.get("proxy_examples",0)+len(x)
+            else:v=np.asarray(ex.sketch((n,p.grad) for n,p in m.named_parameters() if p.grad is not None),float)
             # Clip sketch norm before encoding, without altering training.
             v*=min(1.,10/max(1e-12,np.linalg.norm(v)))
             gradients[str(k)]=encode_vector(v,ex.args.sync_utility_precision)
@@ -219,7 +238,7 @@ def verify_decisions(config,rounds,decisions,events):
         for e in re:
             if e["phase"]!="observe":continue
             before+=e["serialized_bytes"]
-            if e["kind"].startswith("UTILITY_"):
+            if e["kind"] in ("UTILITY_SCALAR","UTILITY_REPORT","UTILITY_PEER_REPORT"):
                 payload=unpack(base64.b64decode(e["encoded_envelope_b64"]))["payload"];i=e["sender"]
                 expected=local_score(reports[i],a,version) if e["kind"]=="UTILITY_SCALAR" else reports[i]
                 if payload!=expected:raise ValueError("utility report mismatch")
@@ -228,7 +247,13 @@ def verify_decisions(config,rounds,decisions,events):
         kind={"local":"UTILITY_SCALAR","loss":"UTILITY_SCALAR","server":"UTILITY_REPORT","peer":"UTILITY_PEER_REPORT"}.get(a.sync_utility)
         expected=[(i,j) for i in ids for j in ids if i!=j] if a.sync_utility=="peer" else [(i,"server") for i in ids] if kind else []
         actual=[(e["sender"],e["receiver"]) for e in re if e["kind"]==kind]
-        if sorted(actual)!=sorted(expected) or any(e["kind"].startswith("UTILITY_") and (e["kind"]!=kind or e["phase"]!="observe") for e in re):raise ValueError("utility telemetry transaction roster")
+        if sorted(actual)!=sorted(expected) or any(e["kind"] in ("UTILITY_SCALAR","UTILITY_REPORT","UTILITY_PEER_REPORT") and (e["kind"]!=kind or e["phase"]!="observe") for e in re):raise ValueError("utility telemetry transaction roster")
+        requests=[e for e in re if e["kind"]=="UTILITY_PRECISION"]
+        if getattr(a,"sync_utility_adaptive_precision",False):
+            precision,dim=precision_for(a,decisions[:r]);expected_request={"precision":precision,"dimension":dim}
+            if sorted(e["receiver"] for e in requests)!=list(ids) or any(e["sender"]!="server" or e["phase"]!="observe" or unpack(base64.b64decode(e["encoded_envelope_b64"]))["payload"]!=expected_request for e in requests):raise ValueError("adaptive precision request")
+            if any(v["utility_precision"]!=precision or len(v["counts"])!=dim for x in reports.values() if x for v in x["gradient"].values()):raise ValueError("adaptive precision payload")
+        elif requests:raise ValueError("unexpected precision control")
         if kind and set(view)!=set(ids):raise ValueError("utility telemetry roster")
         if a.sync_utility=="peer":
             elections=[e for e in re if e["kind"]=="ELECTION_RESULT"]

@@ -49,8 +49,7 @@ retention, uncertainty, precision, sketch dimension, deadline and horizon.
 Prespecified independent seed and setting confirmations and a 10-client
 scale check are included. The primary claims are empirical, not guaranteed.
 
-Limitations: this revision does not fit an archive-trained predictor directly (old reports lack the new causal features), use a shared lightweight proxy, implement delta aggregation,
-measure physical networks, or implement adaptive report resizing. The
+Limitations: this revision does not fit an archive-trained predictor directly (old reports lack the new causal features), measure physical networks, or implement trained shared proxy refresh. The
 analytical risk penalty is not a calibrated confidence interval. The hard
 cap reserve is intentionally conservative. The utility probes do not modify
 local training but cost additional compute; local samples may differ at
@@ -60,3 +59,5 @@ streams must pass independent verification. No production results are
 asserted by the ledger.
 
 The new M2 calibration job fits a frozen six-feature ridge model on three S14 seed-42 analytical development trajectories and qualifies it using three separate S04 trajectories. It consumes validation counterfactual outcomes only, never held-out test metrics. Six seed-43 learned-policy runs depend on the model receipt; if the held-setting ranking fails qualification, the learned policy falls back to randomized selection. The empirical residual is not a statistical confidence guarantee. The original archive supplies LR and finalist identities, not new-probe training features.
+
+The separate delta ablation applies sample-weighted floating-state displacements to the latest server state, with nonnegative running variances and max integer counters; dense upload size is unchanged. It is not vanilla FedAvg. The common classifier-head proxy is a zero-logit head on deterministic pooled image features, not a learned global reference; it is a causal diagnostic for common coordinates. Adaptive precision uses only the previous decision reason, requests INT8/256 dimensions after a confident utility decision and otherwise the default FP32/1024; request messages are charged. These are single-factor sensitivity studies, not proven improvements.

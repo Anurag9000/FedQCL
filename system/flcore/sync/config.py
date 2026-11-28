@@ -41,6 +41,9 @@ def add_arguments(parser):
     p.add_argument("--sync-utility-risk",type=float,default=.1)
     p.add_argument("--sync-utility-gate",type=float,default=.01)
     p.add_argument("--sync-utility-retention",type=float,default=.05)
+    p.add_argument("--sync-delta-aggregation",action="store_true",help="Separate stale-base delta ablation, not ordinary FedAvg")
+    p.add_argument("--sync-utility-proxy",action="store_true",help="Common fixed classifier-head proxy instead of native gradients")
+    p.add_argument("--sync-utility-adaptive-precision",action="store_true")
     p.add_argument("--sync-utility-model",help="Frozen qualified offline model, M2 only")
     p.add_argument("--sync-utility-precision",choices=["fp64","fp32","fp16","int8"],default="fp32")
     p.add_argument("--sync-local-capture",action="store_true",default=True)
@@ -97,6 +100,10 @@ def validate(a):
     fresh=getattr(a,"sync_fresh_start",False);utility=getattr(a,"sync_utility","off")
     if fresh and (not a.sync_controlled_stream or not a.sync_bandwidth_audit or a.sync_refresh or a.sync_posttrain or a.sync_failures):
         raise ValueError("fresh-start requires reliable audited controlled pretraining")
+    if getattr(a,"sync_delta_aggregation",False) and (fresh or utility!="off" or not a.sync_bandwidth_audit or not a.sync_controlled_stream or a.sync_refresh):
+        raise ValueError("delta aggregation is a separate reliable stale-base ablation")
+    if (getattr(a,"sync_utility_proxy",False) or getattr(a,"sync_utility_adaptive_precision",False)) and utility not in ("server","peer"):
+        raise ValueError("proxy and adaptive precision require collective telemetry")
     if utility!="off":
         expected={"local":"own","loss":"own","server":"server","peer":"peer","balanced":"random","random":"random"}
         if a.sync_utility_model and utility!="server":raise ValueError("learned utility model requires server telemetry")

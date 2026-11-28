@@ -145,6 +145,11 @@ class Training(unittest.TestCase):
                 rr=[json.loads(l) for l in (u/"rounds.jsonl").read_text().splitlines()]
                 self.assertTrue(all(x["fresh_start"] and all(v==x["version"]-bool(x["accepted"]) for v in x["start_versions"].values()) for x in rr))
                 self.assertEqual(json.loads((u/"status.json").read_text())["status"],"completed")
+            for name,policy,extra in (("B-fresh-budget","server",["--sync-utility","server","--sync-bank-reference","aggregate","--sync-utility-budget",".6"]),("B-fresh-compressed","peer",["--sync-utility","peer","--sync-utility-adaptive-precision","--sync-utility-proxy"]),("B-delta","random",["--sync-delta-aggregation"])):
+                flags=["--sync-windowed","--sync-controlled-stream","--sync-audit-references","--sync-counterfactual","--sync-eval-split","validation","--sync-charge-control","--sync-bandwidth-audit","--sync-sketch-dim","16"]
+                if name!="B-delta":flags+=["--sync-fresh-start"]
+                u=run(name,policy,flags+extra)
+                self.assertEqual(json.loads((u/"status.json").read_text())["status"],"completed")
             # Both controls consume the source schedule without looking at reports.
             source=tmp/"A06-M1-threshold"
             from flcore.sync.matched_budget import verify_match

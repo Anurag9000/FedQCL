@@ -55,6 +55,7 @@ def audit(events,rounds,schema,clients,policy=None):
         if kind in MODEL and decoded["payload"].get("schema")!=schema["id"]:raise ValueError("model schema reference mismatch")
         if kind=="MODEL_UPLOAD":
             row=rounds[r];i=e["sender"];counts=row["supplied_samples"];versions=row.get("start_versions",{})
+            if (decoded["payload"].get("body")=="delta")!=bool(row.get("delta_aggregation")):raise ValueError("upload body semantics")
             if decoded["payload"]["sample_count"]!=counts.get(i,counts.get(str(i))) or decoded["payload"]["start_version"]!=versions.get(i,versions.get(str(i))) or not decoded["payload"]["accepted"]:raise ValueError("model upload metadata")
         if kind=="MODEL_DOWNLOAD":
             expected=rounds[r]["version"]-bool(rounds[r]["accepted"]) if rounds[r].get("fresh_start") else rounds[r]["version"]

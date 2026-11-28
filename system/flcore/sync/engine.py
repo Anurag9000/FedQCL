@@ -104,6 +104,8 @@ class ResearchClient:
 
     def train_round(self,r,task,dataset):
         self.active_round=r
+        if getattr(self.research_args,"sync_delta_aggregation",False):
+            self.delta_base={k:v.detach().cpu().clone() for k,v in self.model.state_dict().items()}
         loader=self.prepare_training(task,r,dataset)
         self.replay_samples=0;self.replay_by_task={}
         self.optimizer_steps=0;self.current_samples=0
@@ -161,6 +163,9 @@ def model_bytes(model,complete):
 
 def aggregate(global_model,clients,weights,complete):
     if not complete:raise ValueError("research requires complete-state FedAvg")
+    if clients and getattr(clients[0].research_args,"sync_delta_aggregation",False):
+        from .delta_ablation import aggregate_delta
+        return aggregate_delta(global_model,clients,weights)
     return fedavg(copy.deepcopy(global_model),clients,weights) if clients else global_model
 
 def download(client,model,complete):
@@ -375,6 +380,11 @@ def run_research(args):
             pre_memory={c.id:{k:np.bincount(np.asarray([int(y)%a.num_classes for _,y in v],dtype=int),minlength=a.num_classes).tolist() for k,v in c.task_memories.items()} for c in clients} if a.sync_controlled_stream else {}
             reports={}; population={}; probe_cost={}; update_starts={}; utility_reports={}
             utility=getattr(a,"sync_utility","off")
+            if getattr(a,"sync_utility_adaptive_precision",False):
+                from .utility import precision_for
+                precision,dim=precision_for(a,ctl.decisions)
+                extractor.args.sync_utility_precision=precision;extractor.args.sync_sketch_dim=dim
+                for i in available:ctl.transport.send(r,"observe","server",i,"UTILITY_PRECISION",{"precision":precision,"dimension":dim})
             for i in available:
                 c=clients[i]
                 if utility!="off":
@@ -477,7 +487,7 @@ def run_research(args):
                     delivered=not fails(r,"upload",i)
                     admitted=delivered and not fails(r,"reject",i)
                     ctl.transport.send(r,"upload",i,"server","MODEL_UPLOAD",
-                                       {"start_version":starts[i],"accepted":admitted,**({"schema":schema["id"],"sample_count":len(datasets[i])} if a.sync_bandwidth_audit else {})},payload,delivered)
+                                       {"start_version":starts[i],"accepted":admitted,**({"schema":schema["id"],"sample_count":len(datasets[i]),**({"body":"delta"} if getattr(a,"sync_delta_aggregation",False) else {})} if a.sync_bandwidth_audit else {})},payload,delivered)
                     if delivered: uploaded.append(i)
                     if admitted: accepted.append(i)
                 outcomes.append({"client":i,"optimizer_steps":c.optimizer_steps,
@@ -564,7 +574,7 @@ def run_research(args):
                            "start_versions":starts,"aggregation_weights":dict(zip(accepted,weights)),"version":ctl.model_version,"outcomes":outcomes,
                            "no_aggregation":not accepted,"population_histograms":population,"probe_cost":probe_cost,"budget":budget_record,
                            "sampled_reports":{i:None if report is None else {"id":report.id,"values":report.counts,"space":report.space,"window":report.window,**(asdict(report) if a.sync_audit_references else {})} for i,report in reports.items()},
-                           "fresh_start":fresh,"utility_reports":utility_reports,
+                           "fresh_start":fresh,"delta_aggregation":getattr(a,"sync_delta_aggregation",False),"utility_reports":utility_reports,
                            "observation_window":r%rpt if a.sync_windowed else None,
                            "counterfactual_seconds":counterfactual_seconds,
                            "pre_memory_class_counts":pre_memory,

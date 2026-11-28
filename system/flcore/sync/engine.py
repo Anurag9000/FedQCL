@@ -370,9 +370,16 @@ def run_research(args):
             if r==0 and len(available)!=a.num_clients:raise RuntimeError("bootstrap availability incomplete")
             datasets={i:clients[i].reveal(t,r) for i in available}
             pre_memory={c.id:{k:np.bincount(np.asarray([int(y)%a.num_classes for _,y in v],dtype=int),minlength=a.num_classes).tolist() for k,v in c.task_memories.items()} for c in clients} if a.sync_controlled_stream else {}
-            reports={}; population={}; probe_cost={}; update_starts={}
+            reports={}; population={}; probe_cost={}; update_starts={}; utility_reports={}
+            utility=getattr(a,"sync_utility","off")
             for i in available:
                 c=clients[i]
+                if utility!="off":
+                    from .utility import probe
+                    population[i]=tuple(np.bincount([int(y)-t*a.num_classes for _,y in datasets[i]],minlength=a.num_classes).tolist())
+                    reports[i]=None
+                    utility_reports[i],probe_cost[i]=probe(extractor,c,datasets[i],t,r,ctl.local[i].model_version,utility)
+                    continue
                 if a.sync_controlled_stream and a.sync_policy in ("full","random","oldest"):
                     # Research-only counts, not a baseline admission signal.
                     population[i]=tuple(np.bincount([int(y)-t*a.num_classes for _,y in datasets[i]],minlength=a.num_classes).tolist())
@@ -392,6 +399,8 @@ def run_research(args):
                 reports[c.id],probe_cost[c.id]["quantization_l2"]=quantize_report(reports[c.id],a.sync_wire_format)
                 if reports[c.id] is not None and a.sync_windowed and reports[c.id].kind!="tier_a_cached_update":
                     reports[c.id]=replace(reports[c.id],window=f"task{t}:window{r%rpt}")
+            if utility!="off":
+                ctl.utility_reports=utility_reports;ctl.utility_schema=schema
             counterfactual_seconds=0.
             budget_record=None
             if a.sync_byte_cap or a.sync_campaign_byte_cap or byte_schedule is not None:
@@ -424,9 +433,16 @@ def run_research(args):
             starts={i:ctl.local[i].model_version for i in selected}
             trained=[]; outcomes=[]; uploaded=[]; accepted=[]; fallback_ids=[]
             training_roster=list(available if a.sync_posttrain else selected)
+            fresh=getattr(a,"sync_fresh_start",False);pre_downloaded=[]
             for i in training_roster:
                 c=clients[i]
                 starts[i]=ctl.local[i].model_version
+                if fresh:
+                    ctl.transport.send(r,"pretrain","server",i,"MODEL_DOWNLOAD",{"version":ctl.model_version,"schema":schema["id"]},payload)
+                    download(c,model,complete_state)
+                    ctl.transport.send(r,"pretrain",i,"server","MODEL_ACK",{"version":ctl.model_version})
+                    ctl.local[i].model_version=ctl.model_version;ctl.local[i].local_revision=0
+                    starts[i]=ctl.model_version;pre_downloaded.append(i)
                 if a.sync_refresh and ctl.local[i].model_version!=ctl.model_version:
                     ctl.transport.send(r,"refresh","server",i,"MODEL_REFRESH",{"version":ctl.model_version,**({"schema":schema["id"]} if a.sync_bandwidth_audit else {})},payload)
                     download(c,model,complete_state)
@@ -501,8 +517,8 @@ def run_research(args):
             if accepted:
                 model=aggregate(model,[clients[i] for i in accepted],weights,complete_state)
                 ctl.model_version+=1
-            downloaded=[]
-            for i in accepted:
+            downloaded=pre_downloaded if fresh else []
+            for i in (() if fresh else accepted):
                 delivered=not fails(r,"download",i)
                 ctl.transport.send(r,"download","server",i,"MODEL_DOWNLOAD",{"version":ctl.model_version,**({"schema":schema["id"]} if a.sync_bandwidth_audit else {})},payload,delivered)
                 if delivered:
@@ -510,6 +526,9 @@ def run_research(args):
                     downloaded.append(i)
                     if a.sync_bandwidth_audit:ctl.transport.send(r,"download",i,"server","MODEL_ACK",{"version":ctl.model_version})
             ctl.complete(r,reports,accepted,downloaded,uploaded,ingested=True)
+            if utility!="off":
+                from .utility import check_budget
+                check_budget(ctl,r)
             if budget_record is not None:
                 actual_bytes=sum(x["serialized_bytes"] for x in ctl.transport.events)-before_bytes
                 budget_record["actual_bytes"]=actual_bytes
@@ -542,6 +561,7 @@ def run_research(args):
                            "start_versions":starts,"aggregation_weights":dict(zip(accepted,weights)),"version":ctl.model_version,"outcomes":outcomes,
                            "no_aggregation":not accepted,"population_histograms":population,"probe_cost":probe_cost,"budget":budget_record,
                            "sampled_reports":{i:None if report is None else {"id":report.id,"values":report.counts,"space":report.space,"window":report.window,**(asdict(report) if a.sync_audit_references else {})} for i,report in reports.items()},
+                           "fresh_start":fresh,"utility_reports":utility_reports,
                            "observation_window":r%rpt if a.sync_windowed else None,
                            "counterfactual_seconds":counterfactual_seconds,
                            "pre_memory_class_counts":pre_memory,
@@ -601,7 +621,7 @@ def run_research(args):
             verify_decisions(config,rounds,ctl.decisions,ctl.transport.events)
             comm,by_round,by_client=audit(ctl.transport.events,rounds,schema,a.num_clients,a.sync_policy)
             write_artifacts(out,comm,by_round,by_client)
-            if a.sync_policy in ("own","server","peer") and not a.sync_refresh:
+            if a.sync_policy in ("own","server","peer") and not a.sync_refresh and not getattr(a,"sync_fresh_start",False):
                 from .matched_budget import write_plan
                 write_plan(out,rounds,by_round,schema,a.seed,a.sync_max_skip,a.num_clients)
             summary.update({k:comm[k] for k in ("model_bytes","statistics_bytes","control_bytes","upload_bytes","download_bytes","peer_bytes","model_tensor_bytes","statistic_vector_bytes","full_model_payload_bytes","model_uploads","model_downloads","initial_downloads","model_refreshes","skipped_client_rounds","no_aggregation_rounds","mean_participants","participation_fraction")})

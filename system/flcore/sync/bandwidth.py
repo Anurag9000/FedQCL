@@ -3,7 +3,7 @@ import hashlib,json,base64
 from .wire import unpack,binary_vector_bytes
 from pathlib import Path
 MODEL={"MODEL_INITIAL","MODEL_UPLOAD","MODEL_DOWNLOAD","MODEL_REFRESH"}
-STAT={"STAT_REPORT","BANK_AGGREGATE","BANK_DELTA","BANK_SNAPSHOT","PEER_STAT_REPORT","PEER_ROSTER","PEER_RECOVERY_REPORT","PEER_RECOVERY_ROSTER","GRADIENT_PROBE"}
+STAT={"STAT_REPORT","BANK_AGGREGATE","BANK_DELTA","BANK_SNAPSHOT","PEER_STAT_REPORT","PEER_ROSTER","PEER_RECOVERY_REPORT","PEER_RECOVERY_ROSTER","GRADIENT_PROBE","UTILITY_REPORT","UTILITY_PEER_REPORT","UTILITY_SCALAR"}
 ARTIFACTS=("model_wire_schema.json","communication_summary.json","communication_rounds.jsonl","communication_clients.jsonl","participation_schedule.json")
 def category(kind):
     return "model" if kind in MODEL else "statistics" if kind in STAT else "control"
@@ -56,7 +56,10 @@ def audit(events,rounds,schema,clients,policy=None):
         if kind=="MODEL_UPLOAD":
             row=rounds[r];i=e["sender"];counts=row["supplied_samples"];versions=row.get("start_versions",{})
             if decoded["payload"]["sample_count"]!=counts.get(i,counts.get(str(i))) or decoded["payload"]["start_version"]!=versions.get(i,versions.get(str(i))) or not decoded["payload"]["accepted"]:raise ValueError("model upload metadata")
-        if kind=="MODEL_DOWNLOAD" and decoded["payload"]["version"]!=rounds[r]["version"]:raise ValueError("download version")
+        if kind=="MODEL_DOWNLOAD":
+            expected=rounds[r]["version"]-bool(rounds[r]["accepted"]) if rounds[r].get("fresh_start") else rounds[r]["version"]
+            if decoded["payload"]["version"]!=expected:raise ValueError("download version")
+            if rounds[r].get("fresh_start") and e["phase"]!="pretrain":raise ValueError("fresh download phase")
         if kind=="ADMISSION_REQUEST" and e.get("scalar_admission_score",False)!=(decoded["payload"].get("score") is not None):raise ValueError("scalar score accounting")
         for endpoint in ("sender","receiver"):
             i=e[endpoint]
@@ -82,11 +85,18 @@ def audit(events,rounds,schema,clients,policy=None):
             for k,d in (("ROUND_CLOCK",[("server",i) for i in ids]),("AVAILABILITY",[(i,"server") for i in ids]),("AVAILABLE_ROSTER",[("server",i) for i in ids])):
                 if set(controls[r].get(k,[]))!=set(d) or len(controls[r].get(k,[]))!=len(d):raise ValueError("missing/duplicate common control")
             if sorted(controls[r].get("ADMISSION_RESPONSE",[]))!=sorted(("server",i) for i in selected):raise ValueError("admission response roster")
-            if policy in ("own","full","random","oldest") and b["statistics_bytes"]:raise ValueError("unexpected statistics delivery")
-            if policy=="peer":
+            utility=bool(row.get("utility_reports"))
+            if row.get("fresh_start"):
+                prior=row["version"]-bool(row["accepted"])
+                if any(v!=prior for v in row["start_versions"].values()):raise ValueError("stale start")
+                for i in selected:
+                    timeline=[e["kind"] for e in events if e["round"]==r and i in (e["sender"],e["receiver"]) and e["kind"] in ("MODEL_DOWNLOAD","MODEL_ACK","MODEL_UPLOAD")]
+                    if timeline!=["MODEL_DOWNLOAD","MODEL_ACK","MODEL_UPLOAD"]:raise ValueError("fresh transfer order")
+            if not utility and policy in ("own","full","random","oldest") and b["statistics_bytes"]:raise ValueError("unexpected statistics delivery")
+            if policy=="peer" and not utility:
                 if sorted(controls[r].get("PEER_STAT_REPORT",[]))!=sorted((i,j) for i in ids for j in ids if i!=j):raise ValueError("peer fanout")
                 if sorted(controls[r].get("ELECTION_RESULT",[]))!=sorted((i,"server") for i in ids):raise ValueError("peer election roster")
-            if policy=="server":
+            if policy=="server" and not utility:
                 reports=row["sampled_reports"]
                 expected=[(i,"server") for i in selected if reports.get(i,reports.get(str(i))) is not None]
                 if sorted(controls[r].get("STAT_REPORT",[]))!=sorted(expected):raise ValueError("server report roster")

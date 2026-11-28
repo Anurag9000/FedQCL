@@ -195,6 +195,9 @@ class Controller:
             for i in ids:self.transport.send(r,"observe","server",i,"AVAILABLE_ROSTER",{"clients":ids,**({"last_sync":{j:self.local[j].last_sync for j in ids}} if peer and getattr(a,"sync_bandwidth_audit",False) else {})})
         last = {i:self.local[i].last_sync for i in ids}
         due = due_clients(ids,last,r,a.sync_max_skip)
+        if getattr(a,"sync_utility","off")!="off":
+            from .utility import decide
+            return decide(self,r,ids,last,due)
         threshold = threshold_value(a.sync_threshold)
         if getattr(a,"sync_dynamic_threshold",False) and self.score_history:
             from statistics import median
@@ -389,6 +392,7 @@ class Controller:
     def ingest_uploads(self,r,reports,accepted,uploaded):
         policy=self.args.sync_policy
         uses_bank=policy in ("server","combined12","combined23","combined123")
+        if getattr(self.args,"sync_utility","off")!="off":return
         if (uses_bank and self.args.sync_delivery!="telemetry") or policy in ("cached","update_match","adaptive"):
             arrived={}
             for i in uploaded:
@@ -403,6 +407,16 @@ class Controller:
         complete=set(accepted)&set(downloaded)
         policy=self.args.sync_policy
         uses_bank=policy in ("server","combined12","combined23","combined123")
+        if getattr(self.args,"sync_fresh_start",False):
+            # The physical download preceded training; the client still holds its
+            # local post-training state based on the previous global version.
+            if getattr(self.args,"sync_utility","off")=="off" and uses_bank:self.deliver_bank(r,downloaded,"reference")
+            for i in complete:
+                self.local[i].last_sync=r;self.local[i].last_report=reports.get(i)
+            if policy=="peer" and getattr(self.args,"sync_utility","off")=="off":
+                self.decisions[-1]["accepted_coverage"]=coverage(self.ids,accepted,reports,threshold_value(self.args.sync_threshold))
+            self.decisions[-1].update(accepted=list(accepted),downloaded=list(downloaded),complete=sorted(complete),model_version=self.model_version)
+            return complete
         if not ingested:
             self.ingest_uploads(r,reports,accepted,uploaded)
         if uses_bank and self.args.sync_delivery!="telemetry":

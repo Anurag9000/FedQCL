@@ -17,7 +17,7 @@ def update_geometry(server,clients,candidates,ctl):
             for start in range(0,common[key].numel(),65536):
                 block=[]
                 for i in range(n):
-                    base=common[key] if ctl.args.sync_refresh and ctl.local[i].model_version!=ctl.model_version else before[i][key]
+                    base=common[key] if (getattr(ctl.args,'sync_fresh_start',False) or (ctl.args.sync_refresh and ctl.local[i].model_version!=ctl.model_version)) else before[i][key]
                     a=after[i][key].detach().reshape(-1)[start:start+65536].cpu().double()
                     b=base.detach().reshape(-1)[start:start+65536].cpu().double()
                     block.append(a-b)
@@ -62,7 +62,7 @@ def analyze(server,clients,datasets,task,r,ctl,actual,loaders,complete,device,cl
         for original in clients:
             c=copy.deepcopy(original)
             i=c.id
-            if ctl.args.sync_refresh and ctl.local[i].model_version!=ctl.model_version:
+            if (getattr(ctl.args,'sync_fresh_start',False) or (ctl.args.sync_refresh and ctl.local[i].model_version!=ctl.model_version)):
                 download(c,server,complete)
             c.train_round(r,task,datasets[i])
             candidates.append(c)
@@ -88,7 +88,7 @@ def analyze(server,clients,datasets,task,r,ctl,actual,loaders,complete,device,cl
                 explicit=[]
                 for i in s:
                     c=copy.deepcopy(clients[i])
-                    if ctl.args.sync_refresh and ctl.local[i].model_version!=ctl.model_version:download(c,server,complete)
+                    if (getattr(ctl.args,'sync_fresh_start',False) or (ctl.args.sync_refresh and ctl.local[i].model_version!=ctl.model_version)):download(c,server,complete)
                     c.train_round(r,task,datasets[i]);explicit.append(c)
                 alternative=aggregate(server,explicit,weights,complete) if s else copy.deepcopy(server)
                 if not all(torch.equal(v,alternative.state_dict()[k]) for k,v in m.state_dict().items()):

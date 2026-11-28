@@ -16,6 +16,9 @@ def report(x):
     if "id" in x and x["id"]!=v.id:raise ValueError("report identity")
     return v
 def verify_decisions(config,rounds,decisions,events):
+    if config.get("sync_utility","off")!="off":
+        from .utility import verify_decisions as verify_utility
+        return verify_utility(config,rounds,decisions,events)
     ids=tuple(range(config["num_clients"]));last={i:-1 for i in ids};references={i:None for i in ids}
     bank={i:() for i in ids};versions={i:0 for i in ids};model_version=0
     by_round={}

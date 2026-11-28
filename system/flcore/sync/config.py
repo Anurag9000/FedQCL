@@ -30,6 +30,18 @@ def add_arguments(parser):
     p.add_argument("--sync-eval-split",choices=["validation","test"],default="test")
     p.add_argument("--sync-output",default="research_results")
     p.add_argument("--sync-refresh",action="store_true")
+    p.add_argument("--sync-fresh-start",action="store_true",help="Download current global model before selected training, not afterwards")
+    p.add_argument("--sync-utility",choices=["off","local","server","peer","loss","balanced","random"],default="off")
+    p.add_argument("--sync-utility-budget",type=float,default=0.,help="Prospective logical byte ceiling as fraction of dense full exchange reference")
+    p.add_argument("--sync-utility-price",type=float,default=.015)
+    p.add_argument("--sync-utility-past",type=float,default=1.)
+    p.add_argument("--sync-utility-mass",type=float,default=.1)
+    p.add_argument("--sync-utility-match",type=float,default=.1)
+    p.add_argument("--sync-utility-fair",type=float,default=.05)
+    p.add_argument("--sync-utility-risk",type=float,default=.1)
+    p.add_argument("--sync-utility-gate",type=float,default=.01)
+    p.add_argument("--sync-utility-retention",type=float,default=.05)
+    p.add_argument("--sync-utility-precision",choices=["fp64","fp32","fp16","int8"],default="fp32")
     p.add_argument("--sync-local-capture",action="store_true",default=True)
     p.add_argument("--sync-balanced-sampler",action="store_true")
     p.add_argument("--sync-queue-mode",choices=["native","sample_mean"],default="native")
@@ -80,6 +92,18 @@ def add_arguments(parser):
 def validate(a):
     if a.sync_policy=="legacy":
         return
+    import math
+    fresh=getattr(a,"sync_fresh_start",False);utility=getattr(a,"sync_utility","off")
+    if fresh and (not a.sync_controlled_stream or not a.sync_bandwidth_audit or a.sync_refresh or a.sync_posttrain or a.sync_failures):
+        raise ValueError("fresh-start requires reliable audited controlled pretraining")
+    if utility!="off":
+        expected={"local":"own","loss":"own","server":"server","peer":"peer","balanced":"random","random":"random"}
+        if not fresh or a.sync_policy!=expected[utility] or a.num_clients>10 or a.sync_wire_format!="binary" or a.sync_count_schedule:
+            raise ValueError("utility protocol requires fresh audited start, compatible mechanism and <=10 clients")
+        if not 0<=a.sync_utility_budget<=1 or not 1<=a.sync_sketch_dim<=4096 or a.sync_observation_size>128:
+            raise ValueError("utility budget/probe bounds")
+        if any(not math.isfinite(x) or x<0 for x in (a.sync_utility_price,a.sync_utility_past,a.sync_utility_mass,a.sync_utility_match,a.sync_utility_fair,a.sync_utility_risk,a.sync_utility_gate,a.sync_utility_retention)):
+            raise ValueError("invalid utility coefficients")
     if a.hide_one_client or a.hidden_clients_per_round:
         raise ValueError("research policies and legacy hiding are mutually exclusive")
     if a.model!="resnet18" or a.algorithm!="FedAvg" or a.times!=1 or a.prev!=0:

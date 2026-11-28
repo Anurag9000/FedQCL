@@ -18,7 +18,10 @@ def continue_branch(server,originals,candidates,datasets,controller,subset,r,tas
     version=controller.model_version+bool(subset)
     held={i:controller.local[i].model_version for i in range(len(clients))}
     last={i:controller.local[i].last_sync for i in range(len(clients))}
-    for i in subset:download(clients[i],model,complete);held[i]=version;last[i]=r
+    for i in subset:
+        if not getattr(args,"sync_fresh_start",False):download(clients[i],model,complete);held[i]=version
+        else:held[i]=version-1
+        last[i]=r
     rpt=(args.global_rounds+1)//args.tasks
     if (r+1)%rpt==0:
         for i in set(range(len(clients)))-selected:clients[i].capture(task,r,datasets[i])
@@ -45,12 +48,14 @@ def continue_branch(server,originals,candidates,datasets,controller,subset,r,tas
         roster=baseline_select(policy,ids,due_clients(ids,last,rr,args.sync_max_skip),last,min(args.sync_k,len(ids)),args.seed,rr)
         for i in roster:
             c=clients[i]
-            if args.sync_refresh and held[c.id]!=version:
+            if getattr(args,"sync_fresh_start",False) or (args.sync_refresh and held[c.id]!=version):
                 download(c,model,complete);held[c.id]=version
             c.train_round(rr,tt,available[c.id])
         weights=aggregation_weights(args,clients,available,roster,complete)
         model=aggregate(model,[clients[i] for i in roster],weights,complete);version+=bool(roster)
-        for i in roster:download(clients[i],model,complete);held[i]=version;last[i]=rr
+        for i in roster:
+            if not getattr(args,"sync_fresh_start",False):download(clients[i],model,complete);held[i]=version
+            last[i]=rr
         if (rr+1)%rpt==0:
             for i in set(ids)-set(roster):clients[i].capture(tt,rr,available[i])
         evaluate_at(rr,tt)

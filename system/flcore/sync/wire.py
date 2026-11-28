@@ -36,6 +36,8 @@ def pack(value,mode="binary"):
                 if not integer and any(not math.isfinite(v) for v in values):
                     raise ValueError("nonfinite vector")
                 fmt="I" if integer else "e" if mode=="fp16" else "b" if mode=="int8" else "d"
+                if not integer and x.get("utility_precision"):
+                    fmt={"fp64":"d","fp32":"f","fp16":"e","int8":"b"}[x["utility_precision"]]
                 scale=x.get("quant_scale",0.)
                 if fmt=="b":
                     if not math.isfinite(scale) or scale<=0:raise ValueError("int8 report requires prequantization")
@@ -67,7 +69,7 @@ def unpack(wire):
         if isinstance(x,dict):
             if "__fqcl_vector__" in x:
                 fmt=x["dtype"];count=x["count"];idx=x["__fqcl_vector__"]
-                if fmt not in ("I","d","e","b") or count<0 or not 0<=idx<len(blocks):raise ValueError("invalid vector descriptor")
+                if fmt not in ("I","d","f","e","b") or count<0 or not 0<=idx<len(blocks):raise ValueError("invalid vector descriptor")
                 if len(blocks[idx])!=count*struct.calcsize("<"+fmt):raise ValueError("invalid vector length")
                 values=list(struct.unpack("<"+fmt*count,blocks[idx]))
                 if fmt=="b":

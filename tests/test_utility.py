@@ -68,7 +68,20 @@ class Utility(unittest.TestCase):
         rows=cases()
         by_key={(x["setting_id"],x["seed"],x["name"]):x for x in rows}
         self.assertEqual(len(rows),len(by_key))
-        self.assertEqual(len(rows),534)
+        self.assertEqual(len(rows),503)
+        weak=("A02-M1","A04-M2","A08-M2")
+        for sid in ("S04","S14"):
+            for k in range(1,5):
+                for selector in weak:
+                    self.assertNotIn((sid,42,f"fixed-{selector}-k{k}"),by_key)
+        self.assertNotIn(("S04",42,"fresh-A03-M1"),by_key)
+        for k in range(1,5):
+            self.assertNotIn(("S04",42,f"fixed-A03-M1-k{k}"),by_key)
+        for selector in ("A03-M1","A03-M2","A05-M3"):
+            self.assertNotIn(("S14N10",42,f"fixed-{selector}-k6"),by_key)
+        for selector in weak:
+            self.assertIn(("S14",42,f"fixed-{selector}-k5"),by_key)
+            self.assertIn(("S04",42,f"fixed-{selector}-k5"),by_key)
         self.assertEqual(len({(x["setting_id"],x["seed"]) for x in rows}),11)
         self.assertEqual(len(TUNING_PROFILES),12)
         for sid,n in (("S04",5),("S14",5),("S14N10",10)):

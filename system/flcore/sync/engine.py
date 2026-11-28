@@ -163,7 +163,7 @@ def model_bytes(model,complete):
 
 def aggregate(global_model,clients,weights,complete):
     if not complete:raise ValueError("research requires complete-state FedAvg")
-    if clients and getattr(clients[0].research_args,"sync_delta_aggregation",False):
+    if clients and getattr(getattr(clients[0],"research_args",None),"sync_delta_aggregation",False):
         from .delta_ablation import aggregate_delta
         return aggregate_delta(global_model,clients,weights)
     return fedavg(copy.deepcopy(global_model),clients,weights) if clients else global_model

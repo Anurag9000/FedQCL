@@ -196,9 +196,13 @@ def decide(ctl,r,ids,last,due):
         view=views[ids[0]]
         if any(v!=view for v in views.values()):raise ValueError("inconsistent utility peer view")
     used=sum(e["serialized_bytes"] for e in tr.events if e["round"]<r)
+    visits={i:sum(i in x["complete"] for x in ctl.decisions) for i in ids}
+    if mode=="peer":
+        context={"used":used,"visits":{str(i):visits[i] for i in ids},"last":{str(i):last[i] for i in ids},"version":ctl.model_version,"tensor_bytes":ctl.utility_schema["tensor_bytes"],"cap":ceiling(a,ctl.utility_schema)}
+        for i in ids:
+            if tr.send(r,"observe","server",i,"UTILITY_CONTEXT",context)!=context:raise ValueError("peer context disagreement")
     observed=sum(e["serialized_bytes"] for e in tr.events if e["round"]==r)
     if observed>OVERHEAD:raise ValueError("utility telemetry overhead bound exceeded")
-    visits={i:sum(i in x["complete"] for x in ctl.decisions) for i in ids}
     selected,info=choose(a,ids,last,due,r,ctl.model_version,visits,view,used,ctl.utility_schema)
     if mode=="peer":
         for i in ids:
@@ -255,9 +259,13 @@ def verify_decisions(config,rounds,decisions,events):
             if any(v["utility_precision"]!=precision or len(v["counts"])!=dim for x in reports.values() if x for v in x["gradient"].values()):raise ValueError("adaptive precision payload")
         elif requests:raise ValueError("unexpected precision control")
         if kind and set(view)!=set(ids):raise ValueError("utility telemetry roster")
+        contexts=[e for e in re if e["kind"]=="UTILITY_CONTEXT"]
         if a.sync_utility=="peer":
+            context={"used":consumed,"visits":{str(i):visits[i] for i in ids},"last":{str(i):last[i] for i in ids},"version":version,"tensor_bytes":schema["tensor_bytes"],"cap":ceiling(a,schema)}
+            if sorted(e["receiver"] for e in contexts)!=list(ids) or any(e["sender"]!="server" or e["phase"]!="observe" or unpack(base64.b64decode(e["encoded_envelope_b64"]))["payload"]!=context for e in contexts):raise ValueError("utility peer context mismatch")
             elections=[e for e in re if e["kind"]=="ELECTION_RESULT"]
             if sorted(e["sender"] for e in elections)!=list(ids) or any(e["receiver"]!="server" or unpack(base64.b64decode(e["encoded_envelope_b64"]))["payload"]["selected"]!=list(row["selected"]) for e in elections):raise ValueError("utility peer election roster")
+        if a.sync_utility!="peer" and contexts:raise ValueError("unexpected peer context")
         due=due_clients(ids,last,r,a.sync_max_skip)
         selected,info=choose(a,ids,last,due,r,version,visits,view,consumed,schema)
         if list(due)!=list(dec["due"]) or [i for i in due if i not in selected]!=dec["deadline_cap_violations"]:raise ValueError("utility deadline mismatch")

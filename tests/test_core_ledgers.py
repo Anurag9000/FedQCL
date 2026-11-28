@@ -1,5 +1,5 @@
 """Regression checks on actual generated ledgers (CI builds both profiles)."""
-import json,sys,unittest,subprocess
+import json,sys,unittest,subprocess,os
 from pathlib import Path
 ROOT=Path(__file__).resolve().parents[1]
 sys.path.insert(0,str(ROOT/"scripts"))
@@ -13,7 +13,7 @@ class CoreLedgers(unittest.TestCase):
         self.assertNotIn("E10-02",CORE_TASK_IL_IDS)
 
     def test_generated_profiles(self):
-        paths=[ROOT/"experiments"/x for x in ("job_ledger.jsonl","job_ledger_extended.jsonl","task_il_core/job_ledger.jsonl","task_il_48/job_ledger.jsonl")]
+        paths=[Path(os.environ.get("FEDQCL_TEST_LEDGER_ROOT",str(ROOT/"experiments")))/x for x in ("job_ledger.jsonl","job_ledger_extended.jsonl","task_il_core/job_ledger.jsonl","task_il_48/job_ledger.jsonl")]
         if not all(p.exists() for p in paths):self.skipTest("generate both ledger profiles first")
         ledgers=[[json.loads(l) for l in p.read_text().splitlines()] for p in paths]
         commit=subprocess.check_output(['git','rev-parse','HEAD'],cwd=ROOT,text=True).strip()

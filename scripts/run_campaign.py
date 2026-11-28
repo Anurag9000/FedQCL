@@ -60,6 +60,9 @@ def valid(job):
         if job["kind"]=="analysis" and job["config"].get("campaign")=="task_il_joint":
             receipt=json.loads(Path(job["artifacts"][0]).read_text())
             return receipt["completed"]==receipt["expected"]==job["config"]["expected_training"] and receipt["incomplete"]==0
+        if job["kind"]=="analysis" and job["config"].get("scope")=="utility_archive":
+            from archive_utility_audit import valid as archive_valid
+            return archive_valid(job)
         if job["kind"]=="analysis" and job["config"].get("scope")=="utility_calibration":
             if str(ROOT/"system") not in sys.path:sys.path.insert(0,str(ROOT/"system"))
             from flcore.sync.utility_calibration import load_model
@@ -69,7 +72,7 @@ def valid(job):
         if job["kind"]=="analysis" and job["config"].get("scope")=="utility_analysis":
             from utility_campaign import cases
             result=json.loads(Path(job["artifacts"][0]).read_text())
-            return result["training_runs"]==len(result["results"])==len(cases())==job["config"]["expected_training"] and len({x["experiment_id"] for x in result["results"]})==len(cases())
+            return result["training_runs"]==len(result["results"])==len(cases())==job["config"]["expected_training"] and {x["experiment_id"] for x in result["results"]}=={f"{x['setting_id']}-seed{x['seed']}-{x['name']}" for x in cases()}
         if job["kind"]=="analysis" and job["config"].get("scope")=="compact_shortlist":
             from compact_campaign import shortlist_valid
             return shortlist_valid(job)

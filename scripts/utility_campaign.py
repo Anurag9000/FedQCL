@@ -14,7 +14,7 @@ ARCHIVE=ROOT/"research_results/compact-65ced6195777/analysis"
 EXPECTED_LR=.01
 FINALISTS={"M1":"A03-M1","M2":"A03-M2","M3":"A05-M3"}
 MODES={"local":"own","server":"server","peer":"peer","loss":"own","balanced":"random","random":"random"}
-OUTPUTS=("matrix.json","matrix.csv","paired_comparisons.csv","oracle_diagnostics.csv","learning_vs_bytes.jsonl","equal_bytes.jsonl","report.md")
+OUTPUTS=("matrix.json","matrix.csv","paired_comparisons.csv","oracle_diagnostics.csv","learning_vs_bytes.jsonl","equal_bytes.jsonl","pareto_front.csv","target_accuracy_bytes.jsonl","report.md")
 
 def cases():
     rows=[]
@@ -69,6 +69,8 @@ def build(output):
         key=hashlib.sha256(json.dumps([kind,ident,commit,identity],sort_keys=True).encode()).hexdigest()[:16]
         jobs.append(dict(id=key,semantic_id=ident,stage=stage,kind=kind,config=cfg,command=cmd,dependencies=list(deps),artifacts=list(map(str,artifacts)),source_commit=commit,schema=2))
         return key
+    from archive_utility_audit import FILES
+    archive_key=add("archive","analysis","utility-archive-audit",{"scope":"utility_archive"},[sys.executable,"scripts/archive_utility_audit.py","--output",str(root/"archive_audit")],[],[root/"archive_audit"/x for x in FILES])
     data={};source_jobs={}
     for sid,seed in sorted({(x["setting_id"],x["seed"]) for x in cases()}):
         sp=ROOT/"configs/sync/settings"/(sid+".json");spec=json.loads(sp.read_text())
@@ -111,7 +113,7 @@ def build(output):
         cfg={**dcfg,**case,"experiment_id":ident,"selector_id":name,"training_seed":seed,"partition_seed":seed,"memory":2500//n,"replay_batch":13,"rounds":50,"tasks":5,"counterfactual_rounds":spec["counterfactual_rounds"],"all_subsets":n==5,"selection_mode":"matched_count" if source_out else "threshold" if budget else "fixed","source_output":str(source_out) if source_out else None,"expected_flags":resolved,"learning_rate":EXPECTED_LR,"backbone":BACKBONE}
         artifacts=[out/x for x in ("final_summary.json","status.json","config.json","provenance.json","rounds.jsonl","decisions.jsonl","communication_events.jsonl","server_metrics.jsonl","report_arrivals.jsonl","server.pt","counterfactuals.jsonl","heldout_test_metrics.json","analysis/ground_truth_comparison.json",*ARTIFACTS,*["ground_truth/"+x for x in ("dataset_manifest.json","validation_receipt.json","distributions.npz","specification.json","allocation_index.npz")])]
         key=add(case["stage"],"train",ident,cfg,cmd,dependencies,artifacts);training.append(key);source_jobs[sid,seed,name]=(key,out)
-    add("postprocess","analysis","utility-analysis",{"scope":"utility_analysis","expected_training":len(training)},[sys.executable,"scripts/utility_campaign.py","--analyze","--ledger",str(output.resolve()),"--output",str(root/"analysis")],training,[root/"analysis"/x for x in OUTPUTS])
+    add("postprocess","analysis","utility-analysis",{"scope":"utility_analysis","expected_training":len(training)},[sys.executable,"scripts/utility_campaign.py","--analyze","--ledger",str(output.resolve()),"--output",str(root/"analysis")],[archive_key,*training],[root/"analysis"/x for x in OUTPUTS])
     from run_campaign import dependency_order
     dependency_order(jobs)
     if len(training)!=len(cases()):raise ValueError("utility inventory")
@@ -172,9 +174,10 @@ def write_csv(path,items):
 
 def analyze(ledger,out):
     from run_campaign import valid
-    from communication_efficiency import learning_curve,compare_equal_bytes
+    from communication_efficiency import learning_curve,compare_equal_bytes,bytes_to_targets
     jobs=[x for x in rows(ledger) if x["kind"]=="train"]
-    if len(jobs)!=len(cases()):raise ValueError("incomplete utility ledger")
+    expected={f"{x['setting_id']}-seed{x['seed']}-{x['name']}" for x in cases()}
+    if len(jobs)!=len(expected) or {j["config"]["experiment_id"] for j in jobs}!=expected:raise ValueError("incomplete utility ledger")
     matrix=[];oracles=[];curves={};by_id={}
     out.mkdir(parents=True,exist_ok=True)
     for j in jobs:
@@ -213,6 +216,17 @@ def analyze(ledger,out):
                 for metric in ("final_accuracy","test_final_accuracy","forgetting","total_bytes","statistics_bytes","optimizer_steps","processed_samples"):p[metric+"_delta"]=x[metric]-b[metric]
                 pairs.append(p)
                 for point in compare_equal_bytes(curves[ident],curves[b["experiment_id"]]):e.write(json.dumps({**p,**point})+"\n")
+    fronts=[]
+    for x in matrix:
+        peers=[y for y in matrix if (y["setting_id"],y["seed"])==(x["setting_id"],x["seed"])]
+        v=lambda z:(z["total_bytes"],z["forgetting"],-z["final_accuracy"])
+        a=v(x)
+        dominated=any(all(b<=c for b,c in zip(v(y),a)) and any(b<c for b,c in zip(v(y),a)) for y in peers)
+        fronts.append({**x,"validation_nondominated":not dominated})
+    write_csv(out/"pareto_front.csv",fronts)
+    with (out/"target_accuracy_bytes.jsonl").open("w") as h:
+        for ident,curve in curves.items():
+            for x in bytes_to_targets(curve):h.write(json.dumps({"experiment_id":ident,**x})+"\n")
     write_csv(out/"matrix.csv",matrix);write_csv(out/"paired_comparisons.csv",pairs);write_csv(out/"oracle_diagnostics.csv",oracles)
     (out/"matrix.json").write_text(json.dumps({"training_runs":len(matrix),"results":matrix},indent=2,allow_nan=False))
     report=["# Utility follow-up: measured results","",f"Verified trajectories: {len(matrix)}.","","Validation drives method development; final test metrics are descriptive, not used to choose methods.","","## Paired comparisons","","| Method | Reference | Validation accuracy delta | Bytes delta | Forgetting delta |","|---|---|---:|---:|---:|"]

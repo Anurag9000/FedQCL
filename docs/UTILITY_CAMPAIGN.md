@@ -1,0 +1,61 @@
+# Utility follow-up (opt-in)
+
+The archived core campaign (123 completed trajectories, 179 workflow jobs)
+is not overwritten. This independent suite uses its validation-calibrated
+learning rate 0.01 and original finalists A03-M1, A03-M2, A05-M3. New
+results live under research_results/utility-<commit>. No archive model is
+required. Data jobs reuse the same content-addressed controlled-stream
+generator and independent source validation.
+
+## Run
+```bash
+python scripts/build_job_ledger.py --suite utility
+python scripts/run_campaign.py --ledger experiments/job_ledger_utility.jsonl --estimate-only
+SYNC_SUITE=utility bash run_all_sync.sh --all --stage development
+SYNC_SUITE=utility bash run_all_sync.sh --all
+```
+
+Fresh-start mode downloads the current server model immediately before
+training only admitted clients, then uploads their dense model. There is no
+post-aggregation model delivery. The initial provisioning is still charged
+equally; contribution completion and held model version are different states.
+FedAvg sample weights, SGD, replay and local memory capture are unchanged.
+The isolated counterfactual/continuation engine uses the same fresh bases.
+
+M1 utility sends a scalar local urgency and risk estimate; M2 collects
+all available compact telemetry centrally, M3 sends it directly to all peers
+and reconciles deterministic elections. New reports carry per-task batch
+loss, signed fixed-memory deterioration, clipped CountSketch gradients,
+support and model version; M2/M3 additionally use supplied label mass.
+Model-dependent probes use cached local models, not free server access.
+FP32/FP16/INT8 are actual binary encodings; statistics and controls are
+charged per delivered recipient. Unknown evidence and heuristic confidence
+fallback are explicitly recorded. The score is an analytical proxy,
+not a trained or calibrated predictor. Per-task historical constraints are
+predicted and relax visibly when infeasible. No raw private examples or
+ground-truth distributions enter selection.
+
+The fixed-count development ablation compares random, balanced, loss-only,
+local, server, peer, full and fresh/stale archive selectors. Prospective
+40/60% caps are fractions of the dense full-exchange *body* reference
+(including initialization), not measured full baseline bytes. All bytes
+including initialization and telemetry are debited. A conservative future
+deadline schedule plus per-round overhead bound is reserved before selection.
+Random and utility receive the same ceiling, not necessarily the same actual
+bytes. Each adaptive statistical run has an exact-count random control.
+Actual bytes, sample counts, validation learning curves and final held-out
+results are recorded. Sensitivity runs vary mass, gradient matching, fairness,
+retention, uncertainty, precision, sketch dimension, deadline and horizon.
+Prespecified independent seed and setting confirmations and a 10-client
+scale check are included. The primary claims are empirical, not guaranteed.
+
+Limitations: this revision does not fit or deploy an archive-trained
+predictor, use a shared lightweight proxy, implement delta aggregation,
+measure physical networks, or implement adaptive report resizing. The
+analytical risk penalty is not a calibrated confidence interval. The hard
+cap reserve is intentionally conservative. The utility probes do not modify
+local training but cost additional compute; local samples may differ at
+equal participant counts. The exact subset search is limited to ten clients.
+The archive excludes model checkpoints and source datasets; regenerated
+streams must pass independent verification. No production results are
+asserted by the ledger.

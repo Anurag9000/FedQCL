@@ -139,6 +139,12 @@ class Training(unittest.TestCase):
                 self.assertEqual(summary["backbone"],"fedavg_uniform_er_v1")
                 self.assertEqual(summary["total_bytes"],sum(json.loads(l)["serialized_bytes"] for l in (out/"communication_events.jsonl").read_text().splitlines()))
 
+            # Fresh protocol and every new utility information architecture.
+            for mode,policy in (("random","random"),("balanced","random"),("loss","own"),("local","own"),("server","server"),("peer","peer")):
+                u=run("B-utility-"+mode,policy,["--sync-windowed","--sync-controlled-stream","--sync-audit-references","--sync-counterfactual","--sync-eval-split","validation","--sync-charge-control","--sync-bandwidth-audit","--sync-fresh-start","--sync-utility",mode,"--sync-sketch-dim","16"]+ (["--sync-bank-reference","aggregate"] if policy=="server" else []))
+                rr=[json.loads(l) for l in (u/"rounds.jsonl").read_text().splitlines()]
+                self.assertTrue(all(x["fresh_start"] and all(v==x["version"]-bool(x["accepted"]) for v in x["start_versions"].values()) for x in rr))
+                self.assertEqual(json.loads((u/"status.json").read_text())["status"],"completed")
             # Both controls consume the source schedule without looking at reports.
             source=tmp/"A06-M1-threshold"
             from flcore.sync.matched_budget import verify_match

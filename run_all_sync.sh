@@ -12,6 +12,7 @@ case "$suite" in
   pilot) ledger=experiments/job_ledger_pilot.jsonl ;;
   extended) ledger=experiments/job_ledger_extended.jsonl ;;
   exhaustive) ledger=experiments/job_ledger_exhaustive.jsonl ;;
+  utility) ledger=experiments/job_ledger_utility.jsonl ;;
   *) echo "Unknown SYNC_SUITE: $suite" >&2; exit 2 ;;
 esac
 args=(--suite "$suite" --output "$ledger")

@@ -14,6 +14,10 @@ from core_suite import read_core_signal_entries,CORE_SIGNAL_COUNT,PUBLIC_PROBE_P
 ROOT=Path(__file__).resolve().parents[1]
 
 def build(output,tiny_root=None,suite="core",require_shortlist=False):
+    if suite=="utility":
+        if tiny_root is not None:raise ValueError("utility uses controlled CIFAR-100")
+        from utility_campaign import build as utility_build
+        return utility_build(output)
     if suite in ("core","exhaustive"):
         if tiny_root is not None:raise ValueError("TinyImageNet only belongs to extended suite")
         from campaign_matrix import build as comprehensive
@@ -291,8 +295,8 @@ def build(output,tiny_root=None,suite="core",require_shortlist=False):
 
 if __name__=="__main__":
     p=argparse.ArgumentParser();p.add_argument("--output",type=Path)
-    p.add_argument("--suite",choices=["core","pilot","extended","exhaustive"],default="core")
+    p.add_argument("--suite",choices=["core","pilot","extended","exhaustive","utility"],default="core")
     p.add_argument("--tiny-root",type=Path,help="Opt in to extracted TinyImageNet transfer runs")
     p.add_argument("--require-shortlist",action="store_true");a=p.parse_args()
-    output=a.output or ROOT/"experiments"/({"core":"job_ledger.jsonl","pilot":"job_ledger_pilot.jsonl","extended":"job_ledger_extended.jsonl","exhaustive":"job_ledger_exhaustive.jsonl"}[a.suite])
+    output=a.output or ROOT/"experiments"/({"core":"job_ledger.jsonl","pilot":"job_ledger_pilot.jsonl","extended":"job_ledger_extended.jsonl","exhaustive":"job_ledger_exhaustive.jsonl","utility":"job_ledger_utility.jsonl"}[a.suite])
     build(output,a.tiny_root.resolve() if a.tiny_root else None,a.suite,a.require_shortlist)

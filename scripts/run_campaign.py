@@ -60,6 +60,10 @@ def valid(job):
         if job["kind"]=="analysis" and job["config"].get("campaign")=="task_il_joint":
             receipt=json.loads(Path(job["artifacts"][0]).read_text())
             return receipt["completed"]==receipt["expected"]==job["config"]["expected_training"] and receipt["incomplete"]==0
+        if job["kind"]=="analysis" and job["config"].get("scope")=="utility_analysis":
+            from utility_campaign import cases
+            result=json.loads(Path(job["artifacts"][0]).read_text())
+            return result["training_runs"]==len(result["results"])==len(cases())==job["config"]["expected_training"] and len({x["experiment_id"] for x in result["results"]})==len(cases())
         if job["kind"]=="analysis" and job["config"].get("scope")=="compact_shortlist":
             from compact_campaign import shortlist_valid
             return shortlist_valid(job)
@@ -94,6 +98,9 @@ def valid(job):
         if summary.get("backbone")!=BACKBONE or provenance.get("backbone")!=BACKBONE:return False
         resolved_config=json.loads((out/"config.json").read_text())
         if resolved_config.get("backbone")!=BACKBONE:return False
+        if job["config"].get("campaign")=="utility":
+            from utility_campaign import verify as verify_utility
+            if not verify_utility(job,out,resolved_config,summary,rounds,metrics,events):return False
         if job["config"].get("mechanism"):
             cfg=job["config"]
             from core_suite import read_core_signal_entries,CORE_RUNTIME_FLAGS

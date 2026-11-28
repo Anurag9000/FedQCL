@@ -1,3 +1,7 @@
+## Utility-selection follow-up (opt-in)
+
+The archived 123-trajectory compact core campaign remains unchanged. Use `SYNC_SUITE=utility bash run_all_sync.sh --estimate-only` for the independent fresh-start and utility-selection study; see [design and limitations](docs/UTILITY_CAMPAIGN.md). No training is triggered by building the ledger.
+
 # Active comprehensive synchronization campaign
 
 The default ledger is **101 primary five-client runs + 22 paired ten-client scale runs (123 production trajectories, 179 jobs)**, seed 42, with three 20-round validation-only LR calibration prefixes. See [the current specification](docs/CONTROLLED_CAMPAIGN.md). Staged execution expands after calibration and screening. The exhaustive suite is opt-in (`SYNC_SUITE=exhaustive`).

@@ -99,7 +99,12 @@ def objective(view,s,a,version,visits):
         past=[g(x,k) for k in x["gradient"] if k!=t]
         return g(x,t)+(np.mean(past,axis=0) if past else 0)
     def mean(ids,fn):return np.average([fn(valid[i]) for i in ids],axis=0,weights=[valid[i]["mass"] for i in ids])
-    full=mean(list(valid),update);d=mean(s,update);current=mean(list(valid),lambda x:g(x,t))
+    full=mean(list(valid),update);current=mean(list(valid),lambda x:g(x,t))
+    from .representative import plan,weights
+    representation=plan(view,s,a)
+    effective=weights(s,{i:valid[i]["mass"] for i in s},representation)
+    def selected_mean(fn):return np.average([fn(valid[i]) for i in s],axis=0,weights=effective)
+    d=selected_mean(update)
     scale=max(1.,float(np.linalg.norm(full)**2+np.linalg.norm(current)**2))
     gain=float(current@d)/scale;past_gains=[]
     for k in sorted(set().union(*(x["gradient"] for x in valid.values()))-{t}):
@@ -108,7 +113,7 @@ def objective(view,s,a,version,visits):
     gain+=a.sync_utility_past*(sum(past_gains)/max(1,len(past_gains)))
     gain-=.05*float(d@d)/scale
     gain-=a.sync_utility_match*float((d-full)@(d-full))/scale
-    gain-=a.sync_utility_mass*.5*float(np.abs(mean(s,lambda x:x["labels_hist"])-mean(list(valid),lambda x:x["labels_hist"])).sum())
+    gain-=a.sync_utility_mass*.5*float(np.abs(selected_mean(lambda x:x["labels_hist"])-mean(list(valid),lambda x:x["labels_hist"])).sum())
     risk=float(np.mean([local_score(valid[i],a,version)["risk"] for i in s]))+(1-len(valid)/len(view))
     fair=sum(max(visits.values())-visits[i] for i in s)/max(1,sum(visits.values()))
     return gain+a.sync_utility_fair*fair-a.sync_utility_risk*risk,risk,all(v>=-a.sync_utility_retention for v in past_gains)
@@ -204,16 +209,25 @@ def decide(ctl,r,ids,last,due):
     observed=sum(e["serialized_bytes"] for e in tr.events if e["round"]==r)
     if observed>OVERHEAD:raise ValueError("utility telemetry overhead bound exceeded")
     selected,info=choose(a,ids,last,due,r,ctl.model_version,visits,view,used,ctl.utility_schema)
+    from .representative import plan
+    representation=plan(view,selected,a)
     if mode=="peer":
         for i in ids:
             election,_=choose(a,ids,last,due,r,ctl.model_version,visits,views[i],used,ctl.utility_schema)
             if election!=selected:raise ValueError("utility peer election disagreement")
-            tr.send(r,"admission",i,"server","ELECTION_RESULT",{"selected":election})
+            payload={"selected":election}
+            if getattr(a,"sync_representative_beta",0.):
+                peer_plan=plan(views[i],election,a)
+                if peer_plan!=representation:raise ValueError("peer representative disagreement")
+                payload["representation"]=peer_plan
+            delivered=tr.send(r,"admission",i,"server","ELECTION_RESULT",payload)
+            if getattr(a,"sync_representative_beta",0.) and delivered["representation"]!=representation:
+                raise ValueError("peer representative delivery disagreement")
     for i in selected:tr.send(r,"admission","server",i,"ADMISSION_RESPONSE",{"admitted":True})
     ctl.decisions.append({"round":r,"available":ids,"due":due,"selected":selected,"multiplicity":None,"threshold":float(a.sync_threshold),
         "deadline_cap_violations":[i for i in due if i not in selected],"scores":{},"references":{},"bank_versions":{i:0 for i in ids},"coverage":{},"impact":None,
         "reasons":{i:"bootstrap" if r==0 else "mandatory" if i in due and i in selected else info["reason"] if i in selected else "deferred" for i in ids},
-        "utility":info,"utility_used_before_admission":used+observed,"utility_cap":ceiling(a,ctl.utility_schema)})
+        "utility":info,"representation":representation,"utility_used_before_admission":used+observed,"utility_cap":ceiling(a,ctl.utility_schema)})
     return selected
 
 def check_budget(ctl,r):
@@ -268,6 +282,19 @@ def verify_decisions(config,rounds,decisions,events):
         if a.sync_utility!="peer" and contexts:raise ValueError("unexpected peer context")
         due=due_clients(ids,last,r,a.sync_max_skip)
         selected,info=choose(a,ids,last,due,r,version,visits,view,consumed,schema)
+        from .representative import plan,weights
+        representation=plan(view,selected,a)
+        if getattr(a,"sync_representative_beta",0.):
+            if dec.get("representation")!=representation or row.get("representation")!=representation:
+                raise ValueError("representative plan mismatch")
+            if a.sync_utility=="peer" and any(unpack(base64.b64decode(e["encoded_envelope_b64"]))["payload"].get("representation")!=representation for e in elections):
+                raise ValueError("peer represented mass mismatch")
+            own={int(i):v for i,v in row["supplied_samples"].items()}
+            if any(x is not None and x["mass"]!=own[i] for i,x in view.items()):
+                raise ValueError("telemetry mass mismatch")
+            expected_weights=dict(zip(selected,weights(selected,own,representation)))
+            actual_weights={int(i):v for i,v in row["aggregation_weights"].items()}
+            if expected_weights!=actual_weights:raise ValueError("representative aggregation mismatch")
         if list(due)!=list(dec["due"]) or [i for i in due if i not in selected]!=dec["deadline_cap_violations"]:raise ValueError("utility deadline mismatch")
         if list(selected)!=list(row["selected"]) or list(selected)!=list(dec["selected"]) or json.dumps(info,sort_keys=True)!=json.dumps(dec["utility"],sort_keys=True):raise ValueError("utility decision mismatch")
         if dec["utility_used_before_admission"]!=consumed+before or dec["utility_cap"]!=ceiling(a,schema):raise ValueError("utility budget evidence")

@@ -39,7 +39,7 @@ class Utility(unittest.TestCase):
         with self.assertRaises(ValueError):fit(train,train)
 
     def test_representative_mass(self):
-        from flcore.sync.representative import plan,weights
+        from flcore.sync.representative import discrepancy,plan,weights
         def report(label,version=1):
             return dict(task=1,round=2,version=version,mass=10,labels_hist=[1-label,label],
                         gradient={"1":{"counts":[1-label,label]},"0":{"counts":[1-label,label]}},
@@ -61,6 +61,60 @@ class Utility(unittest.TestCase):
         self.assertEqual(weights((0,4),{0:10,4:10},p),[10,10])
         a.sync_utility_proxy=True
         self.assertEqual(weights((0,4),{0:10,4:10},plan(view,(0,4),a)),[20,10])
+
+        # Identical but empty sketches are absence of gradient evidence, not
+        # proof that omitted mass can be represented.
+        zero={i:{**report(0),"gradient":{"1":{"counts":[0.,0.]},"0":{"counts":[0.,0.]}}} for i in range(5)}
+        self.assertIsNone(discrepancy(zero[0],zero[1],common_proxy=True))
+        a.sync_utility_proxy=False
+        zp=plan(zero,(0,4),a)
+        self.assertEqual(zp["transfers"],{})
+        self.assertEqual(zp["unrepresented"],[1,2,3])
+        malformed={**report(0),"labels_hist":[1.]}
+        self.assertIsNone(discrepancy(report(0),malformed))
+        missing_support={**report(0),"support":{"1":float("nan"),"0":5}}
+        self.assertIsNone(discrepancy(report(0),missing_support))
+        self.assertIsNone(discrepancy({"task":1},report(0)))
+
+    def test_native_utility_rejects_mixed_model_versions(self):
+        from flcore.sync.utility import objective
+        def sample(version):
+            return {"task":0,"round":1,"version":version,"mass":10,
+                    "labels_hist":[.5,.5],"gradient":{"0":{"counts":[1.,0.]}},
+                    "support":{"0":4},"loss":{"0":1.},"deterioration":{}}
+        view={0:sample(0),1:sample(2)}
+        a=self.args(sync_utility_proxy=False,sync_representative_beta=0.)
+        result=objective(view,(0,1),a,2,{0:0,1:0})
+        self.assertEqual(result,(None,1.,False))
+        a.sync_utility_proxy=True
+        self.assertIsNotNone(objective(view,(0,1),a,2,{0:0,1:0})[0])
+
+    def test_representative_mass_fedavg_tensor_and_normalization(self):
+        import math,torch
+        from flcore.sync.backbone import fedavg
+        from flcore.sync.representative import plan,weights
+        def report(label):
+            return dict(task=1,round=2,version=1,mass=10,labels_hist=[1-label,label],
+                        gradient={"1":{"counts":[1-label,label]},"0":{"counts":[1-label,label]}},
+                        support={"1":5,"0":5})
+        view={i:report(int(i==4)) for i in range(5)}
+        clients=[type("Client",(),{"model":torch.nn.Linear(1,1,bias=False)})() for _ in range(5)]
+        for i,c in enumerate(clients):
+            with torch.no_grad():c.model.weight.fill_(10. if i==4 else 2.)
+        expected=((0.,[.5,.5],6.),(.5,[5/7,2/7],30/7),(1.,[.8,.2],3.6))
+        for beta,normalized,model_value in expected:
+            with self.subTest(beta=beta):
+                a=self.args(sync_representative_beta=beta,sync_representative_distance=.35)
+                p=plan(view,(0,4),a)
+                effective=weights((0,4),{0:10,4:10},p)
+                self.assertTrue(all(math.isfinite(x) and x>0 for x in effective))
+                actual=[x/sum(effective) for x in effective]
+                for x,y in zip(actual,normalized):self.assertAlmostEqual(x,y,places=7)
+                result=fedavg(torch.nn.Linear(1,1,bias=False),[clients[0],clients[4]],effective)
+                self.assertAlmostEqual(float(result.weight.item()),model_value,places=6)
+                if beta:
+                    self.assertEqual(len(p["transfers"]),3)
+                    self.assertEqual({x["representative"] for x in p["transfers"].values()},{0})
 
     def test_expanded_utility_inventory(self):
         sys.path.insert(0,str(Path(__file__).resolve().parents[1]/"scripts"))

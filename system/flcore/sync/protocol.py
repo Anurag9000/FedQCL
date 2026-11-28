@@ -410,7 +410,9 @@ class Controller:
         if getattr(self.args,"sync_fresh_start",False):
             # The physical download preceded training; the client still holds its
             # local post-training state based on the previous global version.
-            if getattr(self.args,"sync_utility","off")=="off" and uses_bank:self.deliver_bank(r,downloaded,"reference")
+            if getattr(self.args,"sync_utility","off")=="off" and uses_bank and self.args.sync_delivery!="telemetry":
+                recipients=self.decisions[-1]["available"] if self.args.sync_delivery=="broadcast" else downloaded
+                self.deliver_bank(r,recipients,"reference")
             for i in complete:
                 self.local[i].last_sync=r;self.local[i].last_report=reports.get(i)
             if policy=="peer" and getattr(self.args,"sync_utility","off")=="off":

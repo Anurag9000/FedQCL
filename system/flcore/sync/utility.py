@@ -94,6 +94,11 @@ def objective(view,s,a,version,visits):
     if any(view[i] is None or t not in view[i]["gradient"] for i in s):return None,1.,False
     valid={i:x for i,x in view.items() if x is not None and t in x["gradient"]}
     if not valid:return None,1.,False
+    if not getattr(a,"sync_utility_proxy",False) and len({x["version"] for x in valid.values()})>1:
+        # Native parameter-gradient sketches are not comparable across global
+        # model versions. The caller records missing evidence and uses its
+        # prespecified fallback; common-proxy sketches share fixed coordinates.
+        return None,1.,False
     def g(x,k):return np.asarray(x["gradient"][k]["counts"],float)
     def update(x):
         past=[g(x,k) for k in x["gradient"] if k!=t]

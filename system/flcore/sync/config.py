@@ -36,6 +36,8 @@ def add_arguments(parser):
     p.add_argument("--sync-utility-price",type=float,default=.015)
     p.add_argument("--sync-utility-past",type=float,default=1.)
     p.add_argument("--sync-utility-mass",type=float,default=.1)
+    p.add_argument("--sync-representative-beta",type=float,default=0.)
+    p.add_argument("--sync-representative-distance",type=float,default=.35)
     p.add_argument("--sync-utility-match",type=float,default=.1)
     p.add_argument("--sync-utility-fair",type=float,default=.05)
     p.add_argument("--sync-utility-risk",type=float,default=.1)
@@ -104,6 +106,12 @@ def validate(a):
         raise ValueError("delta aggregation is a separate reliable stale-base ablation")
     if (getattr(a,"sync_utility_proxy",False) or getattr(a,"sync_utility_adaptive_precision",False)) and utility not in ("server","peer"):
         raise ValueError("proxy and adaptive precision require collective telemetry")
+    beta=getattr(a,"sync_representative_beta",0.)
+    distance=getattr(a,"sync_representative_distance",.35)
+    if not (math.isfinite(beta) and 0<=beta<=1 and math.isfinite(distance) and 0<=distance<=1):
+        raise ValueError("invalid representative mass configuration")
+    if beta and (not fresh or utility not in ("server","peer") or getattr(a,"sync_counterfactual_horizon",1)!=1):
+        raise ValueError("representative weights require fresh collective telemetry and one-round branches")
     if utility!="off":
         expected={"local":"own","loss":"own","server":"server","peer":"peer","balanced":"random","random":"random"}
         if a.sync_utility_model and utility!="server":raise ValueError("learned utility model requires server telemetry")

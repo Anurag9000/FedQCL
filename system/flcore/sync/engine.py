@@ -527,6 +527,10 @@ def run_research(args):
                 raise RuntimeError("bootstrap incomplete")
             ctl.ingest_uploads(r,reports,accepted,uploaded)
             weights=aggregation_weights(a,clients,datasets,accepted,complete_state)
+            representation=ctl.decisions[-1].get("representation",{"transfers":{},"unrepresented":[]})
+            if getattr(a,"sync_representative_beta",0.):
+                from .representative import weights as represented_weights
+                weights=represented_weights(accepted,dict(zip(accepted,weights)),representation)
             if accepted:
                 model=aggregate(model,[clients[i] for i in accepted],weights,complete_state)
                 ctl.model_version+=1
@@ -574,7 +578,7 @@ def run_research(args):
                            "start_versions":starts,"aggregation_weights":dict(zip(accepted,weights)),"version":ctl.model_version,"outcomes":outcomes,
                            "no_aggregation":not accepted,"population_histograms":population,"probe_cost":probe_cost,"budget":budget_record,
                            "sampled_reports":{i:None if report is None else {"id":report.id,"values":report.counts,"space":report.space,"window":report.window,**(asdict(report) if a.sync_audit_references else {})} for i,report in reports.items()},
-                           "fresh_start":fresh,"delta_aggregation":getattr(a,"sync_delta_aggregation",False),"utility_reports":utility_reports,
+                           "fresh_start":fresh,"delta_aggregation":getattr(a,"sync_delta_aggregation",False),"utility_reports":utility_reports,"representation":representation,
                            "observation_window":r%rpt if a.sync_windowed else None,
                            "counterfactual_seconds":counterfactual_seconds,
                            "pre_memory_class_counts":pre_memory,

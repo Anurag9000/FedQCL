@@ -83,6 +83,11 @@ def analyze(server,clients,datasets,task,r,ctl,actual,loaders,complete,device,cl
         outcomes=[]
         for s in sorted(subsets,key=lambda x:(len(x),x)):
             weights=aggregation_weights(ctl.args,candidates,datasets,s,complete)
+            representation={"transfers":{},"unrepresented":[]}
+            if getattr(ctl.args,"sync_representative_beta",0.):
+                from .representative import plan,weights as represented_weights
+                representation=plan(ctl.utility_reports,s,ctl.args)
+                weights=represented_weights(s,dict(zip(s,weights)),representation)
             m=aggregate(server,[candidates[i] for i in s],weights,complete) if s else copy.deepcopy(server)
             if getattr(ctl.args,"sync_verify_branches",False) and s in (ids,tuple(sorted(actual))):
                 explicit=[]
@@ -99,6 +104,7 @@ def analyze(server,clients,datasets,task,r,ctl,actual,loaders,complete,device,cl
             past=sum(x["loss"] for x in rows[:-1])/task if task else None
             outcomes.append({"round":r,"task":task,"subset":list(s),"size":len(s),
                              "actual":s==tuple(sorted(actual)),"current_loss":cur,"past_loss":past,
+                             "representation":representation,"aggregation_weights":dict(zip(s,weights)),
                              "features":subset_features(ids,s,cached,last,r,task,rpt,ctl.args.sync_bank_age),
                              "accuracy":sum(x["accuracy"] for x in rows)/len(rows),
                              "task_metrics":[{"task":x["task"],"loss":x["loss"],"accuracy":x["accuracy"]} for x in rows]})

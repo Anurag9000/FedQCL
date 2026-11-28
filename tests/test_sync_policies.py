@@ -62,6 +62,22 @@ class Policies(unittest.TestCase):
         self.assertEqual(c.local[0].bank_version,c.bank_version)
         self.assertEqual(c.local[0].bank,tuple(sorted(c.bank.values(),key=lambda x:(x.client,x.task,x.round))))
         self.assertTrue(any(x["kind"]=="BANK_DELTA" for x in c.transport.events))
+    def test_fresh_start_respects_server_reference_delivery(self):
+        available=(0,1,2); downloaded=(1,); source=report(0,50)
+        expected={"piggyback":downloaded,"broadcast":available,"telemetry":()}
+        for delivery,recipients in expected.items():
+            with self.subTest(delivery=delivery):
+                c=Controller(args("server",sync_fresh_start=True,sync_delivery=delivery),available)
+                c.bank={(source.client,source.task,-1):source};c.bank_version=1
+                c.decisions.append({"available":available})
+                c.complete(1,{1:report(1,60,1)},(1,),downloaded,uploaded=downloaded)
+                events=[x for x in c.transport.events if x["kind"].startswith("BANK_")]
+                self.assertEqual(tuple(x["receiver"] for x in events),tuple(recipients))
+                if delivery=="telemetry":
+                    self.assertTrue(all(not c.local[i].bank for i in available))
+                else:
+                    self.assertTrue(all(source in c.local[i].bank for i in recipients))
+                    self.assertTrue(all(x["serialized_bytes"]>0 and x["delivered_bytes"]==x["serialized_bytes"] for x in events))
     def test_peer_messages_and_failure(self):
         c=Controller(args("peer"),range(5))
         reports={i:report(i,50) for i in range(5)}

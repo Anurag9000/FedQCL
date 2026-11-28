@@ -14,8 +14,23 @@ ARCHIVE=ROOT/"research_results/compact-65ced6195777/analysis"
 EXPECTED_LR=.01
 FINALISTS={"M1":"A03-M1","M2":"A03-M2","M3":"A05-M3"}
 MODES={"local":"own","server":"server","peer":"peer","loss":"own","balanced":"random","random":"random"}
-OUTPUTS=("matrix.json","matrix.csv","paired_comparisons.csv","oracle_diagnostics.csv","learning_vs_bytes.jsonl","equal_bytes.jsonl","pareto_front.csv","target_accuracy_bytes.jsonl","report.md")
+OUTPUTS=("matrix.json","matrix.csv","paired_comparisons.csv","oracle_diagnostics.csv","learning_vs_bytes.jsonl","equal_bytes.jsonl","pareto_front.csv","target_accuracy_bytes.jsonl","tuning_selection.csv","fixed_off_rankings.csv","report.md")
 
+# Bounded profiles; only seed-42 validation selects the winner.
+TUNING_PROFILES={
+    "default":[],
+    "retention":["--sync-utility-past","2","--sync-utility-retention",".01"],
+    "geometry":["--sync-utility-match",".5","--sync-utility-mass",".25"],
+    "fair":["--sync-utility-fair",".2","--sync-utility-risk",".2"],
+    "acquisition":["--sync-utility-past",".5","--sync-utility-match",".25"],
+    "rmp-half":["--sync-representative-beta",".5"],
+    "rmp-full":["--sync-representative-beta","1"],
+    "rmp-proxy":["--sync-representative-beta","1","--sync-utility-proxy"],
+    "rmp-proxy-strict":["--sync-representative-beta","1","--sync-utility-proxy","--sync-representative-distance",".2"],
+    "rmp-proxy-broad":["--sync-representative-beta","1","--sync-utility-proxy","--sync-representative-distance",".55"],
+    "rmp-retention":["--sync-representative-beta",".5","--sync-utility-past","2","--sync-utility-retention",".01"],
+    "joint-tuned":["--sync-utility-match",".5","--sync-utility-mass",".25","--sync-utility-past","2","--sync-utility-fair",".1"],
+}
 def cases():
     rows=[]
     def add(stage,sid,seed,name,mode="off",policy=None,k=3,budget=0.,fresh=True,options=(),source=None):
@@ -55,6 +70,61 @@ def cases():
         add("learned",sid,seed,"server-learned","server")
     for mode in ("random","server","peer"):
         add("scale","S14N10",42,mode,mode,k=6)
+    # Complete OFF matrix in both development settings, plus all
+    # ten-client budgets for the archived finalists and new utility modes.
+    entries=read_core_signal_entries()
+    for sid,n in (("S04",5),("S14",5),("S14N10",10)):
+        base_k=3 if n==5 else 6
+        for k in range(1,n+1):
+            if k==n:
+                if n==10:add("fixed",sid,42,"full",policy="full",k=k)
+            elif k!=base_k:
+                add("fixed",sid,42,f"random-k{k}","random",k=k)
+            candidates=entries if n==5 else [e for e in entries if e["id"] in FINALISTS.values()]
+            for entry in candidates:
+                selector=entry["id"]
+                if n==5 and k==base_k and selector in FINALISTS.values():continue
+                add("fixed",sid,42,f"fixed-{selector}-k{k}",policy=entry["policy"],k=k,options=entry["flags"])
+            for mode in ("local","server","peer"):
+                if k!=base_k or (n==10 and mode=="local"):
+                    add("fixed",sid,42,f"{mode}-k{k}",mode,k=k)
+            for mode in ("server","peer"):
+                add("representation",sid,42,f"rmp-{mode}-k{k}",mode,k=k,options=["--sync-representative-beta","1"])
+    for skip in (2,8):
+        add("ablation","S14",42,f"random-skip{skip}","random",options=["--sync-max-skip",str(skip)])
+    # Precomputed independent seed-43/44 profile evaluations; ranking uses
+    # seed-42 validation only, never test accuracy.
+    for sid in ("S04","S14"):
+        for seed in (42,43,44):
+            if seed==44:add("tuning-confirmation",sid,seed,"random","random")
+            for label,options in TUNING_PROFILES.items():
+                if label=="default":continue
+                add("tuning" if seed==42 else "tuning-confirmation",sid,seed,"tune-"+label,"server",options=options)
+            if seed==44:add("tuning-confirmation",sid,seed,"server","server")
+    # Archive-informed pruning: remove only the 31 configurations classified
+    # low-potential in the pre-run review. Keep every full-participation
+    # control, random/diagnostic run, tuning profile and adaptive budget job.
+    weak={"A02-M1","A04-M2","A08-M2"}
+    def low_priority(case):
+        sid,k,n,name=case["setting_id"],case["k"],case["clients"],case["name"]
+        if k==n or case["stage"] not in ("fixed","aggregation"):return False
+        if name.startswith("fixed-A"):
+            selector=name[len("fixed-"):].rsplit("-k",1)[0]
+        elif name.startswith("fresh-A"):
+            selector=name[len("fresh-"):]
+        else:return False
+        return ((sid=="S14" and selector in weak) or
+                (sid=="S04" and selector in weak|{"A03-M1"}) or
+                (sid=="S14N10" and k==6 and selector in FINALISTS.values()))
+    removed=[case for case in rows if low_priority(case)]
+    if len(removed)!=31:raise ValueError("unexpected low-priority inventory")
+    rows=[case for case in rows if not low_priority(case)]
+    if any(case["source"] and not any(
+        (x["setting_id"],x["seed"],x["name"])==
+        (case["setting_id"],case["seed"],case["source"]) for x in rows)
+        for case in rows):raise ValueError("pruning removed a matched-control dependency")
+    if len({(x["setting_id"],x["seed"],x["name"]) for x in rows})!=len(rows):
+        raise ValueError("duplicate utility case")
     return rows
 
 def build(output):
@@ -160,6 +230,19 @@ def verify(job,root,cfg,summary,rounds,metrics,events):
         from itertools import combinations
         expected={s for k in range(n+1) for s in combinations(range(n),k)}
         if len(cf)!=len(c["counterfactual_rounds"])*2**n or any({tuple(x["subset"]) for x in cf if x["round"]==r}!=expected for r in c["counterfactual_rounds"]):return False
+    if cfg.get("sync_representative_beta",0.):
+        from types import SimpleNamespace
+        from flcore.sync.representative import plan,weights
+        a=SimpleNamespace(**cfg)
+        for item in cf:
+            live=rounds[item["round"]]
+            view={int(i):v for i,v in live["utility_reports"].items()}
+            own={int(i):v for i,v in live["supplied_samples"].items()}
+            subset=item["subset"];p=plan(view,subset,a)
+            expected=dict(zip(subset,weights(subset,own,p)))
+            actual={int(i):v for i,v in item["aggregation_weights"].items()}
+            if item["representation"]!=p or actual!=expected:return False
+            if item["actual"] and actual!={int(i):v for i,v in live["aggregation_weights"].items()}:return False
     audit=json.loads((root/"analysis/ground_truth_comparison.json").read_text())
     if audit["ground_truth_hash"]!=receipt["ground_truth_hash"] or len(audit["rounds"])!=c["rounds"] or set(x["round"] for x in audit["counterfactuals"])!=set(c["counterfactual_rounds"]):return False
     held=json.loads((root/"heldout_test_metrics.json").read_text())
@@ -184,6 +267,10 @@ def analyze(ledger,out):
         if not valid(j):raise ValueError("unverified "+j["semantic_id"])
         root=Path(j["artifacts"][0]).parent;c=j["config"];s=json.loads((root/"final_summary.json").read_text())
         row={**{k:c[k] for k in ("setting_id","seed","name","stage","mode","policy","k","budget","fresh","clients","source","experiment_id")},**{k:s.get(k) for k in ("final_accuracy","test_final_accuracy","forgetting","worst_task_accuracy","test_worst_task_accuracy","total_bytes","model_bytes","statistics_bytes","control_bytes","optimizer_steps","processed_samples","replay_samples","mean_participants","deadline_cap_violations","ground_truth_hash")}}
+        row["clients_off"]=c["clients"]-c["k"] if row["budget"]==0 and not row["source"] else None
+        row["max_skip"]=int(c["expected_flags"].get("sync_max_skip",4))
+        row["representative_beta"]=float(c["expected_flags"].get("sync_representative_beta",0.))
+        row["delta_aggregation"]=bool(c["expected_flags"].get("sync_delta_aggregation",False))
         matrix.append(row);by_id[c["setting_id"],c["seed"],c["name"]]=row
         curves[c["experiment_id"]]=learning_curve(rows(root/"server_metrics.jsonl"),rows(root/"communication_rounds.jsonl"),5,50)
         decisions=rows(root/"decisions.jsonl");cf=rows(root/"counterfactuals.jsonl")
@@ -198,9 +285,14 @@ def analyze(ledger,out):
             for point in curves[ident]:h.write(json.dumps({"experiment_id":ident,**point})+"\n")
             key=(x["setting_id"],x["seed"])
             refs=[]
-            if x["mode"] not in ("random","off") or x["name"].startswith(("fresh-","stale-")):
-                ref="random-b"+str(int(x["budget"]*100)) if x["budget"] else "random" if x["fresh"] else "stale-random"
-                refs.append(ref)
+            base_k=6 if x["clients"]==10 else 3
+            fixed_ref="full" if x["k"]==x["clients"] else "random" if x["k"]==base_k else f"random-k{x['k']}"
+            if x["max_skip"]!=4:fixed_ref=f"random-skip{x['max_skip']}"
+            if x["name"] not in (fixed_ref,"full") and not x["source"]:
+                ref=("random-b"+str(int(x["budget"]*100))) if x["budget"] else "delta-random" if x["delta_aggregation"] else fixed_ref if x["fresh"] else "stale-random"
+                if ref!=x["name"]:refs.append(ref)
+            if x["name"].startswith("rmp-"):
+                mode=x["mode"];refs.append(mode if x["k"]==base_k else f"{mode}-k{x['k']}")
             if x["name"]=="server-learned":refs.append("server")
             if x["name"].startswith("delta-"):
                 refs.extend(["stale-"+x["name"][6:],"random" if x["name"]=="delta-random" else "fresh-"+x["name"][6:]])
@@ -212,7 +304,19 @@ def analyze(ledger,out):
                 b=by_id.get((*key,ref))
                 if not b:continue
                 if b["ground_truth_hash"]!=x["ground_truth_hash"]:raise ValueError("paired stream mismatch")
-                p={"experiment_id":ident,"reference":b["experiment_id"],"setting_id":key[0],"seed":key[1]}
+                strict=(not x["budget"] and not b["budget"] and not x["source"] and not b["source"] and
+                        x["clients"]==b["clients"] and x["k"]==b["k"] and x["fresh"]==b["fresh"] and
+                        x["max_skip"]==b["max_skip"] and x["delta_aggregation"]==b["delta_aggregation"])
+                comparison=("fixed_matched" if strict else "exact_count_matched" if b["source"]==x["name"] else
+                            "same_byte_ceiling" if x["budget"] and x["budget"]==b["budget"] else "descriptive_protocol_or_budget")
+                p={"experiment_id":ident,"reference":b["experiment_id"],"setting_id":key[0],"seed":key[1],
+                   "comparison":comparison,"clients":x["clients"],"clients_off":x["clients_off"],"reference_clients_off":b["clients_off"],
+                   "same_optimizer_steps":x["optimizer_steps"]==b["optimizer_steps"],
+                   "same_processed_samples":x["processed_samples"]==b["processed_samples"],
+                   "same_replay_samples":x["replay_samples"]==b["replay_samples"],
+                   "reference_name":b["name"],"fresh":x["fresh"],"delta_aggregation":x["delta_aggregation"],"max_skip":x["max_skip"],
+                   "method_test_accuracy":x["test_final_accuracy"],"reference_test_accuracy":b["test_final_accuracy"],
+                   "method_forgetting":x["forgetting"],"reference_forgetting":b["forgetting"]}
                 for metric in ("final_accuracy","test_final_accuracy","forgetting","total_bytes","statistics_bytes","optimizer_steps","processed_samples"):p[metric+"_delta"]=x[metric]-b[metric]
                 pairs.append(p)
                 for point in compare_equal_bytes(curves[ident],curves[b["experiment_id"]]):e.write(json.dumps({**p,**point})+"\n")
@@ -227,11 +331,40 @@ def analyze(ledger,out):
     with (out/"target_accuracy_bytes.jsonl").open("w") as h:
         for ident,curve in curves.items():
             for x in bytes_to_targets(curve):h.write(json.dumps({"experiment_id":ident,**x})+"\n")
+    def profile_row(sid,seed,label):
+        return by_id[sid,seed,"server" if label=="default" else "tune-"+label]
+    def rank(label):
+        d=[profile_row(sid,42,label) for sid in ("S04","S14")]
+        return (-mean(x["final_accuracy"]-by_id[x["setting_id"],42,"random"]["final_accuracy"] for x in d),
+                mean(x["forgetting"] for x in d),label)
+    ranking=sorted(TUNING_PROFILES,key=rank)
+    tuned=[]
+    for place,label in enumerate(ranking,1):
+        for sid in ("S04","S14"):
+            for seed in (42,43,44):
+                x=profile_row(sid,seed,label);b=by_id[sid,seed,"random"]
+                tuned.append({"profile":label,"validation_development_rank":place,"selected":place==1,
+                              "setting_id":sid,"seed":seed,"phase":"development" if seed==42 else "confirmation",
+                              "experiment_id":x["experiment_id"],"reference":b["experiment_id"],
+                              **{m+"_delta":x[m]-b[m] for m in ("final_accuracy","test_final_accuracy","forgetting","total_bytes")}})
+    write_csv(out/"tuning_selection.csv",tuned)
+    # Descriptive test ranking, never consumed by online selection or tuning.
+    groups=defaultdict(list)
+    for p in pairs:
+        ref=p["reference_name"]
+        if p["comparison"]=="fixed_matched" and (ref in ("full","random","stale-random","delta-random") or ref.startswith(("random-k","random-skip"))):
+            key=tuple(p[k] for k in ("setting_id","seed","clients","clients_off","fresh","delta_aggregation","max_skip","reference"))
+            groups[key].append(p)
+    fixed=[]
+    for key,group in sorted(groups.items()):
+        for place,p in enumerate(sorted(group,key=lambda x:(-x["test_final_accuracy_delta"],x["forgetting_delta"],x["experiment_id"])),1):
+            fixed.append({**p,"rank_within_matched_group":place})
+    write_csv(out/"fixed_off_rankings.csv",fixed)
     write_csv(out/"matrix.csv",matrix);write_csv(out/"paired_comparisons.csv",pairs);write_csv(out/"oracle_diagnostics.csv",oracles)
     (out/"matrix.json").write_text(json.dumps({"training_runs":len(matrix),"results":matrix},indent=2,allow_nan=False))
     report=["# Utility follow-up: measured results","",f"Verified trajectories: {len(matrix)}.","","Validation drives method development; final test metrics are descriptive, not used to choose methods.","","## Paired comparisons","","| Method | Reference | Validation accuracy delta | Bytes delta | Forgetting delta |","|---|---|---:|---:|---:|"]
     report.extend(f'| {p["experiment_id"]} | {p["reference"]} | {p["final_accuracy_delta"]:+.4f} | {p["total_bytes_delta"]:+,} | {p["forgetting_delta"]:+.4f} |' for p in pairs)
-    report+=["","Analytical utility is a proxy; no calibrated uncertainty guarantee. Logical bytes are not physical throughput. Same participant counts need not match samples. Archive data informed the design; confirmation settings and seed 43 are prespecified."]
+    report+=["",f"Validation-selected tuning profile: {ranking[0]}. Independent seed 43/44 contrasts are in tuning_selection.csv.","Only fixed_matched rows with identical OFF budgets support fixed-budget selector claims. Full reference and cross-protocol rows are descriptive.","Analytical utility is a proxy; no calibrated uncertainty guarantee. Logical bytes are not physical throughput. Same participant counts need not match samples. Archive data informed the design; confirmation settings and seed 43 are prespecified."]
     (out/"report.md").write_text("\n".join(report)+"\n")
 
 if __name__=="__main__":
